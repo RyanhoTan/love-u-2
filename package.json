@@ -1,0 +1,12 @@
+{
+  "name": "love-u-2",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "dev": "node ./scripts/dev.mjs",
+    "dev:app": "pnpm --dir app dev",
+    "dev:server": "pnpm --dir server dev",
+    "install:all": "pnpm --dir app install && pnpm --dir server install"
+  }
+}

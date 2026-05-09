@@ -1,0 +1,15 @@
+node_modules/
+.pnpm-store/
+.expo/
+.expo-shared/
+dist/
+coverage/
+*.log
+
+app/.env
+server/.env
+server/prisma/dev.db
+server/prisma/dev.db-journal
+
+.DS_Store
+Thumbs.db

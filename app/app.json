@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "love-u-mobile",
+    "slug": "love-u-mobile",
+    "version": "1.0.0",
+    "scheme": "loveumobile",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router"
+    ],
+    "web": {
+      "bundler": "metro"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
