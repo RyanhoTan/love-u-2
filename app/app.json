@@ -9,6 +9,9 @@
     "plugins": [
       "expo-router"
     ],
+    "android": {
+      "package": "com.loveumobile.app"
+    },
     "web": {
       "bundler": "metro"
     },
