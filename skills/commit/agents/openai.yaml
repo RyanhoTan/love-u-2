@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit"
+  short_description: "Generate and create conventional Git commits."
+  default_prompt: "Use $commit to create a conventional commit from the current git changes."
