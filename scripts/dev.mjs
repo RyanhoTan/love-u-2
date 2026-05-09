@@ -2,13 +2,21 @@ import { spawn } from "node:child_process";
 import { resolve } from "node:path";
 
 const root = process.cwd();
-const pnpmCmd = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const pnpmCmd = "pnpm";
 const appDir = resolve(root, "app");
 const serverDir = resolve(root, "server");
 
+const buildCommand = (dir) => `${pnpmCmd} --dir "${dir}" dev`;
+
 const children = [
-  spawn(pnpmCmd, ["--dir", serverDir, "dev"], { stdio: "inherit" }),
-  spawn(pnpmCmd, ["--dir", appDir, "dev"], { stdio: "inherit" })
+  spawn(buildCommand(serverDir), {
+    stdio: ["ignore", "inherit", "inherit"],
+    shell: true
+  }),
+  spawn(buildCommand(appDir), {
+    stdio: "inherit",
+    shell: true
+  })
 ];
 
 let isShuttingDown = false;
@@ -25,6 +33,12 @@ const shutdown = (signal) => {
 };
 
 for (const child of children) {
+  child.on("error", (error) => {
+    console.error("Failed to start process:", error.message);
+    shutdown("SIGTERM");
+    process.exitCode = 1;
+  });
+
   child.on("exit", (code) => {
     if (!isShuttingDown && code && code !== 0) {
       shutdown("SIGTERM");
