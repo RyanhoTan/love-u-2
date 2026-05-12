@@ -8,5 +8,8 @@
     "dev:app": "pnpm --dir app dev",
     "dev:server": "pnpm --dir server dev",
     "install:all": "pnpm --dir app install && pnpm --dir server install"
+  },
+  "dependencies": {
+    "react-native-safe-area-context": "^5.7.0"
   }
 }
