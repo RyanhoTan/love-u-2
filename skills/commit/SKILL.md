@@ -1,20 +1,20 @@
 ---
 name: commit
-description: Generate and prepare a Conventional Commit message. It stages changes and populates the git commit editor for user review instead of committing directly.
+description: Generate and create Conventional Commits from Git changes. Use when the user asks Codex to commit current work, generate a commit message, create a conventional commit, or convert staged/unstaged repository changes into a professional Git commit.
 ---
 
 # Commit
 
-Prepare a Git commit with a professional Conventional Commits message. This workflow ensures the user can review and edit the message in their default editor before finalizing the commit.
+Create a Git commit with a professional Conventional Commits message based on the current repository changes.
 
 ## Workflow
 
 1. Inspect the changed area at a high level without reading unrelated files.
 2. Use `git diff` to understand the actual changes.
-3. If staged changes exist, treat the staged set as the user's explicit selection.
+3. If staged changes exist, treat the staged set as the user's explicit selection and commit only those changes.
 4. If no changes are staged, stage the relevant uncommitted changes explicitly with `git add`.
 5. Generate a Conventional Commits message.
-6. Open the Git commit editor with the generated message pre-filled for user review and final confirmation.
+6. Run `git commit` with the generated message.
 7. Do not amend existing commits and do not push.
 
 ## Allowed Git Commands
@@ -23,7 +23,9 @@ Use only these command categories for the commit workflow:
 
 - `git diff` to inspect changes.
 - `git add` to stage relevant files when nothing is already staged.
-- `git commit` to initiate the commit process and open the editor.
+- `git commit` to create the commit.
+
+Do not run `git status` or `git log` if the user already provided that information. If repository state is not known in the current turn, use the minimum Git inspection needed before committing.
 
 ## Commit Message Format
 
@@ -35,6 +37,7 @@ Follow this structure:
 <body>
 
 [optional footer(s)]
+```
 
 Use one of these primary types:
 
