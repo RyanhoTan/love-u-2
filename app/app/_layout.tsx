@@ -3,10 +3,8 @@ import { Column } from "../components/layout";
 import {Text, StyleSheet, Pressable} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TabList, Tabs, TabSlot, TabTrigger, TabTriggerSlotProps } from 'expo-router/ui';
-import Interact from '../assets/icons/home-layout/interact.svg';
-import Home from '../assets/icons/home-layout/home.svg';
-import Album from '../assets/icons/home-layout/album.svg';
-import Mine from '../assets/icons/home-layout/mine.svg';
+import { Interact, Home, Album, Mine } from '@/assets/icons/home-layout';
+
 
 export default function RootLayout() {
   return (
