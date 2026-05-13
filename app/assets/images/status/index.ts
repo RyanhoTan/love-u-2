@@ -1,0 +1,1 @@
+export const Music = require('@/assets/images/status/music.png');

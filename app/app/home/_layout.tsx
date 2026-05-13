@@ -1,20 +1,27 @@
 import { StatusBar } from "expo-status-bar";
-import { Column } from "@/components/layout";
-import {Text, StyleSheet, Pressable} from "react-native";
+import { Column, Row } from "@/components/layout";
+import {Text, StyleSheet, Pressable, View, ImageBackground} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TabList, Tabs, TabSlot, TabTrigger, TabTriggerSlotProps } from 'expo-router/ui';
 import { Interact, Home, Album, Mine } from '@/assets/icons/home-layout';
+import {AuthBackground} from '@/assets/images/auth'
 
 
 export default function RootLayout() {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-    <Column gap={16} flex={1}>
+    <View style={{ flex: 1 }}>
+      <ImageBackground
+            source={AuthBackground}
+            style={{ flex: 1 }}
+            >      <SafeAreaView style={{ flex: 1, padding: 16 }}>
       <StatusBar style="dark" />
+    <Column gap={16} flex={1}>
+      
       <Tabs>
-        <Column flex={1} style={{ paddingHorizontal: 12, paddingVertical:24 }}>
+        <Column flex={1} >
           <TabSlot style={{ flex: 1 }} />
         </Column>
+        
        <TabList style={styles.tabsList}>
         <TabTrigger name="index" href="/" asChild>
           <TabsButton text="首页" IconComponent={Home} />
@@ -36,6 +43,9 @@ export default function RootLayout() {
        </Tabs> 
     </Column>
     </SafeAreaView>
+    </ImageBackground>
+
+    </View>
   );
 }
 
@@ -71,6 +81,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     height: 64,
     justifyContent: 'space-around',
+    alignSelf:'center',
+    borderRadius: 32,
   }
 })
 
