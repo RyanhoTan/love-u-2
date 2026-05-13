@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Redirect } from 'expo-router';
 import { Column, Row } from "@/components/layout";
 import { AvatarMale, AvatarFemale } from "@/assets/images";
-import { Music } from "@/assets/images/status";
+import { Status, DoubleHeart, Gift } from "@/assets/icons/home";
 
 export default function HomeScreen() {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -25,10 +25,25 @@ export default function HomeScreen() {
 
             <TouchableOpacity>
             <Column gap={8} bg='#fff' rounded={8} style={{ padding: 8, marginTop: 42 }} >
-              <Image source={Music} style={{ width: 100, height: 100, borderRadius: 8 }} resizeMode="contain" />
-              <Text style={{ fontSize: 16, textAlign: 'center' }}>音乐</Text>
+              <Status width={72} height={72} />
+              <Text style={{ fontSize: 16, textAlign: 'center' }}>今日状态</Text>
             </Column>
             </TouchableOpacity>
+
+        <TouchableOpacity>
+            <Column gap={8} bg='#fff' rounded={8} style={{ padding: 8, marginTop: 42 }} >
+              <DoubleHeart width={72} height={72} />
+              <Text style={{ fontSize: 16, textAlign: 'center' }}>一句话</Text>
+            </Column>
+            </TouchableOpacity>
+
+             <TouchableOpacity>
+            <Column gap={8} bg='#fff' rounded={8} style={{ padding: 8, marginTop: 42 }} >
+              <Gift width={72} height={72} />
+              <Text style={{ fontSize: 16, textAlign: 'center' }}>愿望清单</Text>
+            </Column>
+            </TouchableOpacity>
+
 
           </Row>
           <TouchableOpacity style={{ padding: 16, backgroundColor: '#fff', borderRadius: 8, marginTop: 42 }}>
