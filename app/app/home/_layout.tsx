@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { Column } from "../components/layout";
+import { Column } from "@/components/layout";
 import {Text, StyleSheet, Pressable} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TabList, Tabs, TabSlot, TabTrigger, TabTriggerSlotProps } from 'expo-router/ui';
@@ -20,15 +20,15 @@ export default function RootLayout() {
           <TabsButton text="首页" IconComponent={Home} />
         </TabTrigger>
 
-    <TabTrigger name="interact" href="/interact" asChild  >
+    <TabTrigger name="interact" href="/home/interact" asChild  >
        <TabsButton text="交互" IconComponent={Interact} />
        </TabTrigger>
 
-        <TabTrigger name="album" href="/album" asChild >
+        <TabTrigger name="album" href="/home/album" asChild >
           <TabsButton text="相册" IconComponent={Album} />
         </TabTrigger>
 
-        <TabTrigger name="mine" href="/mine" asChild >
+        <TabTrigger name="mine" href="/home/mine" asChild >
           <TabsButton text="我的" IconComponent={Mine} />
         </TabTrigger>
        </TabList>
