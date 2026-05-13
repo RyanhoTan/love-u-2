@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { Column, Row } from "@/components/layout";
+import { Column } from "@/components/layout";
 import {Text, StyleSheet, Pressable, View, ImageBackground} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TabList, Tabs, TabSlot, TabTrigger, TabTriggerSlotProps } from 'expo-router/ui';
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     height: 64,
     justifyContent: 'space-around',
     alignSelf:'center',
-    borderRadius: 32,
+    borderRadius: 32,  
   }
 })
 
