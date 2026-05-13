@@ -3,7 +3,11 @@ import { View, ViewStyle } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 export interface FlexLayoutProps extends React.ComponentProps<typeof View> {
+  ref?: React.Ref<View>;
+  width?: ViewStyle['width'];
+  height?: ViewStyle['height'];
   flex?: ViewStyle['flex'];
+  reverse?: boolean;
   gap?: ViewStyle['gap'];
   center?: boolean | 'items' | 'content' | 'self';
   items?: ViewStyle['alignItems'];
@@ -14,7 +18,11 @@ export interface FlexLayoutProps extends React.ComponentProps<typeof View> {
 
 export const FlexLayout = memo(function FlexLayout({
   type,
+  ref,
+  width,
+  height,
   flex,
+  reverse,
   gap,
   center,
   items,
@@ -26,8 +34,12 @@ export const FlexLayout = memo(function FlexLayout({
   return (
     <View
       {...viewProps}
+      ref={ref}
       style={[
-        { display: 'flex', flex, gap, borderRadius: rounded, backgroundColor: bg },
+        { display: 'flex', width, height, flex, gap, borderRadius: rounded, backgroundColor: bg },
+
+        type === 'row' && { flexDirection: reverse ? 'row-reverse' : 'row' },
+        type === 'column' && { flexDirection: reverse ? 'column-reverse' : 'column' },
 
         center === true && { alignItems: 'center', justifyContent: 'center' },
         center === 'items' && { alignItems: 'center' },
