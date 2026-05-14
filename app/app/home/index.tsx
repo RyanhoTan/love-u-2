@@ -24,21 +24,21 @@ export default function HomeScreen() {
           <Row center gap={12} style={{ overflow: 'hidden' }} >
 
             <TouchableOpacity>
-            <Column gap={8} bg='#fff' rounded={8} style={{ padding: 8, marginTop: 42 }} >
+            <Column center gap={8} bg='#fff' rounded={20} style={{ padding: 8, marginTop: 42, width: 120 }} >
               <Status width={72} height={72} />
               <Text style={{ fontSize: 16, textAlign: 'center' }}>今日状态</Text>
             </Column>
             </TouchableOpacity>
 
         <TouchableOpacity>
-            <Column gap={8} bg='#fff' rounded={8} style={{ padding: 8, marginTop: 42 }} >
+            <Column center gap={8} bg='#fff' rounded={20} style={{ padding: 8, marginTop: 42, width: 120 }} >
               <DoubleHeart width={72} height={72} />
               <Text style={{ fontSize: 16, textAlign: 'center' }}>一句话</Text>
             </Column>
             </TouchableOpacity>
 
              <TouchableOpacity>
-            <Column gap={8} bg='#fff' rounded={8} style={{ padding: 8, marginTop: 42 }} >
+            <Column center gap={8} bg='#fff' rounded={20} style={{ padding: 8, marginTop: 42, width: 120 }} >
               <Gift width={72} height={72} />
               <Text style={{ fontSize: 16, textAlign: 'center' }}>愿望清单</Text>
             </Column>
@@ -46,7 +46,7 @@ export default function HomeScreen() {
 
 
           </Row>
-          <TouchableOpacity style={{ padding: 16, backgroundColor: '#fff', borderRadius: 8, marginTop: 42 }}>
+          <TouchableOpacity style={{ padding: 16, backgroundColor: '#fff', borderRadius: 20, marginTop: 42 }}>
             <Column gap={12}>
             <Text style={{ fontSize: 14 }}>下一个纪念日</Text>
             <Row>
