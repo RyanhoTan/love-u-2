@@ -55,7 +55,7 @@ export default function Auth() {
               justifyContent: "center",
             }}
             onPress={() => {
-              router.push("/home");
+              router.push("/home/(tabs)");
             }}
           >
             <Text style={{ color: "#fff" }}>登录</Text>

@@ -1,12 +1,13 @@
 import { Image, Text, TouchableOpacity } from "react-native";
 import { useState } from "react";
-import { Redirect } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { Column, Row } from "@/components/layout";
 import { AvatarMale, AvatarFemale } from "@/assets/images";
 import { Status, DoubleHeart, Gift } from "@/assets/icons/home";
 
 export default function HomeScreen() {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const router = useRouter();
   return (
     <>
       {isLoggedIn ? (
@@ -47,7 +48,7 @@ export default function HomeScreen() {
             2023年1月1日
           </Text>
           <Row center gap={12} style={{ overflow: "hidden" }}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/home/status")}>
               <Column
                 center
                 gap={8}
