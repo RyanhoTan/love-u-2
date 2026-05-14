@@ -7,9 +7,13 @@
     "dev": "node ./scripts/dev.mjs",
     "dev:app": "pnpm --dir app dev",
     "dev:server": "pnpm --dir server dev",
-    "install:all": "pnpm --dir app install && pnpm --dir server install"
+    "install:all": "pnpm --dir app install && pnpm --dir server install",
+    "format": "prettier --write ./app/app ./app/components ./scripts"
   },
   "dependencies": {
     "react-native-safe-area-context": "^5.7.0"
+  },
+  "devDependencies": {
+    "prettier": "3.8.3"
   }
 }

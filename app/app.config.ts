@@ -1,25 +1,25 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
+import { ExpoConfig, ConfigContext } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   return {
     ...config,
-    icon: './assets/images/icon.png',
+    icon: "./assets/images/icon.png",
     splash: {
-      image: './assets/images/splash.png',
-      backgroundColor: '#ffffff',
+      image: "./assets/images/splash.png",
+      backgroundColor: "#ffffff",
     },
-    name: 'love4u',
-    slug: 'love-u-mobile',
-    version: '1.0.0',
-    scheme: 'loveumobile',
-    orientation: 'portrait',
-    userInterfaceStyle: 'automatic',
-    plugins: ['expo-router'],
+    name: "love4u",
+    slug: "love-u-mobile",
+    version: "1.0.0",
+    scheme: "loveumobile",
+    orientation: "portrait",
+    userInterfaceStyle: "automatic",
+    plugins: ["expo-router"],
     android: {
-      package: 'com.loveumobile.app',
+      package: "com.loveumobile.app",
     },
     web: {
-      bundler: 'metro',
+      bundler: "metro",
     },
     experiments: {
       typedRoutes: true,

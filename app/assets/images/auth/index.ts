@@ -1,1 +1,1 @@
-export const AuthBackground = require('./auth-background.png');
+export const AuthBackground = require("./auth-background.png");

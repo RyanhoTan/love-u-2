@@ -10,13 +10,18 @@ module.exports = (() => {
   const resolveWithAlias = (context, moduleName, platform) => {
     if (moduleName.startsWith("@/")) {
       const targetPath = path.resolve(projectRoot, moduleName.slice(2));
-      const relativePath = path.relative(path.dirname(context.originModulePath), targetPath);
-      const requestPath = relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
+      const relativePath = path.relative(
+        path.dirname(context.originModulePath),
+        targetPath,
+      );
+      const requestPath = relativePath.startsWith(".")
+        ? relativePath
+        : `./${relativePath}`;
 
       return context.resolveRequest(
         context,
         requestPath.replace(/\\/g, "/"),
-        platform
+        platform,
       );
     }
 
@@ -25,13 +30,13 @@ module.exports = (() => {
 
   config.transformer = {
     ...transformer,
-    babelTransformerPath: require.resolve("react-native-svg-transformer/expo")
+    babelTransformerPath: require.resolve("react-native-svg-transformer/expo"),
   };
   config.resolver = {
     ...resolver,
     assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
     resolveRequest: resolveWithAlias,
-    sourceExts: [...resolver.sourceExts, "svg"]
+    sourceExts: [...resolver.sourceExts, "svg"],
   };
 
   return config;

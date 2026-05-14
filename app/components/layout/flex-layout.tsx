@@ -1,19 +1,19 @@
-import { memo } from 'react';
-import { View, ViewStyle } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { memo } from "react";
+import { View, ViewStyle } from "react-native";
+import Animated from "react-native-reanimated";
 
 export interface FlexLayoutProps extends React.ComponentProps<typeof View> {
   ref?: React.Ref<View>;
-  width?: ViewStyle['width'];
-  height?: ViewStyle['height'];
-  flex?: ViewStyle['flex'];
+  width?: ViewStyle["width"];
+  height?: ViewStyle["height"];
+  flex?: ViewStyle["flex"];
   reverse?: boolean;
-  gap?: ViewStyle['gap'];
-  center?: boolean | 'items' | 'content' | 'self';
-  items?: ViewStyle['alignItems'];
-  content?: ViewStyle['justifyContent'];
-  rounded?: ViewStyle['borderRadius'];
-  bg?: ViewStyle['backgroundColor'];
+  gap?: ViewStyle["gap"];
+  center?: boolean | "items" | "content" | "self";
+  items?: ViewStyle["alignItems"];
+  content?: ViewStyle["justifyContent"];
+  rounded?: ViewStyle["borderRadius"];
+  bg?: ViewStyle["backgroundColor"];
 }
 
 export const FlexLayout = memo(function FlexLayout({
@@ -30,21 +30,31 @@ export const FlexLayout = memo(function FlexLayout({
   rounded,
   bg,
   ...viewProps
-}: { type: 'row' | 'column' } & FlexLayoutProps) {
+}: { type: "row" | "column" } & FlexLayoutProps) {
   return (
     <View
       {...viewProps}
       ref={ref}
       style={[
-        { display: 'flex', width, height, flex, gap, borderRadius: rounded, backgroundColor: bg },
+        {
+          display: "flex",
+          width,
+          height,
+          flex,
+          gap,
+          borderRadius: rounded,
+          backgroundColor: bg,
+        },
 
-        type === 'row' && { flexDirection: reverse ? 'row-reverse' : 'row' },
-        type === 'column' && { flexDirection: reverse ? 'column-reverse' : 'column' },
+        type === "row" && { flexDirection: reverse ? "row-reverse" : "row" },
+        type === "column" && {
+          flexDirection: reverse ? "column-reverse" : "column",
+        },
 
-        center === true && { alignItems: 'center', justifyContent: 'center' },
-        center === 'items' && { alignItems: 'center' },
-        center === 'content' && { justifyContent: 'center' },
-        center === 'self' && { alignSelf: 'center' },
+        center === true && { alignItems: "center", justifyContent: "center" },
+        center === "items" && { alignItems: "center" },
+        center === "content" && { justifyContent: "center" },
+        center === "self" && { alignSelf: "center" },
 
         items && { alignItems: items },
         content && { justifyContent: content },

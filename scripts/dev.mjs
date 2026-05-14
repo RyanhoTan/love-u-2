@@ -8,10 +8,12 @@ const serverDir = resolve(root, "server");
 
 const projects = [
   { name: "server", dir: serverDir, stdio: ["ignore", "inherit", "inherit"] },
-  { name: "app", dir: appDir, stdio: "inherit" }
+  { name: "app", dir: appDir, stdio: "inherit" },
 ];
 
-const missingDeps = projects.filter(({ dir }) => !existsSync(resolve(dir, "node_modules")));
+const missingDeps = projects.filter(
+  ({ dir }) => !existsSync(resolve(dir, "node_modules")),
+);
 
 if (missingDeps.length > 0) {
   console.error("Missing dependencies in:");
@@ -33,7 +35,7 @@ const buildCommand = (dir) => `pnpm --dir "${dir}" dev`;
 const spawnProject = ({ dir, stdio }) =>
   spawn(buildCommand(dir), {
     stdio,
-    shell: true
+    shell: true,
   });
 
 const children = projects.map(spawnProject);
@@ -48,11 +50,15 @@ const stopChild = (child, signal) =>
     }
 
     if (process.platform === "win32") {
-      const killer = spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], {
-        stdio: "ignore",
-        shell: false,
-        windowsHide: true
-      });
+      const killer = spawn(
+        "taskkill",
+        ["/pid", String(child.pid), "/t", "/f"],
+        {
+          stdio: "ignore",
+          shell: false,
+          windowsHide: true,
+        },
+      );
 
       killer.on("exit", () => resolveStop());
       killer.on("error", () => {
