@@ -55,7 +55,8 @@ const toastConfig: ToastConfig = {
 };
 
 export const toast = {
-  success: (text1: string, text2?: string) => showToast("success", text1, text2),
+  success: (text1: string, text2?: string) =>
+    showToast("success", text1, text2),
   error: (text1: string, text2?: string) => showToast("error", text1, text2),
   info: (text1: string, text2?: string) => showToast("info", text1, text2),
 };

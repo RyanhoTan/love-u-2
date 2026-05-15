@@ -11,6 +11,11 @@ export { default as IconsHomeLayoutMineSvg } from "./icons/home-layout/mine.svg"
 export { default as IconsHomeDoubleHeartSvg } from "./icons/home/double-heart.svg";
 export { default as IconsHomeGiftSvg } from "./icons/home/gift.svg";
 export { default as IconsHomeStatusSvg } from "./icons/home/status.svg";
+export { default as IconsHomeStatusAngrySvg } from "./icons/home/status/angry.svg";
+export { default as IconsHomeStatusHappySvg } from "./icons/home/status/happy.svg";
+export { default as IconsHomeStatusMissYouSvg } from "./icons/home/status/miss-you.svg";
+export { default as IconsHomeStatusSadSvg } from "./icons/home/status/sad.svg";
+export { default as IconsHomeStatusShockSvg } from "./icons/home/status/shock.svg";
 export const ImagesAuthBackgroundPng = require("./images/auth/auth-background.png");
 export const ImagesAvatarFemalePng = require("./images/avatar-female.png");
 export const ImagesAvatarMalePng = require("./images/avatar-male.png");
