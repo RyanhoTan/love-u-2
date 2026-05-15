@@ -68,7 +68,7 @@ export default function HomeScreen() {
               </Column>
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/home/asentence")}>
               <Column
                 center
                 gap={8}

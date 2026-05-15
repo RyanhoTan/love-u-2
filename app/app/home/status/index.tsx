@@ -1,4 +1,4 @@
-import { NavBar } from "@/components/common/nav-bar";
+import { NavBar } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import {
   Text,
@@ -116,7 +116,6 @@ export default function Status() {
                         </TouchableOpacity>
                       </Column>
                     ))}
-
                   </ScrollView>
                 </Row>
                 <TextInput
