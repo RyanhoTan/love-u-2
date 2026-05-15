@@ -11,13 +11,13 @@ const isWatchMode = process.argv.includes("--watch");
 const watchList = [
   {
     dir: join(assetsDir, "icons"),
-    exportPrefix: "Icon",
+    exportPrefix: "",
     exportKind: "component",
     extensions: new Set([".svg"]),
   },
   {
     dir: join(assetsDir, "images"),
-    exportPrefix: "Image",
+    exportPrefix: "",
     exportKind: "require",
     extensions: new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif", ".bmp"]),
   },
@@ -74,17 +74,25 @@ function scheduleBuild() {
 
 async function collectAssetFiles() {
   const files = [];
-
+  
   for (const entry of watchList) {
     const entryFiles = await walkFiles(entry.dir);
     files.push(
       ...entryFiles
         .filter((filePath) => entry.extensions.has(extname(filePath).toLowerCase()))
-        .map((filePath) => ({
-          filePath,
-          exportKind: entry.exportKind,
-          exportPrefix: entry.exportPrefix,
-        })),
+        .map((filePath) => {
+          // --- 在这里添加 ---
+          const ext = extname(filePath).slice(1); 
+          // ----------------
+          
+          return {
+            filePath,
+            exportKind: entry.exportKind,
+            exportPrefix: entry.exportPrefix,
+            // 使用上面定义的 ext
+            extensionSuffix: ext.charAt(0).toUpperCase() + ext.slice(1),
+          };
+        }),
     );
   }
 
@@ -118,10 +126,10 @@ async function walkFiles(dir) {
 }
 
 function buildExportEntries(assetFiles) {
-  const entries = assetFiles.map(({ filePath, exportKind, exportPrefix }) => {
+  const entries = assetFiles.map(({ filePath, exportKind, exportPrefix, extensionSuffix }) => {
     const relativePath = relative(assetsDir, filePath);
     const importPath = `./${relativePath.replace(/\\/g, "/")}`;
-    const exportName = `${exportPrefix}${toExportName(relativePath)}`;
+    const exportName = `${exportPrefix}${toExportName(relativePath)}${extensionSuffix ?? ""}`;
 
     return {
       exportName,
