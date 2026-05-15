@@ -7,21 +7,26 @@ import {
   ImageBackground,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { WeChat, Apple, QQ, Heart } from "@/assets/icons/auth";
-import { AuthBackground } from "@/assets/images/auth";
+import {
+  IconsAuthWechatSvg,
+  IconsAuthAppleSvg,
+  IconsAuthQqSvg,
+  IconsAuthHeartSvg,
+  ImagesAuthBackgroundPng,
+} from "@/assets";
 import { useRouter } from "expo-router";
 
 export default function Auth() {
   const router = useRouter();
   return (
-    <ImageBackground source={AuthBackground} style={{ flex: 1 }}>
+    <ImageBackground source={ImagesAuthBackgroundPng} style={{ flex: 1 }}>
       <SafeAreaView
         style={{ paddingVertical: 24, paddingHorizontal: 36, flex: 1, gap: 16 }}
       >
         <Column style={{ marginTop: 120 }}>
           <Row items="center" gap={2}>
             <Text style={{ fontSize: 23 }}>欢迎回来 </Text>
-            <Heart width={24} height={24} />
+            <IconsAuthHeartSvg width={24} height={24} />
           </Row>
           <Text style={{ fontSize: 16, color: "#666", marginTop: 19 }}>
             登陆后即可开启你们的专属空间
@@ -79,10 +84,10 @@ export default function Auth() {
           </Text>
           <Row gap={24} content="center">
             <TouchableOpacity>
-              <WeChat />
+              <IconsAuthWechatSvg />
             </TouchableOpacity>
-            {/* <TouchableOpacity style={{ height: 24, width: 24 }}><Apple/></TouchableOpacity>
-        <TouchableOpacity style={{ height: 24, width: 24 }}><QQ/></TouchableOpacity> */}
+            {/* <TouchableOpacity style={{ height: 24, width: 24 }}><IconsAuthAppleSvg/></TouchableOpacity>
+        <TouchableOpacity style={{ height: 24, width: 24 }}><IconsAuthQqSvg/></TouchableOpacity> */}
           </Row>
         </Column>
       </SafeAreaView>

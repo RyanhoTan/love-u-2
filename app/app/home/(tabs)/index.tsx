@@ -2,8 +2,13 @@ import { Image, Text, TouchableOpacity } from "react-native";
 import { useState } from "react";
 import { Redirect, useRouter } from "expo-router";
 import { Column, Row } from "@/components/layout";
-import { AvatarMale, AvatarFemale } from "@/assets/images";
-import { Status, DoubleHeart, Gift } from "@/assets/icons/home";
+import {
+  ImagesAvatarMalePng,
+  ImagesAvatarFemalePng,
+  IconsHomeStatusSvg,
+  IconsHomeDoubleHeartSvg,
+  IconsHomeGiftSvg,
+} from "@/assets";
 
 export default function HomeScreen() {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -19,11 +24,11 @@ export default function HomeScreen() {
             style={{ marginTop: 60 }}
           >
             <Image
-              source={AvatarMale}
+              source={ImagesAvatarMalePng}
               style={{ width: 80, height: 80, borderRadius: 50 }}
             />
             <Image
-              source={AvatarFemale}
+              source={ImagesAvatarFemalePng}
               style={{ width: 80, height: 80, borderRadius: 50 }}
             />
           </Row>
@@ -56,7 +61,7 @@ export default function HomeScreen() {
                 rounded={20}
                 style={{ padding: 8, marginTop: 42, width: 120 }}
               >
-                <Status width={72} height={72} />
+                <IconsHomeStatusSvg width={72} height={72} />
                 <Text style={{ fontSize: 16, textAlign: "center" }}>
                   今日状态
                 </Text>
@@ -71,7 +76,7 @@ export default function HomeScreen() {
                 rounded={20}
                 style={{ padding: 8, marginTop: 42, width: 120 }}
               >
-                <DoubleHeart width={72} height={72} />
+                <IconsHomeDoubleHeartSvg width={72} height={72} />
                 <Text style={{ fontSize: 16, textAlign: "center" }}>
                   一句话
                 </Text>
@@ -86,7 +91,7 @@ export default function HomeScreen() {
                 rounded={20}
                 style={{ padding: 8, marginTop: 42, width: 120 }}
               >
-                <Gift width={72} height={72} />
+                <IconsHomeGiftSvg width={72} height={72} />
                 <Text style={{ fontSize: 16, textAlign: "center" }}>
                   愿望清单
                 </Text>
