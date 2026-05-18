@@ -1,9 +1,8 @@
-import { useState } from "react";
 import { Redirect } from "expo-router";
+import { useAuth } from "@/app/features/auth/auth-context";
 
 export default function HomeScreen() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  return (
-    <>{isLoggedIn ? <Redirect href="/home" /> : <Redirect href="/auth" />}</>
-  );
+  const { isAuthenticated } = useAuth();
+
+  return <Redirect href={isAuthenticated ? "/home" : "/auth"} />;
 }

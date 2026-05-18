@@ -2,7 +2,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma.js";
+import { createToken, DEMO_PASSWORD, DEMO_USERNAME, hashPassword, verifyPassword, verifyToken } from "./auth.js";
 
 dotenv.config();
 
@@ -12,10 +14,85 @@ const port = Number(process.env.PORT ?? 3001);
 app.use(cors());
 app.use(express.json());
 
+const ensureDemoUser = async () => {
+  await prisma.$executeRaw`
+    INSERT OR IGNORE INTO "User" ("username", "passwordHash", "createdAt", "updatedAt")
+    VALUES (${DEMO_USERNAME}, ${hashPassword(DEMO_PASSWORD)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  `;
+};
+
 app.get("/health", (_req, res) => {
   res.status(200).json({
     status: "ok",
     timestamp: new Date().toISOString()
+  });
+});
+
+app.post("/api/auth/login", async (req, res) => {
+  const username = typeof req.body?.username === "string" ? req.body.username.trim() : "";
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
+
+  if (!username || !password) {
+    res.status(400).json({ message: "username and password are required" });
+    return;
+  }
+
+  const users = await prisma.$queryRaw<
+    Array<{ id: number; username: string; passwordHash: string }>
+  >(Prisma.sql`
+    SELECT "id", "username", "passwordHash"
+    FROM "User"
+    WHERE "username" = ${username}
+    LIMIT 1
+  `);
+  const user = users[0];
+
+  if (!user || !verifyPassword(password, user.passwordHash)) {
+    res.status(401).json({ message: "invalid username or password" });
+    return;
+  }
+
+  const token = createToken(user.id, user.username);
+
+  res.status(200).json({
+    token,
+    user: {
+      id: user.id,
+      username: user.username
+    }
+  });
+});
+
+app.get("/api/auth/me", async (req, res) => {
+  const header = req.headers.authorization ?? "";
+  const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+  const payload = token ? verifyToken(token) : null;
+
+  if (!payload) {
+    res.status(401).json({ message: "unauthorized" });
+    return;
+  }
+
+  const users = await prisma.$queryRaw<Array<{ id: number; username: string }>>(
+    Prisma.sql`
+      SELECT "id", "username"
+      FROM "User"
+      WHERE "id" = ${payload.userId}
+      LIMIT 1
+    `
+  );
+  const user = users[0];
+
+  if (!user) {
+    res.status(401).json({ message: "unauthorized" });
+    return;
+  }
+
+  res.status(200).json({
+    user: {
+      id: user.id,
+      username: user.username
+    }
   });
 });
 
@@ -69,16 +146,25 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ message: "internal server error" });
 });
 
-const server = app.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
-});
+const start = async () => {
+  await ensureDemoUser();
 
-const shutdown = async () => {
-  await prisma.$disconnect();
-  server.close(() => {
-    process.exit(0);
+  const server = app.listen(port, () => {
+    console.log(`Server listening on http://localhost:${port}`);
   });
+
+  const shutdown = async () => {
+    await prisma.$disconnect();
+    server.close(() => {
+      process.exit(0);
+    });
+  };
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 };
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+start().catch((error: unknown) => {
+  console.error(error);
+  process.exit(1);
+});

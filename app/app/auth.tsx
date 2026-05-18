@@ -1,23 +1,48 @@
-import { Column, Row } from "@/components/layout";
+import { useState } from "react";
+import { Redirect, useRouter } from "expo-router";
 import {
+  ImageBackground,
+  StyleSheet,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
-  ImageBackground,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "@/components/common";
+import { Column, Row } from "@/components/layout";
+import { useAuth } from "@/app/features/auth/auth-context";
 import {
-  IconsAuthWechatSvg,
-  IconsAuthAppleSvg,
-  IconsAuthQqSvg,
   IconsAuthHeartSvg,
+  IconsAuthWechatSvg,
   ImagesAuthBackgroundPng,
 } from "@/assets";
-import { useRouter } from "expo-router";
 
 export default function Auth() {
   const router = useRouter();
+  const { isAuthenticated, signIn, status } = useAuth();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  if (isAuthenticated) {
+    return <Redirect href="/home" />;
+  }
+
+  const handleLogin = async () => {
+    if (!username.trim() || !password) {
+      toast.error("请输入手机号/邮箱和密码");
+      return;
+    }
+
+    try {
+      await signIn(username.trim(), password);
+      router.replace("/home");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "登录失败，请稍后重试";
+      toast.error(message);
+    }
+  };
+
   return (
     <ImageBackground source={ImagesAuthBackgroundPng} style={{ flex: 1 }}>
       <SafeAreaView
@@ -29,7 +54,7 @@ export default function Auth() {
             <IconsAuthHeartSvg width={24} height={24} />
           </Row>
           <Text style={{ fontSize: 16, color: "#666", marginTop: 19 }}>
-            登陆后即可开启你们的专属空间
+            登录后即可开启你们的专属空间
           </Text>
         </Column>
         <Column gap={16} style={{ marginTop: 40 }}>
@@ -37,8 +62,16 @@ export default function Auth() {
             placeholder="手机号/邮箱"
             keyboardType="numeric"
             style={styles.input}
+            value={username}
+            onChangeText={setUsername}
           />
-          <TextInput placeholder="密码" secureTextEntry style={styles.input} />
+          <TextInput
+            placeholder="密码"
+            secureTextEntry
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+          />
           <TouchableOpacity
             style={{
               alignSelf: "flex-end",
@@ -46,35 +79,22 @@ export default function Auth() {
               paddingHorizontal: 12,
             }}
           >
-            <Text style={{ color: "#8b8a8a" }}>忘记密码?</Text>
+            <Text style={{ color: "#8b8a8a" }}>忘记密码？</Text>
           </TouchableOpacity>
         </Column>
         <Column gap={12}>
-          {/* TODO: 点击事件 */}
           <TouchableOpacity
-            style={{
-              backgroundColor: "#ff3b68",
-              height: 44,
-              borderRadius: 30,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            disabled={status === "loading"}
+            style={styles.loginButton}
             onPress={() => {
-              router.push("/home/(tabs)");
+              handleLogin();
             }}
           >
-            <Text style={{ color: "#fff" }}>登录</Text>
+            <Text style={{ color: "#fff" }}>
+              {status === "loading" ? "登录中..." : "登录"}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              borderWidth: 1,
-              borderColor: "#ff3b68",
-              height: 44,
-              borderRadius: 30,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <TouchableOpacity style={styles.signUpButton}>
             <Text>注册</Text>
           </TouchableOpacity>
           <Text
@@ -86,8 +106,6 @@ export default function Auth() {
             <TouchableOpacity>
               <IconsAuthWechatSvg />
             </TouchableOpacity>
-            {/* <TouchableOpacity style={{ height: 24, width: 24 }}><IconsAuthAppleSvg/></TouchableOpacity>
-        <TouchableOpacity style={{ height: 24, width: 24 }}><IconsAuthQqSvg/></TouchableOpacity> */}
           </Row>
         </Column>
       </SafeAreaView>
@@ -102,5 +120,20 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 15,
     paddingHorizontal: 12,
+  },
+  loginButton: {
+    backgroundColor: "#ff3b68",
+    height: 44,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  signUpButton: {
+    borderWidth: 1,
+    borderColor: "#ff3b68",
+    height: 44,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

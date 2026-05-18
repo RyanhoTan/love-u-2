@@ -73,9 +73,16 @@ This starts:
 ## 6. API Endpoints
 
 - `GET /health` -> `{ status: "ok", timestamp: string }`
+- `POST /api/auth/login` with `{ "username": "...", "password": "..." }`
+- `GET /api/auth/me` with `Authorization: Bearer <token>`
 - `GET /api/todos` -> `Todo[]`
 - `POST /api/todos` with `{ "title": "..." }`
 - `PATCH /api/todos/:id` toggles `completed`
+
+Default demo account:
+
+- username: `demo`
+- password: `123456`
 
 ## 7. Lint
 
