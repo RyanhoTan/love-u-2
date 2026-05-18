@@ -1,5 +1,11 @@
 import { Column, Row } from "@/components/layout";
-import { Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import {
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import { ImagesAvatarFemalePng } from "@/assets";
 import {
   ChevronRight,
@@ -11,7 +17,7 @@ import {
   LucideProps,
 } from "lucide-react-native";
 import React from "react";
-import { toast } from "@/components/common";
+import { PinkButton, toast } from "@/components/common";
 
 interface SettingItem {
   id: string;
@@ -55,52 +61,57 @@ export default function Mine() {
   ];
 
   return (
-    <Column gap={12}>
-      <Text style={styles.title}>设置</Text>
-      <TouchableOpacity onPress={() => toast.info("个人信息")}>
-      <Row
-        items="center"
-        content="space-between"
-        style={{
-          padding: 12,
-          backgroundColor: "#fff",
-          borderRadius: 12,
-          height: 110,
-        }}
-      >
-        <Row gap={12} items="center">
-          <Image
-            source={ImagesAvatarFemalePng}
-            style={{ width: 64, height: 64, borderRadius: 32 }}
-          />
-
-          <Column gap={4}>
-            <Text style={{ fontSize: 16 }}>我的昵称</Text>
-            <Text style={{ fontSize: 14, color: "#666" }}>个人信息</Text>
-          </Column>
-        </Row>
-
-        <ChevronRight size={24} color={"#999595"} />
-      </Row>
-        </TouchableOpacity>
-
-
-      {settingList.map((item) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.SettingItem}
-          onPress={item.onPress}
-        >
-          <Row content="space-between" items="center">
+    <ScrollView
+      contentContainerStyle={{ flex: 1 }}
+      showsVerticalScrollIndicator={false}
+    >
+      <Column gap={12}>
+        <Text style={styles.title}>设置</Text>
+        <TouchableOpacity onPress={() => toast.info("个人信息")}>
+          <Row
+            items="center"
+            content="space-between"
+            style={{
+              padding: 12,
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              height: 110,
+            }}
+          >
             <Row gap={12} items="center">
-              <item.icon size={24} color={"#999595"} />
-              <Text style={{ fontSize: 16 }}>{item.title}</Text>
+              <Image
+                source={ImagesAvatarFemalePng}
+                style={{ width: 64, height: 64, borderRadius: 32 }}
+              />
+
+              <Column gap={4}>
+                <Text style={{ fontSize: 16 }}>我的昵称</Text>
+                <Text style={{ fontSize: 14, color: "#666" }}>个人信息</Text>
+              </Column>
             </Row>
+
             <ChevronRight size={24} color={"#999595"} />
           </Row>
         </TouchableOpacity>
-      ))}
-    </Column>
+
+        {settingList.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.SettingItem}
+            onPress={item.onPress}
+          >
+            <Row content="space-between" items="center">
+              <Row gap={12} items="center">
+                <item.icon size={24} color={"#999595"} />
+                <Text style={{ fontSize: 16 }}>{item.title}</Text>
+              </Row>
+              <ChevronRight size={24} color={"#999595"} />
+            </Row>
+          </TouchableOpacity>
+        ))}
+        <PinkButton text="退出登录" onPress={() => toast.info("退出登录")} />
+      </Column>
+    </ScrollView>
   );
 }
 
