@@ -21,6 +21,7 @@ import {
   IconsHomeStatusMissYouSvg,
   IconsHomeStatusHappySvg,
   IconsHomeStatusAngrySvg,
+  ImagesStatusPinkBearPng,
 } from "@/assets";
 import { toast } from "@/components/common/toast";
 import { PinkButton } from "@/components/common/pink-button";
@@ -55,7 +56,7 @@ export default function Status() {
                 <View style={{ position: "relative" }}>
                   <Image
                     resizeMode="cover"
-                    source={require("@/assets/images/status/pink-bear.png")}
+                    source={ImagesStatusPinkBearPng}
                     style={{
                       width: "100%",
                       height: 200,
@@ -130,7 +131,10 @@ export default function Status() {
             </ScrollView>
             <View style={{ marginTop: "auto" }}>
               <PinkButton
-                onPress={() => toast.success("发送成功")}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  toast.success("发送成功");
+                }}
                 text="发送"
               />
             </View>
