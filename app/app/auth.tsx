@@ -19,9 +19,13 @@ import {
 
 export default function Auth() {
   const router = useRouter();
-  const { isAuthenticated, signIn, status } = useAuth();
+  const { isAuthenticated, isRestoring, signIn, status } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  if (isRestoring) {
+    return null;
+  }
 
   if (isAuthenticated) {
     return <Redirect href="/home" />;
