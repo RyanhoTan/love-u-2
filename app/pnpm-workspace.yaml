@@ -1,0 +1,5 @@
+nodeLinker: hoisted
+virtualStoreDir: .pnpm
+virtualStoreDirMaxLength: 32
+allowBuilds:
+  unrs-resolver: true
