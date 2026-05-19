@@ -4,14 +4,14 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm run prisma:setup && tsx watch src/index.ts",
+    "dev": "node ./scripts/ensure-env.mjs && pnpm run prisma:setup && tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "lint": "eslint \"src/**/*.ts\"",
-    "prisma:setup": "prisma generate && prisma migrate deploy",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:deploy": "prisma migrate deploy"
+    "prisma:setup": "node ./scripts/ensure-env.mjs && prisma generate && prisma migrate deploy",
+    "prisma:generate": "node ./scripts/ensure-env.mjs && prisma generate",
+    "prisma:migrate": "node ./scripts/ensure-env.mjs && prisma migrate dev --name init",
+    "prisma:deploy": "node ./scripts/ensure-env.mjs && prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^6.10.1",

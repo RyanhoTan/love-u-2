@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { copyFileSync, existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { resolve } from "node:path";
 
@@ -9,6 +9,19 @@ const serverDir = resolve(root, "server");
 const projects = [
   { name: "server", dir: serverDir, stdio: ["ignore", "inherit", "inherit"] },
   { name: "app", dir: appDir, stdio: "inherit" },
+];
+
+const envFiles = [
+  {
+    name: "server",
+    file: resolve(serverDir, ".env"),
+    example: resolve(serverDir, ".env.example"),
+  },
+  {
+    name: "app",
+    file: resolve(appDir, ".env"),
+    example: resolve(appDir, ".env.example"),
+  },
 ];
 
 const missingDeps = projects.filter(
@@ -28,6 +41,15 @@ if (missingDeps.length > 0) {
   console.error("- `pnpm --dir app install`");
   console.error("- `pnpm --dir server install`");
   process.exit(1);
+}
+
+for (const envFile of envFiles) {
+  if (existsSync(envFile.file) || !existsSync(envFile.example)) {
+    continue;
+  }
+
+  copyFileSync(envFile.example, envFile.file);
+  console.log(`Created ${envFile.name}/.env from .env.example`);
 }
 
 const buildCommand = (dir) => `pnpm --dir "${dir}" dev`;
