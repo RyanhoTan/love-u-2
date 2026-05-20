@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ImagesAuthBackgroundPng } from "@/assets";
 import { useState } from "react";
 import { Plus } from "lucide-react-native";
-import { toast } from "@/components/common";
+import { router } from "expo-router";
 
 export default function WishList() {
   const wishList = [
@@ -63,6 +63,7 @@ export default function WishList() {
       ],
     },
     {
+      id: 4,
       type: "done",
       categoryName: "已完成",
       wishList: [
@@ -84,7 +85,9 @@ export default function WishList() {
         <SafeAreaView style={{ flex: 1, padding: 16, gap: 32 }}>
           <Row content="space-between" items="center">
             <Text style={styles.title}>愿望清单</Text>
-            <TouchableOpacity onPress={() => toast.info("待实现：添加愿望")}>
+            <TouchableOpacity
+              onPress={() => router.push("/home/wish-list/create")}
+            >
               <Plus color={"#FF6B8B"} height={36} width={36} />
             </TouchableOpacity>
           </Row>
