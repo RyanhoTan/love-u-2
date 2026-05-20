@@ -17,7 +17,8 @@ import { toast } from "@/components/common";
 export default function WishList() {
   const wishList = [
     {
-      id: "todo",
+      id: 1,
+      type: "todo",
       categoryName: "想做",
       // 页面中部：属于该分类的愿望列表
       wishList: [
@@ -25,44 +26,51 @@ export default function WishList() {
           id: 1,
           img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150&h=150&fit=crop",
           title: "一起去看海",
+          time: "2024-12-31",
         },
         {
           id: 3,
           img: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=150&h=150&fit=crop",
           title: "一起去旅行",
+          time: "2024-12-32",
         },
       ],
     },
     {
-      id: "planing",
+      id: 2,
+      type: "planning",
       categoryName: "计划中",
       wishList: [
         {
           id: 2,
           img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&h=150&fit=crop",
           title: "一起养一只猫",
+          time: "202-12-31",
         },
       ],
     },
     {
-      id: "doing",
+      id: 3,
+      type: "doing",
       categoryName: "进行中",
       wishList: [
         {
           id: 2,
           img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&h=150&fit=crop",
           title: "一起养一只猫",
+          time: "2024-131",
         },
       ],
     },
     {
-      id: "done",
+      type: "done",
       categoryName: "已完成",
       wishList: [
         {
           id: 2,
           img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&h=150&fit=crop",
           title: "一起养一只猫",
+          time: "2024",
         },
       ],
     },
@@ -118,9 +126,19 @@ export default function WishList() {
                     }}
                     style={{ width: 100, height: 100, borderRadius: 8 }}
                   />
-                  <Column content="space-around">
-                    <Text style={{ fontSize: 16 }}>{wish.title}</Text>
-                    <Text style={{ color: "#888" }}>在海边享受浪漫的晚餐</Text>
+                  <Column content="space-between">
+                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+                      {wish.title}
+                    </Text>
+
+                    <Tag
+                      status={
+                        wishList[selectedTab].type as keyof typeof TAG_CONFIG
+                      }
+                    />
+                    <Text
+                      style={{ color: "#888" }}
+                    >{`预计时间：${wish.time}`}</Text>
                   </Column>
                 </Row>
               </TouchableOpacity>
@@ -128,6 +146,33 @@ export default function WishList() {
           </ScrollView>
         </SafeAreaView>
       </ImageBackground>
+    </View>
+  );
+}
+
+const TAG_CONFIG = {
+  todo: { text: "想做", textColor: "#FF6B8B", bgColor: "#FFF1F4" },
+  planning: { text: "计划中", textColor: "#F5A623", bgColor: "#FFF6E8" },
+  doing: { text: "进行中", textColor: "#27AE60", bgColor: "#EEF9F1" },
+  done: { text: "已完成", textColor: "#4A90E2", bgColor: "#EAF4FF" },
+};
+
+interface TagProps {
+  status: keyof typeof TAG_CONFIG;
+}
+
+function Tag({ status }: TagProps) {
+  const config = TAG_CONFIG[status] || {
+    text: "未知",
+    textColor: "#9CA3AF",
+    bgColor: "#F3F4F6",
+  };
+
+  return (
+    <View style={[tagStyles.tagContainer, { backgroundColor: config.bgColor }]}>
+      <Text style={[tagStyles.tagText, { color: config.textColor }]}>
+        {config.text}
+      </Text>
     </View>
   );
 }
@@ -151,5 +196,18 @@ const styles = StyleSheet.create({
 
     borderColor: "#FF6B8B",
     paddingBottom: 4,
+  },
+});
+
+const tagStyles = StyleSheet.create({
+  tagContainer: {
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 4,
+    alignSelf: "flex-start",
+  },
+  tagText: {
+    fontSize: 12,
+    fontWeight: "500",
   },
 });
