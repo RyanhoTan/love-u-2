@@ -20,7 +20,7 @@ import { useActionSheet } from "@expo/react-native-action-sheet";
 import { WebView } from "react-native-webview";
 
 export default function CreateWishList() {
-    // TODO: 后面放到接口和菜单里显示
+  // TODO: 后面放到接口和菜单里显示
   const [selectedLocation, setSelectedLocation] = useState<{
     name: string;
     latitude: number;
@@ -180,7 +180,21 @@ export default function CreateWishList() {
 
   return (
     <SafeAreaView style={{ flex: 1, padding: 16, gap: 24 }}>
-      <NavBar title="创建愿望" />
+      <NavBar
+        title="创建愿望"
+        rightContent={
+          <TouchableOpacity
+            style={{
+              padding: 8,
+              backgroundColor: "rgba(255, 77, 115, 0.12)",
+              borderRadius: 16,
+            }}
+            onPress={() => toast.info("下一步")}
+          >
+            <Text style={{ fontWeight: "bold", color: "#FF6B8B" }}>下一步</Text>
+          </TouchableOpacity>
+        }
+      />
       <TouchableOpacity
         style={styles.coverTouchable}
         activeOpacity={0.8}
