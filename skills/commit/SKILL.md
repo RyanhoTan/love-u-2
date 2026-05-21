@@ -73,6 +73,8 @@ Use these extended types when they fit better:
 
 ## Body And Footer
 
+- Write the commit message in Simplified Chinese.
+
 Include a body for significant or complex changes. Explain what changed and why, not implementation minutiae. Wrap body lines at about 72 characters.
 
 Use footers only when appropriate. For breaking changes, include:
