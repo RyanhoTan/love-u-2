@@ -14,10 +14,14 @@ interface MeResponse {
   user: AuthUser;
 }
 
-const API_BASE_URL = Platform.select({
-  android: "http://10.0.2.2:3001",
-  default: "http://localhost:3001",
-});
+const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+const API_BASE_URL =
+  envApiUrl ||
+  Platform.select({
+    android: "http://10.0.2.2:3001",
+    default: "http://localhost:3001",
+  });
 
 async function request<T>(path: string, init?: RequestInit) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
