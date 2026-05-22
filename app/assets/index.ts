@@ -19,6 +19,7 @@ export { default as IconsHomeStatusShockSvg } from "./icons/home/status/shock.sv
 export const ImagesAuthBackgroundPng = require("./images/auth/auth-background.png");
 export const ImagesAvatarFemalePng = require("./images/avatar-female.png");
 export const ImagesAvatarMalePng = require("./images/avatar-male.png");
+export const ImagesCoverPng = require("./images/cover.png");
 export const ImagesIconPng = require("./images/icon.png");
 export const ImagesSplashPng = require("./images/splash.png");
 export const ImagesStatusPinkBearPng = require("./images/status/pink-bear.png");

@@ -121,7 +121,11 @@ export default function WishList() {
             showsVerticalScrollIndicator={false}
           >
             {wishList[selectedTab]?.wishList.map((wish) => (
-              <TouchableOpacity key={wish.id} style={styles.wishItem}>
+              <TouchableOpacity
+                key={wish.id}
+                style={styles.wishItem}
+                onPress={() => router.push(`/home/wish-list/${wish.id}`)}
+              >
                 <Row gap={12}>
                   <Image
                     source={{

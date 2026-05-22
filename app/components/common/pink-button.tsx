@@ -16,6 +16,7 @@ export function PinkButton({
         alignItems: "center",
         borderRadius: 30,
         paddingVertical: 12,
+        flex: 1, // 让按钮占满父容器剩余空间
       }}
     >
       <Text style={{ color: "#fff", fontSize: 16 }}>{text}</Text>
