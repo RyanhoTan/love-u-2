@@ -8,7 +8,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { NavBar, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import { BudgetPickerModal } from "@/components/wish-list/budget-picker-modal";
@@ -17,6 +16,7 @@ import {
   DatePickerModal,
   MapPickerModal,
 } from "@/components/wish-list";
+import { router } from "expo-router";
 
 type SelectedLocation = {
   name: string;
@@ -65,7 +65,7 @@ export default function CreateWishList() {
         rightContent={
           <TouchableOpacity
             style={styles.nextButton}
-            onPress={() => toast.info("下一步")}
+            onPress={() => router.push("/home/wish-list/invite")}
           >
             <Text style={styles.nextButtonText}>下一步</Text>
           </TouchableOpacity>
