@@ -1,5 +1,4 @@
 import { useState } from "react";
-import DatePicker from "react-native-date-picker";
 import { ChevronRight } from "lucide-react-native";
 import {
   StyleSheet,
@@ -13,8 +12,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { NavBar, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import { BudgetPickerModal } from "@/components/wish-list/budget-picker-modal";
-import { CoverPicker } from "@/components/wish-list/cover-picker";
-import { MapPickerModal } from "@/components/wish-list/map-picker-modal";
+import {
+  CoverPicker,
+  DatePickerModal,
+  MapPickerModal,
+} from "@/components/wish-list";
 
 type SelectedLocation = {
   name: string;
@@ -109,22 +111,11 @@ export default function CreateWishList() {
         </TouchableOpacity>
       ))}
 
-      <DatePicker
-        modal
-        open={openDatePicker}
-        date={date}
-        locale="zh-Hans"
-        mode="date"
-        title="选择时间"
-        confirmText="确定"
-        cancelText="取消"
-        onConfirm={(selectedDate) => {
-          setOpenDatePicker(false);
-          setDate(selectedDate);
-        }}
-        onCancel={() => {
-          setOpenDatePicker(false);
-        }}
+      <DatePickerModal
+        visible={openDatePicker}
+        value={date}
+        onClose={() => setOpenDatePicker(false)}
+        onChangeValue={setDate}
       />
 
       <MapPickerModal
