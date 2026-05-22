@@ -13,7 +13,7 @@ export default function WishListInviteScreen() {
   ];
   return (
     <SafeAreaView style={styles.container}>
-      <NavBar title="" />
+      <NavBar />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <Column flex={1} items="center" gap={24}>
           <Text style={styles.title}>邀请另一半一起完成愿望</Text>
