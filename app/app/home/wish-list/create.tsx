@@ -10,6 +10,10 @@ import {
   Alert,
   Image,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -138,21 +142,27 @@ export default function CreateWishList() {
 
   const [openDatePicker, setOpenDatePicker] = useState(false);
 
+  // 注释：保存用户输入的预算金额
+  const [budget, setBudget] = useState("");
+  // 注释：控制预算输入弹窗的可见性
+  const [openBudgetPicker, setOpenBudgetPicker] = useState(false);
+
   const menus = [
     {
       label: "时间",
-      value: "选择时间",
+      value: date ? date.toLocaleDateString() : "选择时间",
       onPress: () => setOpenDatePicker(true),
     },
     {
       label: "地点",
-      value: "选择地点",
+      value: selectedLocation ? selectedLocation.name : "选择地点",
       onPress: () => setOpenMapPicker(true),
     },
     {
       label: "预算",
-      value: "选择预算",
-      onPress: () => toast.info("预算选择功能正在开发中"),
+      // 注释：如果填了预算就显示金额，没填就显示默认文字
+      value: !!budget ? `￥${budget}` : "选择预算",
+      onPress: () => setOpenBudgetPicker(true),
     },
   ];
 
@@ -292,38 +302,112 @@ export default function CreateWishList() {
         }}
       />
 
+      {/* 地图选择弹窗 */}
+      {/* 地图选择弹窗 */}
       <Modal
         visible={openMapPicker}
         animationType="slide"
+        transparent={true}
         onRequestClose={() => setOpenMapPicker(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          {/* 顶栏操作 */}
-          <Row
-            items="center"
-            content="space-between"
-            style={styles.modalHeader}
-          >
-            <View style={{ width: 40 }} />
-            <Text style={styles.modalTitle}>选择地点</Text>
-
-            <TouchableOpacity onPress={() => setOpenMapPicker(false)}>
-              <Text style={styles.closeText}>关闭</Text>
-            </TouchableOpacity>
-          </Row>
-
-          {/* Webview 地图核心部分 */}
-          <WebView
-            source={{ uri: mapUrl }}
-            javaScriptEnabled
-            domStorageEnabled
-            geolocationEnabled
-            injectedJavaScriptBeforeContentLoaded={
-              injectedJavaScriptBeforeContentLoaded
-            }
-            onMessage={handleMessage}
+        <View style={styles.modalOverlayContainer}>
+          <TouchableOpacity
+            style={styles.topMaskView}
+            activeOpacity={1}
+            onPress={() => setOpenMapPicker(false)}
           />
-        </SafeAreaView>
+
+          <View style={styles.mapModalContent}>
+            {/* 顶栏操作 */}
+            <Row
+              items="center"
+              content="space-between"
+              style={styles.modalHeader}
+            >
+              <View style={{ width: 40 }} />
+              <Text style={styles.modalTitle}>选择地点</Text>
+
+              <TouchableOpacity onPress={() => setOpenMapPicker(false)}>
+                <Text style={styles.closeText}>关闭</Text>
+              </TouchableOpacity>
+            </Row>
+
+            {/* Webview 地图核心部分 */}
+            <View style={styles.mapWebviewWrapper}>
+              <WebView
+                source={{ uri: mapUrl }}
+                javaScriptEnabled
+                domStorageEnabled
+                geolocationEnabled
+                injectedJavaScriptBeforeContentLoaded={
+                  injectedJavaScriptBeforeContentLoaded
+                }
+                onMessage={handleMessage}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {/* 注释：预算输入弹窗 */}
+      <Modal
+        visible={openBudgetPicker}
+        animationType="slide"
+        transparent={true} // 注释：开启半透明遮罩效果
+        onRequestClose={() => setOpenBudgetPicker(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={{ flex: 1, gap: 16 }}>
+              {/* 注释：点击遮罩层可以关闭弹窗 */}
+              <TouchableOpacity
+                style={styles.modalOverlay}
+                activeOpacity={1}
+                onPress={() => setOpenBudgetPicker(false)}
+              >
+                {/* 注释：底部弹出的输入框卡片 */}
+                <View
+                  style={styles.budgetModalContent}
+                  onStartShouldSetResponder={() => true}
+                >
+                  <Row
+                    items="center"
+                    content="space-between"
+                    style={{ width: "100%", marginBottom: 16 }}
+                  >
+                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+                      设置预算金额
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setOpenBudgetPicker(false)}
+                    >
+                      <Text style={{ color: "#FF6B8B", fontWeight: "bold" }}>
+                        确定
+                      </Text>
+                    </TouchableOpacity>
+                  </Row>
+
+                  <View style={styles.budgetInputWrapper}>
+                    <Text style={styles.budgetCurrency}>￥</Text>
+                    <TextInput
+                      style={styles.budgetTextInput}
+                      keyboardType="numeric" // 注释：拉起纯数字键盘
+                      placeholder="0"
+                      value={budget}
+                      maxLength={8}
+                      autoFocus={true} // 注释：弹窗出现时自动聚焦拉起键盘
+                      onChangeText={(text) =>
+                        setBudget(text.replace(/[^0-9]/g, ""))
+                      } // 注释：过滤掉非数字
+                    />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
@@ -374,13 +458,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-  modalHeader: {
-    height: 50,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-    backgroundColor: "#fff",
+    justifyContent: "flex-end",
   },
   modalTitle: {
     fontSize: 16,
@@ -389,5 +467,78 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: 16,
     color: "#666",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "flex-end", //让内容靠底部排列
+  },
+
+  modalOverlayContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.4)", // 整个屏幕的半透明黑
+    justifyContent: "flex-end",
+  },
+
+  // 上半部分的独立点击关闭区域
+  topMaskView: {
+    flex: 1,
+    width: "100%",
+  },
+
+  // 地图半屏卡片
+  mapModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: "60%", // 固定高度
+    width: "100%",
+    overflow: "hidden",
+  },
+
+  mapWebviewWrapper: {
+    flex: 1,
+    width: "100%",
+  },
+
+  modalHeader: {
+    height: 54,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+    backgroundColor: "#fff",
+  },
+
+  // 注释：底部输入卡片容器
+  budgetModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    alignItems: "center",
+  },
+  // 注释：输入框包裹器
+  budgetInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 2,
+    borderBottomColor: "#FF6B8B",
+    width: "100%",
+    paddingBottom: 8,
+  },
+  // 注释：货比符号样式
+  budgetCurrency: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#FF6B8B",
+    marginRight: 8,
+  },
+  // 注释：弹窗内输入框本体样式
+  budgetTextInput: {
+    flex: 1,
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1C1C1E",
+    padding: 0, // 注释：清除 Android 默认内边距
   },
 });
