@@ -20,6 +20,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Column, Row } from "@/components/layout";
+import { Tag, type WishTagStatus } from "@/components/wish-list";
 import {
   ImagesCoverPng,
   ImagesAvatarFemalePng,
@@ -97,6 +98,9 @@ export default function WishListDetail() {
     { id: "male", source: ImagesAvatarMalePng },
   ];
 
+  //   TODO: 这个状态应该根据实际数据来动态设置，目前是为了展示效果先写死了
+  const status: WishTagStatus = "planning";
+
   return (
     <SafeAreaView style={styles.container}>
       {/* 顶部导航栏部分 */}
@@ -122,9 +126,12 @@ export default function WishListDetail() {
 
         <Column gap={36} style={styles.contentContainer}>
           <Column gap={8}>
-            <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-              这是愿望标题
-            </Text>
+            <Row gap={8} items="center">
+              <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+                这是愿望标题
+              </Text>
+              <Tag status={status} />
+            </Row>
             <Text style={{ color: "#666" }}>
               这是愿望的描述和计划，这是愿望的描述和计划，这是愿望的描述和计划，这是愿望的描述和计划。
             </Text>

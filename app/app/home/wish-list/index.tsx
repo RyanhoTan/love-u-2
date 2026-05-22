@@ -13,6 +13,7 @@ import { ImagesAuthBackgroundPng } from "@/assets";
 import { useState } from "react";
 import { Plus } from "lucide-react-native";
 import { router } from "expo-router";
+import { Tag, type WishTagStatus } from "@/components/wish-list";
 
 export default function WishList() {
   const wishList = [
@@ -138,11 +139,7 @@ export default function WishList() {
                       {wish.title}
                     </Text>
 
-                    <Tag
-                      status={
-                        wishList[selectedTab].type as keyof typeof TAG_CONFIG
-                      }
-                    />
+                    <Tag status={wishList[selectedTab].type as WishTagStatus} />
                     <Text
                       style={{ color: "#888" }}
                     >{`预计时间：${wish.time}`}</Text>
@@ -153,33 +150,6 @@ export default function WishList() {
           </ScrollView>
         </SafeAreaView>
       </ImageBackground>
-    </View>
-  );
-}
-
-const TAG_CONFIG = {
-  todo: { text: "想做", textColor: "#FF6B8B", bgColor: "#FFF1F4" },
-  planning: { text: "计划中", textColor: "#F5A623", bgColor: "#FFF6E8" },
-  doing: { text: "进行中", textColor: "#27AE60", bgColor: "#EEF9F1" },
-  done: { text: "已完成", textColor: "#4A90E2", bgColor: "#EAF4FF" },
-};
-
-interface TagProps {
-  status: keyof typeof TAG_CONFIG;
-}
-
-function Tag({ status }: TagProps) {
-  const config = TAG_CONFIG[status] || {
-    text: "未知",
-    textColor: "#9CA3AF",
-    bgColor: "#F3F4F6",
-  };
-
-  return (
-    <View style={[tagStyles.tagContainer, { backgroundColor: config.bgColor }]}>
-      <Text style={[tagStyles.tagText, { color: config.textColor }]}>
-        {config.text}
-      </Text>
     </View>
   );
 }
@@ -203,18 +173,5 @@ const styles = StyleSheet.create({
 
     borderColor: "#FF6B8B",
     paddingBottom: 4,
-  },
-});
-
-const tagStyles = StyleSheet.create({
-  tagContainer: {
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    borderRadius: 4,
-    alignSelf: "flex-start",
-  },
-  tagText: {
-    fontSize: 12,
-    fontWeight: "500",
   },
 });
