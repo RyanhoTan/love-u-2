@@ -1,4 +1,4 @@
-import { NavBar, PinkButton, toast } from "@/components/common";
+import { NavBar, PinkButton } from "@/components/common";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ellipsis } from "lucide-react-native";
 import { useState, useEffect } from "react";
@@ -17,10 +17,12 @@ import {
 } from "@/assets";
 import { Column, Row } from "@/components/layout";
 import { Tag, VerticalDashedLine } from "@/components/wish-list";
+import { router, useLocalSearchParams } from "expo-router";
 
 const { width: screenWidth } = Dimensions.get("window");
 
 export default function Doing() {
+  const { wishId } = useLocalSearchParams();
   const [imageHeight, setImageHeight] = useState(150); // 给个默认高度防止闪烁
   useEffect(() => {
     // 功能：获取本地图片的原始宽高，并根据屏幕宽度等比例缩放高度
@@ -121,7 +123,12 @@ export default function Doing() {
       </ScrollView>
 
       <View style={{ paddingHorizontal: 16 }}>
-        <PinkButton text="添加记录" onPress={() => toast.info("添加记录")} />
+        <PinkButton
+          text="添加记录"
+          onPress={() =>
+            router.push(`/home/wish-list/${wishId}/records/create`)
+          }
+        />
       </View>
     </SafeAreaView>
   );

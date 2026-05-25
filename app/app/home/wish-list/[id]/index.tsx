@@ -26,12 +26,13 @@ import {
   ImagesAvatarFemalePng,
   ImagesAvatarMalePng,
 } from "@/assets";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 // 获取当前设备的屏幕宽度
 const { width: screenWidth } = Dimensions.get("window");
 
 export default function WishListDetail() {
+  const { wishId } = useLocalSearchParams();
   // 页面：愿望清单详情页
   // 状态：动态存储计算后的图片高度
   const [imageHeight, setImageHeight] = useState(150); // 给个默认高度防止闪烁
@@ -187,7 +188,7 @@ export default function WishListDetail() {
         <Row style={styles.submitButtonWrapper}>
           <PinkButton
             text="开始计划"
-            onPress={() => router.push("/home/wish-list/[id]/doing")}
+            onPress={() => router.push(`/home/wish-list/${wishId}/doing`)}
             style={{ flex: 1 }}
           />
         </Row>
