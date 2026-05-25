@@ -184,7 +184,11 @@ export default function WishListDetail() {
         </Row>
 
         <Row style={styles.submitButtonWrapper}>
-          <PinkButton text="开始计划" onPress={() => toast.info("开始计划")} />
+          <PinkButton
+            text="开始计划"
+            onPress={() => toast.info("开始计划")}
+            style={{ flex: 1 }}
+          />
         </Row>
       </Row>
     </SafeAreaView>
