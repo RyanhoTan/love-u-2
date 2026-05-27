@@ -21,7 +21,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import {
   IconsHomeStatusAngrySvg,
   IconsHomeStatusHappySvg,
@@ -206,7 +205,28 @@ export default function CreateRecord() {
                 />
               ) : (
                 <View style={[styles.mediaPreview, styles.videoPreview]}>
-                  <Play color="#FF6B8B" size={20} fill="#FF6B8B" />
+                  {media.thumbnailUri && (
+                    <Image
+                      source={{ uri: media.thumbnailUri }}
+                      style={{
+                        ...StyleSheet.absoluteFill,
+                        resizeMode: "cover",
+                      }}
+                    />
+                  )}
+                  <View
+                    style={{
+                      ...StyleSheet.absoluteFill,
+                      backgroundColor: "rgba(0,0,0,0.2)",
+                    }}
+                  />
+
+                  <Play
+                    color="#fff"
+                    size={24}
+                    fill="#fff"
+                    style={{ zIndex: 1 }}
+                  />
                 </View>
               )}
 
