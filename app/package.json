@@ -27,6 +27,7 @@
     "expo-location": "~55.1.10",
     "expo-router": "~55.0.8",
     "expo-status-bar": "~55.0.6",
+    "expo-video-thumbnails": "~55.0.15",
     "lucide-react-native": "^1.14.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
