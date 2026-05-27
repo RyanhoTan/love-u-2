@@ -1,6 +1,5 @@
 import { NavBar, PinkButton } from "@/components/common";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ellipsis } from "lucide-react-native";
 import { useState, useEffect } from "react";
 import {
   Image,
@@ -9,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  TouchableOpacity,
 } from "react-native";
 import {
   ImagesCoverPng,
@@ -61,7 +61,15 @@ export default function Doing() {
   ];
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <NavBar rightContent={<Ellipsis />} />
+      <NavBar
+        rightContent={
+          <TouchableOpacity
+            onPress={() => router.push(`/home/wish-list/${wishId}/finish`)}
+          >
+            <Text>结束愿望</Text>
+          </TouchableOpacity>
+        }
+      />
       <ScrollView showsVerticalScrollIndicator={false}>
         <Image
           source={ImagesCoverPng}

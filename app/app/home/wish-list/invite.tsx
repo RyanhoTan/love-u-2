@@ -2,7 +2,7 @@ import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ImagesWishInviteHugHeartPng } from "@/assets";
+import { ImagesWishHugHeartPng } from "@/assets";
 import { ReceiptText, Gift, Bell } from "lucide-react-native";
 
 export default function WishListInviteScreen() {
@@ -18,7 +18,7 @@ export default function WishListInviteScreen() {
         <Column flex={1} items="center" gap={24}>
           <Text style={styles.title}>邀请另一半一起完成愿望</Text>
           <Text style={styles.subtitle}>分享这个愿望给Ta</Text>
-          <Image source={ImagesWishInviteHugHeartPng} style={styles.image} />
+          <Image source={ImagesWishHugHeartPng} style={styles.image} />
           {/* TODO: 替换真实标题 */}
           <Text style={styles.title}>这里是愿望标题</Text>
           <Text style={styles.subtitle}>希望你能和我一起完成这个愿望</Text>

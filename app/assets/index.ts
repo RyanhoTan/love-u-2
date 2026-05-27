@@ -23,4 +23,5 @@ export const ImagesCoverPng = require("./images/cover.png");
 export const ImagesIconPng = require("./images/icon.png");
 export const ImagesSplashPng = require("./images/splash.png");
 export const ImagesStatusPinkBearPng = require("./images/status/pink-bear.png");
-export const ImagesWishInviteHugHeartPng = require("./images/wish-invite/hug-heart.png");
+export const ImagesWishFinishPng = require("./images/wish/finish.png");
+export const ImagesWishHugHeartPng = require("./images/wish/hug-heart.png");
