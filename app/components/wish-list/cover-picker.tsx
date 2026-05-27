@@ -1,16 +1,12 @@
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { LinearGradient } from "expo-linear-gradient";
-import * as ImagePicker from "expo-image-picker";
 import { Camera } from "lucide-react-native";
-import {
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+import {
+  type PickedMediaItem,
+  useMediaPicker,
+} from "@/app/features/wish-list/use-media-picker";
 import { Column } from "@/components/layout";
 
 type CoverPickerProps = {
@@ -20,43 +16,20 @@ type CoverPickerProps = {
 
 export function CoverPicker({ value, onChange }: CoverPickerProps) {
   const { showActionSheetWithOptions } = useActionSheet();
+  const { pickFromLibrary, takePhoto } = useMediaPicker({
+    mediaTypes: "image",
+    mode: "single",
+    allowsEditing: true,
+    aspect: [16, 9],
+  });
 
-  const takePhoto = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+  const applyPickedMedia = async (
+    pickMedia: () => Promise<PickedMediaItem[]>,
+  ) => {
+    const assets = await pickMedia();
 
-    if (!permissionResult.granted) {
-      Alert.alert("提示", "您拒绝了相机权限，无法进行拍照");
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [16, 9],
-    });
-
-    if (!result.canceled) {
-      onChange(result.assets[0].uri);
-    }
-  };
-
-  const pickImageFromLibrary = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permissionResult.granted) {
-      Alert.alert("提示", "您拒绝了相册权限，无法选择图片");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [16, 9],
-    });
-
-    if (!result.canceled) {
-      onChange(result.assets[0].uri);
+    if (assets[0]) {
+      onChange(assets[0].uri);
     }
   };
 
@@ -73,10 +46,10 @@ export function CoverPicker({ value, onChange }: CoverPickerProps) {
       (selectedIndex?: number) => {
         switch (selectedIndex) {
           case 0:
-            void takePhoto();
+            void applyPickedMedia(takePhoto);
             break;
           case 1:
-            void pickImageFromLibrary();
+            void applyPickedMedia(pickFromLibrary);
             break;
           default:
             break;
