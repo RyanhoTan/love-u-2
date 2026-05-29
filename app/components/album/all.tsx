@@ -1,4 +1,6 @@
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
+// 能够在自身滑动时自动且完美地锁住外层容器（如 TabView）的手势。
+import { ScrollView } from "react-native-gesture-handler";
 import { Column, Row } from "../layout";
 import { ChevronRight, ChevronsUpDown, Grid2x2 } from "lucide-react-native";
 import { ImagesCoverPng } from "@/assets";
