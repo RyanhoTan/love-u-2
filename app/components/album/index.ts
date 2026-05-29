@@ -1,2 +1,2 @@
-export * from "./all";
+export * from "./all-medias";
 export * from "./photos";

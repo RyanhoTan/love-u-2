@@ -10,7 +10,7 @@ import { TimeLine } from "./time-line";
 const COLUMNS = 3;
 const IMAGE_GAP = 8;
 
-export function AllAlbums() {
+export function AllMedias() {
   const [gridWidth, setGridWidth] = useState(0);
   const [timelineHeights, setTimelineHeights] = useState<
     Record<number, number>

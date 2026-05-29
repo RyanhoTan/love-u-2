@@ -4,9 +4,9 @@ import { Search, CloudUpload, Ellipsis } from "lucide-react-native";
 import { toast } from "@/components/common";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { useState } from "react";
-import { AllAlbums, Photos } from "@/components/album";
+import { AllMedias, Photos } from "@/components/album";
 
-const AllRoute = () => <AllAlbums />;
+const AllRoute = () => <AllMedias />;
 const PhotosRoute = () => <Photos />;
 const VideosRoute = () => (
   <View>
