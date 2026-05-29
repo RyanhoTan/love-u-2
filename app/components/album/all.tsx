@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 // 能够在自身滑动时自动且完美地锁住外层容器（如 TabView）的手势。
 import { ScrollView } from "react-native-gesture-handler";
@@ -6,7 +7,20 @@ import { ChevronRight, ChevronsUpDown, Grid2x2 } from "lucide-react-native";
 import { ImagesCoverPng } from "@/assets";
 import { TimeLine } from "./time-line";
 
+const COLUMNS = 3;
+const IMAGE_GAP = 8;
+
 export function AllAlbums() {
+  const [gridWidth, setGridWidth] = useState(0);
+  const [timelineHeights, setTimelineHeights] = useState<
+    Record<number, number>
+  >({});
+  const imageSize = useMemo(() => {
+    if (!gridWidth) return 0;
+
+    return Math.floor((gridWidth - IMAGE_GAP * (COLUMNS - 1)) / COLUMNS);
+  }, [gridWidth]);
+
   const memoryAlbums = [
     { id: 1, title: "2023年夏天的回忆", cover: ImagesCoverPng },
     { id: 2, title: "2022年冬天的回忆", cover: ImagesCoverPng },
@@ -104,14 +118,36 @@ export function AllAlbums() {
         <Row content="space-between" gap={12}>
           <Column gap={8} style={{ flex: 1 }}>
             {allMedias.map((media) => (
-              <Row key={media.id}>
-                <View style={{ width: 55, alignItems: "center" }}>
-                  <TimeLine />
+              <Row key={media.id} style={{ alignItems: "stretch" }}>
+                <View
+                  style={{
+                    width: 55,
+                    alignItems: "center",
+                    alignSelf: "stretch",
+                  }}
+                >
+                  <TimeLine height={timelineHeights[media.id]} />
                 </View>
-                <Column gap={8} flex={1}>
+                <Column
+                  gap={8}
+                  flex={1}
+                  onLayout={(event) => {
+                    const nextHeight = event.nativeEvent.layout.height;
+
+                    setTimelineHeights((currentHeights) => {
+                      if (currentHeights[media.id] === nextHeight) {
+                        return currentHeights;
+                      }
+
+                      return {
+                        ...currentHeights,
+                        [media.id]: nextHeight,
+                      };
+                    });
+                  }}
+                >
                   <Row
                     items="center"
-                    flex={1}
                     content="space-between"
                     style={{ marginTop: 4 }}
                   >
@@ -123,21 +159,28 @@ export function AllAlbums() {
                     </Text>
                   </Row>
                   <View
+                    onLayout={(event) =>
+                      setGridWidth(event.nativeEvent.layout.width)
+                    }
                     style={{
                       flexWrap: "wrap",
-                      flex: 1,
                       flexDirection: "row",
                       paddingBottom: 30,
-                      gap: 8,
+                      gap: IMAGE_GAP,
                     }}
                   >
-                    {media.source.map((src, index) => (
-                      <Image
-                        key={index}
-                        source={src}
-                        style={{ width: 100, height: 100, borderRadius: 8 }}
-                      />
-                    ))}
+                    {imageSize > 0 &&
+                      media.source.map((src, index) => (
+                        <Image
+                          key={index}
+                          source={src}
+                          style={{
+                            width: imageSize,
+                            height: imageSize,
+                            borderRadius: 8,
+                          }}
+                        />
+                      ))}
                   </View>
                 </Column>
               </Row>

@@ -1,5 +1,5 @@
 import { Row } from "@/components/layout";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Search, CloudUpload, Ellipsis } from "lucide-react-native";
 import { toast } from "@/components/common";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
