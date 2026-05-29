@@ -21,6 +21,12 @@ const watchList = [
     exportKind: "require",
     extensions: new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif", ".bmp"]),
   },
+  {
+    dir: assetsDir,
+    exportPrefix: "",
+    exportKind: "require",
+    extensions: new Set([".mp4"]),
+  },
 ];
 const watchedRoots = watchList.map((entry) => entry.dir);
 
@@ -34,6 +40,7 @@ await buildAssetsIndex();
 if (isWatchMode) {
   const { watch } = await import("chokidar");
   const watcher = watch(watchedRoots, {
+    ignored: outputFile,
     ignoreInitial: true,
   });
 
@@ -81,15 +88,12 @@ async function collectAssetFiles() {
       ...entryFiles
         .filter((filePath) => entry.extensions.has(extname(filePath).toLowerCase()))
         .map((filePath) => {
-          // --- 在这里添加 ---
-          const ext = extname(filePath).slice(1); 
-          // ----------------
-          
+          const ext = extname(filePath).slice(1);
+
           return {
             filePath,
             exportKind: entry.exportKind,
             exportPrefix: entry.exportPrefix,
-            // 使用上面定义的 ext
             extensionSuffix: ext.charAt(0).toUpperCase() + ext.slice(1),
           };
         }),
