@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -11,7 +12,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { useVideoPlayer, VideoView, type VideoSource } from "expo-video";
 import { Play, X } from "lucide-react-native";
-import { TestMp4 } from "@/assets";
+import { ImagesCoverPng, TestMp4 } from "@/assets";
 import { Column, Row } from "../layout";
 
 const PAGE_PADDING = 12;
@@ -22,6 +23,8 @@ type VideoItem = {
   date: string;
   duration: string;
   source: VideoSource;
+  /** 服务端预生成的缩略图 URL；未就绪时展示暗色占位 */
+  thumbnailUrl?: string;
 };
 
 type VideoGroup = {
@@ -85,6 +88,13 @@ const mockVideoGroups: VideoGroup[] = [
 export function Videos() {
   const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
 
+  // 后端就绪前，用本地素材作缩略图占位，保证 mock 展示不空
+  // TODO: 真正接入后端后，这段逻辑可以删除
+  const mockThumbnail = useMemo(
+    () => Image.resolveAssetSource(ImagesCoverPng).uri,
+    [],
+  );
+
   const closePlayer = () => {
     setSelectedVideo(null);
   };
@@ -120,8 +130,21 @@ export function Videos() {
                   style={styles.videoRow}
                 >
                   <View style={styles.videoCover}>
-                    <View style={styles.posterGlow} />
-                    <View style={styles.videoOverlay} />
+                    {video.thumbnailUrl ? (
+                      <Image
+                        source={{ uri: video.thumbnailUrl }}
+                        resizeMode="cover"
+                        style={styles.videoPoster}
+                      />
+                    ) : (
+                      // TODO：接入后端后可以删掉
+                      <Image
+                        source={{ uri: mockThumbnail }}
+                        resizeMode="cover"
+                        style={styles.videoPoster}
+                      />
+                    )}
+
                     <View style={styles.playButton}>
                       <Play color="#fff" fill="#fff" size={16} />
                     </View>
@@ -129,7 +152,7 @@ export function Videos() {
                   </View>
                   <Column
                     flex={1}
-                    content="space-between"
+                    content="space-around"
                     style={styles.videoInfo}
                   >
                     <Text numberOfLines={2} style={styles.videoTitle}>
@@ -156,12 +179,22 @@ function VideoPlayerModal({
   video: VideoItem | null;
   onClose: () => void;
 }) {
-  const player = useVideoPlayer(video?.source ?? null, (videoPlayer) => {
+  if (!video) return null;
+
+  return <MountedVideoPlayerModal video={video} onClose={onClose} />;
+}
+
+function MountedVideoPlayerModal({
+  video,
+  onClose,
+}: {
+  video: VideoItem;
+  onClose: () => void;
+}) {
+  const player = useVideoPlayer(video.source, (videoPlayer) => {
     videoPlayer.loop = false;
     videoPlayer.play();
   });
-
-  if (!video) return null;
 
   return (
     <Modal
@@ -196,33 +229,28 @@ function VideoPlayerModal({
 }
 
 const styles = StyleSheet.create({
+  videoCard: {
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: "#161616",
+  },
   videoRow: {
     flexDirection: "row",
     alignItems: "stretch",
-    height: 92,
+    minHeight: 92,
     borderRadius: 8,
     overflow: "hidden",
     backgroundColor: "#fff",
   },
   videoCover: {
     width: 132,
-    height: 92,
+    alignSelf: "stretch",
     overflow: "hidden",
     borderRadius: 8,
     backgroundColor: "#32343a",
   },
-  posterGlow: {
-    position: "absolute",
-    left: 10,
-    right: 10,
-    top: 10,
-    bottom: 10,
-    borderRadius: 6,
-    backgroundColor: "#ff275e35",
-  },
-  videoOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#00000020",
+  videoPoster: {
+    ...StyleSheet.absoluteFill,
   },
   playButton: {
     position: "absolute",
@@ -235,6 +263,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#00000060",
   },
   videoInfo: {
     paddingLeft: 12,
