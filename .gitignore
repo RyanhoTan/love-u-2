@@ -1,4 +1,5 @@
 node_modules/
+.codewhale/
 .pnpm-store/
 .expo/
 .expo-shared/
