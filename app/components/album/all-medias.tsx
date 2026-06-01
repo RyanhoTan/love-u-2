@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
 // 能够在自身滑动时自动且完美地锁住外层容器（如 TabView）的手势。
 import { ScrollView } from "react-native-gesture-handler";
 import { Column, Row } from "../layout";
@@ -11,6 +12,7 @@ const COLUMNS = 3;
 const IMAGE_GAP = 8;
 
 export function AllMedias() {
+  const router = useRouter();
   const [gridWidth, setGridWidth] = useState(0);
   const [timelineHeights, setTimelineHeights] = useState<
     Record<number, number>
@@ -65,7 +67,7 @@ export function AllMedias() {
       <Column>
         <Row items="center" content="space-between">
           <Text style={{ fontWeight: "bold" }}>时光故事</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/home/album/stories")}>
             <Row center gap={6}>
               <Text style={{ color: "#aaa" }}>全部故事</Text>
               <ChevronRight size={16} color="#aaa" />
