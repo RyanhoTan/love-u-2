@@ -1,15 +1,15 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
   Image,
   Modal,
   Pressable,
-  ScrollView,
+  SectionList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import { useVideoPlayer, VideoView, type VideoSource } from "expo-video";
 import { Play, X } from "lucide-react-native";
 import { ImagesCoverPng, TestMp4 } from "@/assets";
@@ -32,58 +32,68 @@ type VideoGroup = {
   list: VideoItem[];
 };
 
-const mockVideoGroups: VideoGroup[] = [
-  {
-    time: "2024年5月",
-    list: [
-      {
-        id: 1,
-        title: "三亚旅行日记",
-        date: "2024-05-12",
-        duration: "01:24",
+const mockVideoGroups: VideoGroup[] = (() => {
+  const months = [
+    "2024年12月",
+    "2024年11月",
+    "2024年10月",
+    "2024年9月",
+    "2024年8月",
+    "2024年7月",
+    "2024年6月",
+    "2024年5月",
+    "2024年4月",
+    "2024年3月",
+  ];
+
+  const titleTemplates = [
+    "周末散步记录",
+    "咖啡店慢镜头",
+    "城市夜景片段",
+    "午后阳光日常",
+    "旅行路上的风景",
+    "晚餐前的小确幸",
+    "公园慢跑随拍",
+    "朋友聚会花絮",
+    "海边清晨剪影",
+    "居家生活片段",
+  ];
+
+  const durations = [
+    "00:32",
+    "00:45",
+    "00:58",
+    "01:06",
+    "01:14",
+    "01:22",
+    "01:31",
+    "01:39",
+    "01:48",
+    "02:05",
+  ];
+
+  return months.map((time, groupIndex) => ({
+    time,
+    list: Array.from({ length: 5 }, (_, itemIndex) => {
+      const id = groupIndex * 5 + itemIndex + 1;
+      const month = String(12 - groupIndex).padStart(2, "0");
+      const day = String(itemIndex * 4 + 3).padStart(2, "0");
+
+      return {
+        id,
+        title: `${titleTemplates[(groupIndex + itemIndex) % titleTemplates.length]} ${id}`,
+        date: `2024-${month}-${day}`,
+        duration: durations[(groupIndex + itemIndex) % durations.length],
         source: TestMp4,
-      },
-      {
-        id: 2,
-        title: "椰风海韵海滩漫步",
-        date: "2024-05-15",
-        duration: "00:48",
-        source: TestMp4,
-      },
-    ],
-  },
-  {
-    time: "2024年4月",
-    list: [
-      {
-        id: 3,
-        title: "周末露营 VLOG",
-        date: "2024-04-20",
-        duration: "02:10",
-        source: TestMp4,
-      },
-    ],
-  },
-  {
-    time: "2023年12月",
-    list: [
-      {
-        id: 4,
-        title: "跨年烟花秀",
-        date: "2023-12-31",
-        duration: "01:36",
-        source: TestMp4,
-      },
-      {
-        id: 5,
-        title: "冬季热咖啡测评",
-        date: "2023-12-18",
-        duration: "00:57",
-        source: TestMp4,
-      },
-    ],
-  },
-];
+      };
+    }),
+  }));
+})();
+
+type Section = {
+  time: string;
+  data: VideoItem[];
+};
 
 export function Videos() {
   const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
@@ -95,78 +105,79 @@ export function Videos() {
     [],
   );
 
-  const closePlayer = () => {
-    setSelectedVideo(null);
-  };
+  const sections: Section[] = useMemo(
+    () =>
+      mockVideoGroups.map((group) => ({
+        time: group.time,
+        data: group.list,
+      })),
+    [],
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: Section }) => (
+      <Row items="center" content="space-between" style={styles.sectionHeader}>
+        <Text style={styles.sectionTime}>{section.time}</Text>
+        <Text style={styles.sectionCount}>{section.data.length}个视频</Text>
+      </Row>
+    ),
+    [],
+  );
+
+  const renderItem = useCallback(
+    ({ item: video }: { item: VideoItem }) => (
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => setSelectedVideo(video)}
+        style={styles.videoRow}
+      >
+        <View style={styles.videoCover}>
+          <Image
+            source={{ uri: video.thumbnailUrl ?? mockThumbnail }}
+            resizeMode="cover"
+            style={styles.videoPoster}
+          />
+          <View style={styles.playButton}>
+            <Play color="#fff" fill="#fff" size={16} />
+          </View>
+          <Text style={styles.videoDuration}>{video.duration}</Text>
+        </View>
+        <Column flex={1} content="space-around" style={styles.videoInfo}>
+          <Text numberOfLines={2} style={styles.videoTitle}>
+            {video.title}
+          </Text>
+          <Text style={styles.videoDate}>{video.date}</Text>
+        </Column>
+      </TouchableOpacity>
+    ),
+    [mockThumbnail],
+  );
+
+  const itemSeparator = useCallback(() => <View style={{ height: 12 }} />, []);
+
+  const sectionFooter = useCallback(() => <View style={{ height: 30 }} />, []);
+
+  const closePlayer = () => setSelectedVideo(null);
 
   return (
     <>
-      <ScrollView
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => String(item.id)}
+        renderSectionHeader={renderSectionHeader}
+        renderItem={renderItem}
+        ItemSeparatorComponent={itemSeparator}
+        renderSectionFooter={sectionFooter}
+        stickySectionHeadersEnabled={false}
+        removeClippedSubviews
+        maxToRenderPerBatch={8}
+        windowSize={5}
+        initialNumToRender={6}
         contentContainerStyle={{
           paddingHorizontal: PAGE_PADDING,
           paddingVertical: 16,
         }}
-      >
-        {mockVideoGroups.map((group) => (
-          <Column key={group.time}>
-            <Row
-              items="center"
-              content="space-between"
-              style={{ marginBottom: 16 }}
-            >
-              <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                {group.time}
-              </Text>
-              <Text style={{ fontSize: 14, color: "#aaa" }}>
-                {group.list.length}个视频
-              </Text>
-            </Row>
-            <Column gap={12} style={{ paddingBottom: 30 }}>
-              {group.list.map((video) => (
-                <TouchableOpacity
-                  key={video.id}
-                  activeOpacity={0.85}
-                  onPress={() => setSelectedVideo(video)}
-                  style={styles.videoRow}
-                >
-                  <View style={styles.videoCover}>
-                    {video.thumbnailUrl ? (
-                      <Image
-                        source={{ uri: video.thumbnailUrl }}
-                        resizeMode="cover"
-                        style={styles.videoPoster}
-                      />
-                    ) : (
-                      // TODO：接入后端后可以删掉
-                      <Image
-                        source={{ uri: mockThumbnail }}
-                        resizeMode="cover"
-                        style={styles.videoPoster}
-                      />
-                    )}
-
-                    <View style={styles.playButton}>
-                      <Play color="#fff" fill="#fff" size={16} />
-                    </View>
-                    <Text style={styles.videoDuration}>{video.duration}</Text>
-                  </View>
-                  <Column
-                    flex={1}
-                    content="space-around"
-                    style={styles.videoInfo}
-                  >
-                    <Text numberOfLines={2} style={styles.videoTitle}>
-                      {video.title}
-                    </Text>
-                    <Text style={styles.videoDate}>{video.date}</Text>
-                  </Column>
-                </TouchableOpacity>
-              ))}
-            </Column>
-          </Column>
-        ))}
-      </ScrollView>
-
+      />
       <VideoPlayerModal video={selectedVideo} onClose={closePlayer} />
     </>
   );
@@ -191,6 +202,24 @@ function MountedVideoPlayerModal({
   video: VideoItem;
   onClose: () => void;
 }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
+
+  const handleClose = useCallback(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 100,
+      useNativeDriver: true,
+    }).start(() => onClose());
+  }, [fadeAnim, onClose]);
+
   const player = useVideoPlayer(video.source, (videoPlayer) => {
     videoPlayer.loop = false;
     videoPlayer.play();
@@ -199,40 +228,47 @@ function MountedVideoPlayerModal({
   return (
     <Modal
       visible
-      animationType="fade"
+      animationType="none"
       presentationStyle="fullScreen"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
-      <StatusBar hidden />
-      <View style={styles.modal}>
-        <VideoView
-          player={player}
-          nativeControls
-          contentFit="contain"
-          fullscreenOptions={{ enable: true, orientation: "default" }}
-          style={styles.fullscreenVideo}
-        />
-        <View style={styles.modalHeader}>
-          <Column flex={1} gap={4}>
-            <Text numberOfLines={1} style={styles.modalTitle}>
-              {video.title}
-            </Text>
-            <Text style={styles.modalDate}>{video.date}</Text>
-          </Column>
-          <Pressable onPress={onClose} style={styles.closeButton}>
-            <X color="#fff" size={22} />
-          </Pressable>
-        </View>
+      <View style={styles.modalBackdrop}>
+        <Animated.View style={[styles.modal, { opacity: fadeAnim }]}>
+          <VideoView
+            player={player}
+            nativeControls
+            contentFit="contain"
+            fullscreenOptions={{ enable: true, orientation: "default" }}
+            style={styles.fullscreenVideo}
+          />
+          <View style={styles.modalHeader}>
+            <Column flex={1} gap={4}>
+              <Text numberOfLines={1} style={styles.modalTitle}>
+                {video.title}
+              </Text>
+              <Text style={styles.modalDate}>{video.date}</Text>
+            </Column>
+            <Pressable onPress={handleClose} style={styles.closeButton}>
+              <X color="#fff" size={22} />
+            </Pressable>
+          </View>
+        </Animated.View>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  videoCard: {
-    borderRadius: 8,
-    overflow: "hidden",
-    backgroundColor: "#161616",
+  sectionHeader: {
+    marginBottom: 16,
+  },
+  sectionTime: {
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  sectionCount: {
+    fontSize: 14,
+    color: "#aaa",
   },
   videoRow: {
     flexDirection: "row",
@@ -290,6 +326,10 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 10,
     backgroundColor: "#00000070",
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "#000",
   },
   modal: {
     flex: 1,
