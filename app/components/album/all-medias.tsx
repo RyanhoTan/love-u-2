@@ -79,6 +79,7 @@ export function AllMedias() {
             <TouchableOpacity
               key={album.id}
               style={{ borderRadius: 12, overflow: "hidden" }}
+              onPress={() => router.push(`/home/album/stories/${album.id}`)}
             >
               <Column>
                 <Image
