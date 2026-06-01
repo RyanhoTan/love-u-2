@@ -1,9 +1,9 @@
+import { useRef, useState, useEffect } from "react";
 import { Row } from "@/components/layout";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { Search, CloudUpload, Ellipsis } from "lucide-react-native";
 import { toast } from "@/components/common";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
-import { useState } from "react";
 import { AllMedias, Favorites, Photos, Videos } from "@/components/album";
 
 const AllRoute = () => <AllMedias />;
@@ -33,6 +33,17 @@ export default function Album() {
     { key: "favorites", title: "收藏" },
   ]);
 
+  const indicatorPos = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(indicatorPos, {
+      toValue: index,
+      useNativeDriver: true,
+      tension: 80,
+      friction: 10,
+    }).start();
+  }, [index, indicatorPos]);
+
   return (
     <View style={{ flex: 1, paddingVertical: 12 }}>
       <Row content="space-between">
@@ -59,13 +70,25 @@ export default function Album() {
         renderTabBar={(props) => (
           <TabBar
             {...props}
-            // 自定义指示器样式 (底部动画线)
-            indicatorStyle={{
-              backgroundColor: "#FF6b81",
-              height: 3,
-              borderRadius: 2,
+            indicatorStyle={{ backgroundColor: "transparent" }}
+            renderIndicator={(indicatorProps) => {
+              const tabWidth = indicatorProps.layout.width / routes.length;
+              return (
+                <Animated.View
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    height: 3,
+                    backgroundColor: "#FF6b81",
+                    borderRadius: 2,
+                    width: tabWidth,
+                    transform: [
+                      { translateX: Animated.multiply(indicatorPos, tabWidth) },
+                    ],
+                  }}
+                />
+              );
             }}
-            // Tab 背景色
             style={{ backgroundColor: "transparent", marginBottom: 16 }}
             // 文本选中颜色
             activeColor="#FF6b81"
