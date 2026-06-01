@@ -4,16 +4,12 @@ import { Search, CloudUpload, Ellipsis } from "lucide-react-native";
 import { toast } from "@/components/common";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { useState } from "react";
-import { AllMedias, Photos, Videos } from "@/components/album";
+import { AllMedias, Favorites, Photos, Videos } from "@/components/album";
 
 const AllRoute = () => <AllMedias />;
 const PhotosRoute = () => <Photos />;
 const VideosRoute = () => <Videos />;
-const FavoritesRoute = () => (
-  <View>
-    <Text>收藏内容</Text>
-  </View>
-);
+const FavoritesRoute = () => <Favorites />;
 
 const renderScene = SceneMap({
   all: AllRoute,
