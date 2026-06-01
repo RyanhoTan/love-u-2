@@ -6,6 +6,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { Column, Row } from "../layout";
 import { ChevronRight, ChevronsUpDown, Grid2x2 } from "lucide-react-native";
 import { ImagesCoverPng } from "@/assets";
+import { STORIES } from "@/data/mock-stories";
 import { TimeLine } from "./time-line";
 
 const COLUMNS = 3;
@@ -23,12 +24,7 @@ export function AllMedias() {
     return Math.floor((gridWidth - IMAGE_GAP * (COLUMNS - 1)) / COLUMNS);
   }, [gridWidth]);
 
-  const memoryAlbums = [
-    { id: 1, title: "2023年夏天的回忆", cover: ImagesCoverPng },
-    { id: 2, title: "2022年冬天的回忆", cover: ImagesCoverPng },
-    { id: 3, title: "2021年春天的回忆", cover: ImagesCoverPng },
-    { id: 4, title: "2020年秋天的回忆", cover: ImagesCoverPng },
-  ];
+  const memoryAlbums = STORIES.slice(0, 4);
 
   const allMedias = [
     { id: 1, time: "2023年8月", source: [ImagesCoverPng, ImagesCoverPng] },
