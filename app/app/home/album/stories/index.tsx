@@ -14,19 +14,11 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ImagesAuthBackgroundPng } from "@/assets";
 import { STORIES, type Story } from "@/data/mock-stories";
+import { chunk } from "@/utils/grid";
 
 const COLUMNS = 2;
 const GAP = 12;
 const PADDING = 16;
-
-/** 配合 SectionList 实现两列网格 */
-function chunk<T>(arr: T[], col: number): T[][] {
-  const rows: T[][] = [];
-  for (let i = 0; i < arr.length; i += col) {
-    rows.push(arr.slice(i, i + col));
-  }
-  return rows;
-}
 
 const SECTIONS = [{ data: chunk(STORIES, COLUMNS) }];
 

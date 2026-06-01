@@ -26,6 +26,33 @@ export function getStoryTitle(id: number): string {
   return STORIES.find((s) => s.id === id)?.title ?? "故事详情";
 }
 
+// ---------- 收藏的照片 / 视频 ----------
+
+export interface FavoritePhoto {
+  id: number;
+  source: ImageSourcePropType;
+}
+
+export interface FavoriteVideo {
+  id: number;
+  source: ImageSourcePropType;
+  duration: string; // "03:21"
+}
+
+export const FAVORITE_PHOTOS: FavoritePhoto[] = Array.from(
+  { length: 15 },
+  (_, i) => ({ id: i, source: ImagesCoverPng }),
+);
+
+export const FAVORITE_VIDEOS: FavoriteVideo[] = Array.from(
+  { length: 7 },
+  (_, i) => ({
+    id: i,
+    source: ImagesCoverPng,
+    duration: `0${i % 3}:${String(20 + i * 7).padStart(2, "0")}`,
+  }),
+);
+
 export interface StoryMediaGroup {
   id: number;
   time: string;

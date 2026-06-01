@@ -4,7 +4,6 @@ import { Column, Row } from "../layout";
 import { ImagesCoverPng } from "@/assets";
 
 const COLUMNS = 3; // 每行精确显示 3 列
-const PAGE_PADDING = 12; // 整个页面左、右两边的安全内边距
 const IMAGE_GAP = 8; // 照片与照片之间的缝隙大小
 
 export function Photos() {
@@ -44,7 +43,6 @@ export function Photos() {
   return (
     <ScrollView
       contentContainerStyle={{
-        paddingHorizontal: PAGE_PADDING,
         paddingVertical: 16,
       }}
     >

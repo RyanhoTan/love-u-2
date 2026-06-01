@@ -4,10 +4,12 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Animated,
   LayoutChangeEvent,
 } from "react-native";
+import { FavoritesStoriesGrid } from "./favorites-stories";
+import { FavoritesPhotosGrid } from "./favorites-photos";
+import { FavoritesVideosGrid } from "./favorites-videos";
 
 const TABS = [
   { key: "stories", label: "故事" },
@@ -20,6 +22,7 @@ type TabKey = (typeof TABS)[number]["key"];
 export function Favorites() {
   const [activeKey, setActiveKey] = useState<TabKey>("stories");
   const [tabWidth, setTabWidth] = useState(0);
+  const [contentWidth, setContentWidth] = useState(0);
   const indicatorLeft = useRef(new Animated.Value(0)).current;
 
   const onLayout = (e: LayoutChangeEvent) => {
@@ -39,7 +42,6 @@ export function Favorites() {
 
   return (
     <View style={styles.container}>
-      {/* 分段选择器 */}
       <View style={styles.tabBar} onLayout={onLayout}>
         {tabWidth > 0 && (
           <Animated.View
@@ -71,24 +73,14 @@ export function Favorites() {
         })}
       </View>
 
-      {/* 内容区 */}
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
+      <View
+        style={styles.content}
+        onLayout={(e) => setContentWidth(e.nativeEvent.layout.width)}
       >
-        {activeKey === "stories" && <Placeholder label="收藏的故事" />}
-        {activeKey === "photos" && <Placeholder label="收藏的照片" />}
-        {activeKey === "videos" && <Placeholder label="收藏的视频" />}
-      </ScrollView>
-    </View>
-  );
-}
-
-function Placeholder({ label }: { label: string }) {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderText}>{label}</Text>
-      <Text style={styles.placeholderHint}>暂无内容</Text>
+        {activeKey === "stories" && <FavoritesStoriesGrid contentWidth={contentWidth} />}
+        {activeKey === "photos" && <FavoritesPhotosGrid contentWidth={contentWidth} />}
+        {activeKey === "videos" && <FavoritesVideosGrid contentWidth={contentWidth} />}
+      </View>
     </View>
   );
 }
@@ -96,16 +88,17 @@ function Placeholder({ label }: { label: string }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
   },
   tabBar: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
     borderRadius: 12,
+    width: "95%",
+    alignSelf: "center",
     position: "relative",
+    marginBottom: 16,
   },
-
   indicator: {
     position: "absolute",
     top: 0,
@@ -122,36 +115,15 @@ const styles = StyleSheet.create({
     height: 36,
     zIndex: 1,
   },
-
   tabLabel: {
     fontSize: 14,
     color: "#aaa",
   },
-
   tabLabelActive: {
     color: "#FF6b81",
     fontWeight: "bold",
   },
-
   content: {
-    flexGrow: 1,
-  },
-
-  placeholder: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 80,
-    gap: 8,
-  },
-
-  placeholderText: {
-    fontSize: 16,
-    color: "#999",
-  },
-
-  placeholderHint: {
-    fontSize: 13,
-    color: "#ccc",
   },
 });

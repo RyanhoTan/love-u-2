@@ -15,8 +15,6 @@ import { Play, X } from "lucide-react-native";
 import { ImagesCoverPng, TestMp4 } from "@/assets";
 import { Column, Row } from "../layout";
 
-const PAGE_PADDING = 12;
-
 type VideoItem = {
   id: number;
   title: string;
@@ -174,7 +172,6 @@ export function Videos() {
         windowSize={5}
         initialNumToRender={6}
         contentContainerStyle={{
-          paddingHorizontal: PAGE_PADDING,
           paddingVertical: 16,
         }}
       />
