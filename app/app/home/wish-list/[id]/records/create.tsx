@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import {
+  Camera,
   CalendarDays,
   ChevronDown,
   ChevronRight,
   Ellipsis,
+  Images,
   JapaneseYen,
   MapPin,
   Play,
@@ -20,7 +22,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import {
   IconsHomeStatusAngrySvg,
   IconsHomeStatusHappySvg,
@@ -60,6 +65,7 @@ const MAX_MEDIA_COUNT = 99;
 
 export default function CreateRecord() {
   const { showActionSheetWithOptions } = useActionSheet();
+  const insets = useSafeAreaInsets();
   const [text, setText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] =
@@ -95,6 +101,26 @@ export default function CreateRecord() {
         options: ["拍照", "选择照片/视频", "取消"],
         cancelButtonIndex: 2,
         title: "添加媒体",
+        message: "用相机捕捉当下，或从相册挑选你想分享的瞬间",
+        useModal: true,
+        showSeparators: true,
+        tintColor: "#2F2430",
+        cancelButtonTintColor: "#FF6B8B",
+        destructiveColor: "#FF6B8B",
+        containerStyle: {
+          ...styles.mediaActionSheet,
+          paddingBottom: Math.max(insets.bottom, 12),
+        },
+        separatorStyle: styles.mediaActionSheetSeparator,
+        titleTextStyle: styles.mediaActionSheetTitle,
+        messageTextStyle: styles.mediaActionSheetMessage,
+        textStyle: styles.mediaActionSheetText,
+        icons: [
+          <Camera key="camera" size={20} color="#FF6B8B" />,
+          <Images key="library" size={20} color="#FF6B8B" />,
+          <X key="cancel" size={20} color="#FF9AAF" />,
+        ],
+        tintIcons: false,
       },
       (selectedIndex?: number) => {
         switch (selectedIndex) {
@@ -471,5 +497,41 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 16,
+  },
+  mediaActionSheet: {
+    backgroundColor: "#FFFDFE",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255, 107, 139, 0.16)",
+    shadowColor: "#E97894",
+    shadowOffset: {
+      width: 0,
+      height: -8,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 12,
+    overflow: "hidden",
+  },
+  mediaActionSheetSeparator: {
+    backgroundColor: "#F9DDE4",
+    marginHorizontal: 16,
+    width: undefined,
+  },
+  mediaActionSheetTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2F2430",
+  },
+  mediaActionSheetMessage: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: "#9A7D86",
+  },
+  mediaActionSheetText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#2F2430",
   },
 });
