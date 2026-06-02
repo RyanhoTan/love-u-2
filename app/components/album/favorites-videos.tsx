@@ -1,16 +1,40 @@
-import { Text, Image, View, StyleSheet, TouchableOpacity, SectionList } from "react-native";
+import { useState } from "react";
+import type { ImageSourcePropType } from "react-native";
+import {
+  Text,
+  Image,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  SectionList,
+} from "react-native";
 import { Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
 import { FAVORITE_VIDEOS, type FavoriteVideo } from "@/data/mock-stories";
+import { ImageViewer } from "../common";
 
-export function FavoritesVideosGrid({ contentWidth }: { contentWidth: number }) {
+export function FavoritesVideosGrid({
+  contentWidth,
+}: {
+  contentWidth: number;
+}) {
   const size = contentWidth > 0 ? (contentWidth - 4 * 2) / 3 : 0;
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerSource, setViewerSource] = useState<ImageSourcePropType | null>(
+    null,
+  );
   const sections = [{ data: chunk(FAVORITE_VIDEOS, 3) }];
 
   const renderRow = ({ item: row }: { item: FavoriteVideo[] }) => (
     <Row gap={4} style={{ marginBottom: 4 }}>
       {row.map((video) => (
-        <TouchableOpacity key={video.id}>
+        <TouchableOpacity
+          key={video.id}
+          onPress={() => {
+            setViewerSource(video.source);
+            setViewerVisible(true);
+          }}
+        >
           <View>
             <Image
               source={video.source}
@@ -27,12 +51,19 @@ export function FavoritesVideosGrid({ contentWidth }: { contentWidth: number }) 
   );
 
   return (
-    <SectionList
-      sections={sections}
-      keyExtractor={(row, index) => String(row[0]?.id ?? index)}
-      showsVerticalScrollIndicator={false}
-      renderItem={renderRow}
-    />
+    <>
+      <SectionList
+        sections={sections}
+        keyExtractor={(row, index) => String(row[0]?.id ?? index)}
+        showsVerticalScrollIndicator={false}
+        renderItem={renderRow}
+      />
+      <ImageViewer
+        visible={viewerVisible}
+        source={viewerSource!}
+        onClose={() => setViewerVisible(false)}
+      />
+    </>
   );
 }
 

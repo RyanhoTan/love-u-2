@@ -1,4 +1,11 @@
-import { Text, Image, View, StyleSheet, TouchableOpacity, SectionList } from "react-native";
+import {
+  Text,
+  Image,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  SectionList,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Column, Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
@@ -7,11 +14,14 @@ import { STORIES, type Story } from "@/data/mock-stories";
 const COLUMNS = 2;
 const GAP = 12;
 
-export function FavoritesStoriesGrid({ contentWidth }: { contentWidth: number }) {
+export function FavoritesStoriesGrid({
+  contentWidth,
+}: {
+  contentWidth: number;
+}) {
   const router = useRouter();
-  const cardWidth = contentWidth > 0
-    ? (contentWidth - GAP * (COLUMNS - 1)) / COLUMNS
-    : 0;
+  const cardWidth =
+    contentWidth > 0 ? (contentWidth - GAP * (COLUMNS - 1)) / COLUMNS : 0;
 
   const sections = [{ data: chunk(STORIES, COLUMNS) }];
 
@@ -26,7 +36,11 @@ export function FavoritesStoriesGrid({ contentWidth }: { contentWidth: number })
           <Column gap={6}>
             <Image
               source={story.cover}
-              style={{ width: "100%", height: cardWidth * 0.75, borderRadius: 8 }}
+              style={{
+                width: "100%",
+                height: cardWidth * 0.75,
+                borderRadius: 8,
+              }}
             />
             <Text style={styles.cardTitle} numberOfLines={2}>
               {story.title}

@@ -77,9 +77,15 @@ export function Favorites() {
         style={styles.content}
         onLayout={(e) => setContentWidth(e.nativeEvent.layout.width)}
       >
-        {activeKey === "stories" && <FavoritesStoriesGrid contentWidth={contentWidth} />}
-        {activeKey === "photos" && <FavoritesPhotosGrid contentWidth={contentWidth} />}
-        {activeKey === "videos" && <FavoritesVideosGrid contentWidth={contentWidth} />}
+        {activeKey === "stories" && (
+          <FavoritesStoriesGrid contentWidth={contentWidth} />
+        )}
+        {activeKey === "photos" && (
+          <FavoritesPhotosGrid contentWidth={contentWidth} />
+        )}
+        {activeKey === "videos" && (
+          <FavoritesVideosGrid contentWidth={contentWidth} />
+        )}
       </View>
     </View>
   );

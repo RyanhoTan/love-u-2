@@ -1,13 +1,19 @@
 import { useMemo, useState } from "react";
-import { ScrollView, Text, View, Image } from "react-native";
+import { ScrollView, Text, View, Image, TouchableOpacity } from "react-native";
+import type { ImageSourcePropType } from "react-native";
 import { Column, Row } from "../layout";
 import { ImagesCoverPng } from "@/assets";
+import { ImageViewer } from "../common";
 
 const COLUMNS = 3; // 每行精确显示 3 列
 const IMAGE_GAP = 8; // 照片与照片之间的缝隙大小
 
 export function Photos() {
   const [gridWidth, setGridWidth] = useState(0);
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerSource, setViewerSource] = useState<ImageSourcePropType | null>(
+    null,
+  );
   const imageSize = useMemo(() => {
     if (!gridWidth) return 0;
 
@@ -72,19 +78,31 @@ export function Photos() {
           >
             {imageSize > 0 &&
               photo.source.map((src, index) => (
-                <Image
+                <TouchableOpacity
                   key={index}
-                  source={src}
-                  style={{
-                    width: imageSize,
-                    height: imageSize,
-                    borderRadius: 8,
+                  onPress={() => {
+                    setViewerSource(src);
+                    setViewerVisible(true);
                   }}
-                />
+                >
+                  <Image
+                    source={src}
+                    style={{
+                      width: imageSize,
+                      height: imageSize,
+                      borderRadius: 8,
+                    }}
+                  />
+                </TouchableOpacity>
               ))}
           </View>
         </Column>
       ))}
+      <ImageViewer
+        visible={viewerVisible}
+        source={viewerSource!}
+        onClose={() => setViewerVisible(false)}
+      />
     </ScrollView>
   );
 }

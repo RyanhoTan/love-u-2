@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
+import type { ImageSourcePropType } from "react-native";
 import { useRouter } from "expo-router";
 // 能够在自身滑动时自动且完美地锁住外层容器（如 TabView）的手势。
 import { ScrollView } from "react-native-gesture-handler";
@@ -8,6 +9,7 @@ import { ChevronRight, ChevronsUpDown, Grid2x2 } from "lucide-react-native";
 import { ImagesCoverPng } from "@/assets";
 import { STORIES } from "@/data/mock-stories";
 import { TimeLine } from "./time-line";
+import { ImageViewer } from "../common";
 
 const COLUMNS = 3;
 const IMAGE_GAP = 8;
@@ -18,6 +20,10 @@ export function AllMedias() {
   const [timelineHeights, setTimelineHeights] = useState<
     Record<number, number>
   >({});
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerSource, setViewerSource] = useState<ImageSourcePropType | null>(
+    null,
+  );
   const imageSize = useMemo(() => {
     if (!gridWidth) return 0;
 
@@ -170,15 +176,22 @@ export function AllMedias() {
                   >
                     {imageSize > 0 &&
                       media.source.map((src, index) => (
-                        <Image
+                        <TouchableOpacity
                           key={index}
-                          source={src}
-                          style={{
-                            width: imageSize,
-                            height: imageSize,
-                            borderRadius: 8,
+                          onPress={() => {
+                            setViewerSource(src);
+                            setViewerVisible(true);
                           }}
-                        />
+                        >
+                          <Image
+                            source={src}
+                            style={{
+                              width: imageSize,
+                              height: imageSize,
+                              borderRadius: 8,
+                            }}
+                          />
+                        </TouchableOpacity>
                       ))}
                   </View>
                 </Column>
@@ -187,6 +200,11 @@ export function AllMedias() {
           </Column>
         </Row>
       </Column>
+      <ImageViewer
+        visible={viewerVisible}
+        source={viewerSource!}
+        onClose={() => setViewerVisible(false)}
+      />
     </ScrollView>
   );
 }

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { NavBar } from "@/components/common";
+import type { ImageSourcePropType } from "react-native";
+import { NavBar, ImageViewer } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import {
   Text,
@@ -20,6 +21,10 @@ const PADDING = 16;
 export default function StoryDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [gridWidth, setGridWidth] = useState(0);
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerSource, setViewerSource] = useState<ImageSourcePropType | null>(
+    null,
+  );
   const imageSize = useMemo(() => {
     if (!gridWidth) return 0;
     return Math.floor((gridWidth - GAP * (COLUMNS - 1)) / COLUMNS);
@@ -50,7 +55,13 @@ export default function StoryDetail() {
             >
               {imageSize > 0 &&
                 group.sources.map((src, idx) => (
-                  <TouchableOpacity key={idx}>
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() => {
+                      setViewerSource(src);
+                      setViewerVisible(true);
+                    }}
+                  >
                     <Image
                       source={src}
                       style={{
@@ -65,6 +76,11 @@ export default function StoryDetail() {
           </Column>
         ))}
       </ScrollView>
+      <ImageViewer
+        visible={viewerVisible}
+        source={viewerSource!}
+        onClose={() => setViewerVisible(false)}
+      />
     </SafeAreaView>
   );
 }
