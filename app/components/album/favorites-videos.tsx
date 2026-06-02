@@ -1,17 +1,17 @@
-import { useState } from "react";
-import type { ImageSourcePropType } from "react-native";
 import {
-  Text,
   Image,
+  Text,
   View,
   StyleSheet,
   TouchableOpacity,
   SectionList,
 } from "react-native";
+import { Play } from "lucide-react-native";
 import { Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
 import { FAVORITE_VIDEOS, type FavoriteVideo } from "@/data/mock-stories";
-import { ImageViewer } from "../common";
+import { useVideoViewer } from "@/hooks/use-video-viewer";
+import { TestMp4 } from "@/assets";
 
 export function FavoritesVideosGrid({
   contentWidth,
@@ -19,10 +19,7 @@ export function FavoritesVideosGrid({
   contentWidth: number;
 }) {
   const size = contentWidth > 0 ? (contentWidth - 4 * 2) / 3 : 0;
-  const [viewerVisible, setViewerVisible] = useState(false);
-  const [viewerSource, setViewerSource] = useState<ImageSourcePropType | null>(
-    null,
-  );
+  const { openViewer, Viewer } = useVideoViewer();
   const sections = [{ data: chunk(FAVORITE_VIDEOS, 3) }];
 
   const renderRow = ({ item: row }: { item: FavoriteVideo[] }) => (
@@ -30,16 +27,17 @@ export function FavoritesVideosGrid({
       {row.map((video) => (
         <TouchableOpacity
           key={video.id}
-          onPress={() => {
-            setViewerSource(video.source);
-            setViewerVisible(true);
-          }}
+          onPress={() => openViewer(TestMp4, video.duration)}
         >
           <View>
             <Image
               source={video.source}
               style={{ width: size, height: size, borderRadius: 6 }}
             />
+            {/* 播放按钮 */}
+            <View style={styles.playButton}>
+              <Play color="#fff" fill="#fff" size={16} />
+            </View>
             <View style={styles.durationTag}>
               <Text style={styles.durationText}>{video.duration}</Text>
             </View>
@@ -58,16 +56,25 @@ export function FavoritesVideosGrid({
         showsVerticalScrollIndicator={false}
         renderItem={renderRow}
       />
-      <ImageViewer
-        visible={viewerVisible}
-        source={viewerSource!}
-        onClose={() => setViewerVisible(false)}
-      />
+      {Viewer}
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  playButton: {
+    position: "absolute",
+    left: "50%",
+    top: "50%",
+    width: 34,
+    height: 34,
+    marginLeft: -17,
+    marginTop: -17,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#00000060",
+  },
   durationTag: {
     position: "absolute",
     bottom: 4,

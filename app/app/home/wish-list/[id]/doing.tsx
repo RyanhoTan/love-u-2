@@ -161,10 +161,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
     width: "100%",
   },
-
-  timelineItem: {
-    flexDirection: "row",
-  },
   axisContainer: {
     width: 55,
     alignItems: "center",

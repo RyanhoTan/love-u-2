@@ -1,19 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 import {
-  Animated,
   Image,
-  Modal,
-  Pressable,
   SectionList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { useVideoPlayer, VideoView, type VideoSource } from "expo-video";
-import { Play, X } from "lucide-react-native";
+import type { VideoSource } from "expo-video";
+import { Play } from "lucide-react-native";
 import { ImagesCoverPng, TestMp4 } from "@/assets";
 import { Column, Row } from "../layout";
+import { useVideoViewer } from "@/hooks/use-video-viewer";
 
 type VideoItem = {
   id: number;
@@ -94,7 +92,7 @@ type Section = {
 };
 
 export function Videos() {
-  const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
+  const { openViewer, Viewer } = useVideoViewer();
 
   // 后端就绪前，用本地素材作缩略图占位，保证 mock 展示不空
   // TODO: 真正接入后端后，这段逻辑可以删除
@@ -126,7 +124,7 @@ export function Videos() {
     ({ item: video }: { item: VideoItem }) => (
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => setSelectedVideo(video)}
+        onPress={() => openViewer(video.source, video.title, video.date)}
         style={styles.videoRow}
       >
         <View style={styles.videoCover}>
@@ -148,14 +146,12 @@ export function Videos() {
         </Column>
       </TouchableOpacity>
     ),
-    [mockThumbnail],
+    [mockThumbnail, openViewer],
   );
 
   const itemSeparator = useCallback(() => <View style={{ height: 12 }} />, []);
 
   const sectionFooter = useCallback(() => <View style={{ height: 30 }} />, []);
-
-  const closePlayer = () => setSelectedVideo(null);
 
   return (
     <>
@@ -175,83 +171,8 @@ export function Videos() {
           paddingVertical: 16,
         }}
       />
-      <VideoPlayerModal video={selectedVideo} onClose={closePlayer} />
+      {Viewer}
     </>
-  );
-}
-
-function VideoPlayerModal({
-  video,
-  onClose,
-}: {
-  video: VideoItem | null;
-  onClose: () => void;
-}) {
-  if (!video) return null;
-
-  return <MountedVideoPlayerModal video={video} onClose={onClose} />;
-}
-
-function MountedVideoPlayerModal({
-  video,
-  onClose,
-}: {
-  video: VideoItem;
-  onClose: () => void;
-}) {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
-
-  const handleClose = useCallback(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 100,
-      useNativeDriver: true,
-    }).start(() => onClose());
-  }, [fadeAnim, onClose]);
-
-  const player = useVideoPlayer(video.source, (videoPlayer) => {
-    videoPlayer.loop = false;
-    videoPlayer.play();
-  });
-
-  return (
-    <Modal
-      visible
-      animationType="none"
-      presentationStyle="fullScreen"
-      onRequestClose={handleClose}
-    >
-      <View style={styles.modalBackdrop}>
-        <Animated.View style={[styles.modal, { opacity: fadeAnim }]}>
-          <VideoView
-            player={player}
-            nativeControls
-            contentFit="contain"
-            fullscreenOptions={{ enable: true, orientation: "default" }}
-            style={styles.fullscreenVideo}
-          />
-          <View style={styles.modalHeader}>
-            <Column flex={1} gap={4}>
-              <Text numberOfLines={1} style={styles.modalTitle}>
-                {video.title}
-              </Text>
-              <Text style={styles.modalDate}>{video.date}</Text>
-            </Column>
-            <Pressable onPress={handleClose} style={styles.closeButton}>
-              <X color="#fff" size={22} />
-            </Pressable>
-          </View>
-        </Animated.View>
-      </View>
-    </Modal>
   );
 }
 
@@ -323,46 +244,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 10,
     backgroundColor: "#00000070",
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  modal: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  fullscreenVideo: {
-    flex: 1,
-  },
-  modalHeader: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingTop: 52,
-    paddingBottom: 12,
-    backgroundColor: "#00000070",
-  },
-  modalTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  modalDate: {
-    color: "#ffffff99",
-    fontSize: 12,
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#ffffff20",
   },
 });
