@@ -15,7 +15,9 @@ Create a Git commit with a professional Conventional Commits message based on th
 4. If no changes are staged, stage the relevant uncommitted changes explicitly with `git add`.
 5. Generate a Conventional Commits message, using a bullet-point body when the change spans multiple edits.
 6. Run `git commit` with the generated message.
-7. Do not amend existing commits and do not push.
+7. Immediately verify the newly created commit message for encoding issues by inspecting `HEAD`.
+8. If the message is garbled, rewrite only the commit you just created with a UTF-8 message file and `git commit --amend -F`.
+9. Do not amend older existing commits and do not push.
 
 ## Allowed Git Commands
 
@@ -24,6 +26,7 @@ Use only these command categories for the commit workflow:
 - `git diff` to inspect changes.
 - `git add` to stage relevant files when nothing is already staged.
 - `git commit` to create the commit.
+- `git cat-file -p HEAD` to verify the final stored commit message.
 
 Do not run `git status` or `git log` if the user already provided that information. If repository state is not known in the current turn, use the minimum Git inspection needed before committing.
 
@@ -99,6 +102,15 @@ EOF
 ```
 
 Do not use `-m` with `git commit -F`. Do not put textual `\n` sequences inside a message string to simulate line breaks.
+
+When the commit message contains non-ASCII text, prefer writing the message to a UTF-8 file and passing it with `git commit -F <file>`. After committing, always inspect `git cat-file -p HEAD` to confirm the stored message is not garbled.
+
+If the just-created commit message is garbled, fix it immediately by rewriting only `HEAD` with a UTF-8 message file:
+
+```sh
+git -c i18n.commitEncoding=utf-8 commit --amend -F .git-commit-message.txt
+git cat-file -p HEAD
+```
 
 If creating the commit is impossible, output only the final commit message text so the user can use it directly.
 
