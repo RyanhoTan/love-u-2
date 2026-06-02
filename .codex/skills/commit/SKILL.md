@@ -13,7 +13,7 @@ Create a Git commit with a professional Conventional Commits message based on th
 2. Use `git diff` to understand the actual changes.
 3. If staged changes exist, treat the staged set as the user's explicit selection and commit only those changes.
 4. If no changes are staged, stage the relevant uncommitted changes explicitly with `git add`.
-5. Generate a Conventional Commits message.
+5. Generate a Conventional Commits message, using a bullet-point body when the change spans multiple edits.
 6. Run `git commit` with the generated message.
 7. Do not amend existing commits and do not push.
 
@@ -70,12 +70,13 @@ Use these extended types when they fit better:
 - For small isolated changes, describe the concrete edit.
 - Prefer the user's stated intent when provided, but combine it with the actual diff.
 - Do not mechanically restate fragmented or incomplete user wording.
+- When a body is needed, use short bullet points instead of prose paragraphs.
 
 ## Body And Footer
 
 - Write the commit message in Simplified Chinese.
 
-Include a body for significant or complex changes. Explain what changed and why, not implementation minutiae. Wrap body lines at about 72 characters.
+For significant or complex changes, include a bullet-point body. Each bullet should describe one concrete change or reason, not implementation minutiae. Wrap body lines at about 72 characters.
 
 Use footers only when appropriate. For breaking changes, include:
 
@@ -89,9 +90,11 @@ When running the commit, pass the message with real newlines using standard inpu
 
 ```sh
 git commit -F - <<'EOF'
-type(scope): description
+refactor(album): 统一媒体数据来源
 
-Body text when needed.
+- 将故事列表、标题获取和媒体获取逻辑统一迁移至 `app/data/mock-stories.ts`
+- 修改相册列表组件和详情页组件从新文件独立导入数据
+- 修改 `AllMedias` 组件复用新抽离的数据，消除了重复定义的数组
 EOF
 ```
 
