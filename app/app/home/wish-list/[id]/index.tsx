@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import type { ImageSourcePropType } from "react-native";
-import { NavBar, PinkButton, toast, ImageViewer } from "@/components/common";
+import { NavBar, PinkButton, toast } from "@/components/common";
+import { useImageViewer } from "@/hooks/use-image-viewer";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Ellipsis,
@@ -36,10 +36,7 @@ export default function WishListDetail() {
   const { wishId } = useLocalSearchParams();
   // 页面：愿望清单详情页
   // 状态：动态存储计算后的图片高度
-  const [viewerVisible, setViewerVisible] = useState(false);
-  const [viewerSource, setViewerSource] = useState<ImageSourcePropType | null>(
-    null,
-  );
+  const { openViewer, Viewer } = useImageViewer();
   const [imageHeight, setImageHeight] = useState(150); // 给个默认高度防止闪烁
 
   useEffect(() => {
@@ -120,12 +117,7 @@ export default function WishListDetail() {
       />
       <ScrollView>
         {/* 愿望封面图：宽度占满屏幕，高度等比例缩放 */}
-        <TouchableOpacity
-          onPress={() => {
-            setViewerSource(ImagesCoverPng);
-            setViewerVisible(true);
-          }}
-        >
+        <TouchableOpacity onPress={() => openViewer(ImagesCoverPng)}>
           <Image
             source={ImagesCoverPng}
             style={{
@@ -205,11 +197,7 @@ export default function WishListDetail() {
           />
         </Row>
       </Row>
-      <ImageViewer
-        visible={viewerVisible}
-        source={viewerSource!}
-        onClose={() => setViewerVisible(false)}
-      />
+      {Viewer}
     </SafeAreaView>
   );
 }

@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
-import type { ImageSourcePropType } from "react-native";
 import { useRouter } from "expo-router";
 // 能够在自身滑动时自动且完美地锁住外层容器（如 TabView）的手势。
 import { ScrollView } from "react-native-gesture-handler";
@@ -9,7 +8,7 @@ import { ChevronRight, ChevronsUpDown, Grid2x2 } from "lucide-react-native";
 import { ImagesCoverPng } from "@/assets";
 import { STORIES } from "@/data/mock-stories";
 import { TimeLine } from "./time-line";
-import { ImageViewer } from "../common";
+import { useImageViewer } from "@/hooks/use-image-viewer";
 
 const COLUMNS = 3;
 const IMAGE_GAP = 8;
@@ -20,10 +19,7 @@ export function AllMedias() {
   const [timelineHeights, setTimelineHeights] = useState<
     Record<number, number>
   >({});
-  const [viewerVisible, setViewerVisible] = useState(false);
-  const [viewerSource, setViewerSource] = useState<ImageSourcePropType | null>(
-    null,
-  );
+  const { openViewer, Viewer } = useImageViewer();
   const imageSize = useMemo(() => {
     if (!gridWidth) return 0;
 
@@ -178,10 +174,7 @@ export function AllMedias() {
                       media.source.map((src, index) => (
                         <TouchableOpacity
                           key={index}
-                          onPress={() => {
-                            setViewerSource(src);
-                            setViewerVisible(true);
-                          }}
+                          onPress={() => openViewer(src)}
                         >
                           <Image
                             source={src}
@@ -200,11 +193,7 @@ export function AllMedias() {
           </Column>
         </Row>
       </Column>
-      <ImageViewer
-        visible={viewerVisible}
-        source={viewerSource!}
-        onClose={() => setViewerVisible(false)}
-      />
+      {Viewer}
     </ScrollView>
   );
 }

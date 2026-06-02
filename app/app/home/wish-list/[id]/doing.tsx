@@ -1,7 +1,7 @@
-import { NavBar, PinkButton, ImageViewer } from "@/components/common";
+import { NavBar, PinkButton } from "@/components/common";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
-import type { ImageSourcePropType } from "react-native";
+import { useImageViewer } from "@/hooks/use-image-viewer";
 import {
   Image,
   Dimensions,
@@ -25,10 +25,7 @@ const { width: screenWidth } = Dimensions.get("window");
 export default function Doing() {
   const { wishId } = useLocalSearchParams();
   const [imageHeight, setImageHeight] = useState(150); // 给个默认高度防止闪烁
-  const [viewerVisible, setViewerVisible] = useState(false);
-  const [viewerSource, setViewerSource] = useState<ImageSourcePropType | null>(
-    null,
-  );
+  const { openViewer, Viewer } = useImageViewer();
   useEffect(() => {
     // 功能：获取本地图片的原始宽高，并根据屏幕宽度等比例缩放高度
     const asset = Image.resolveAssetSource(ImagesCoverPng);
@@ -76,12 +73,7 @@ export default function Doing() {
         }
       />
       <ScrollView showsVerticalScrollIndicator={false}>
-        <TouchableOpacity
-          onPress={() => {
-            setViewerSource(ImagesCoverPng);
-            setViewerVisible(true);
-          }}
-        >
+        <TouchableOpacity onPress={() => openViewer(ImagesCoverPng)}>
           <Image
             source={ImagesCoverPng}
             style={{
@@ -126,10 +118,7 @@ export default function Doing() {
                         {item.images.map((img, idx) => (
                           <TouchableOpacity
                             key={idx}
-                            onPress={() => {
-                              setViewerSource(img);
-                              setViewerVisible(true);
-                            }}
+                            onPress={() => openViewer(img)}
                           >
                             <Image source={img} style={styles.gridImage} />
                           </TouchableOpacity>
@@ -154,11 +143,7 @@ export default function Doing() {
           }
         />
       </View>
-      <ImageViewer
-        visible={viewerVisible}
-        source={viewerSource!}
-        onClose={() => setViewerVisible(false)}
-      />
+      {Viewer}
     </SafeAreaView>
   );
 }

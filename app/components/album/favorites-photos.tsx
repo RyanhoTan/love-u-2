@@ -1,10 +1,8 @@
-import { useState } from "react";
-import type { ImageSourcePropType } from "react-native";
 import { Image, View, TouchableOpacity, SectionList } from "react-native";
 import { Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
 import { FAVORITE_PHOTOS, type FavoritePhoto } from "@/data/mock-stories";
-import { ImageViewer } from "../common";
+import { useImageViewer } from "@/hooks/use-image-viewer";
 
 export function FavoritesPhotosGrid({
   contentWidth,
@@ -12,10 +10,7 @@ export function FavoritesPhotosGrid({
   contentWidth: number;
 }) {
   const size = contentWidth > 0 ? (contentWidth - 4 * 2) / 3 : 0;
-  const [viewerVisible, setViewerVisible] = useState(false);
-  const [viewerSource, setViewerSource] = useState<ImageSourcePropType | null>(
-    null,
-  );
+  const { openViewer, Viewer } = useImageViewer();
   const sections = [{ data: chunk(FAVORITE_PHOTOS, 3) }];
 
   const renderRow = ({ item: row }: { item: FavoritePhoto[] }) => (
@@ -23,10 +18,7 @@ export function FavoritesPhotosGrid({
       {row.map((photo) => (
         <TouchableOpacity
           key={photo.id}
-          onPress={() => {
-            setViewerSource(photo.source);
-            setViewerVisible(true);
-          }}
+          onPress={() => openViewer(photo.source)}
         >
           <Image
             source={photo.source}
@@ -46,11 +38,7 @@ export function FavoritesPhotosGrid({
         showsVerticalScrollIndicator={false}
         renderItem={renderRow}
       />
-      <ImageViewer
-        visible={viewerVisible}
-        source={viewerSource!}
-        onClose={() => setViewerVisible(false)}
-      />
+      {Viewer}
     </>
   );
 }
