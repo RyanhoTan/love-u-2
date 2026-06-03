@@ -34,7 +34,7 @@ import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
 import {
   type PickedMediaItem,
   useMediaPicker,
-} from "@/app/features/wish-list/use-media-picker";
+} from "@/hooks/use-media-picker";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import {

@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { TabBar, SceneMap, TabView } from "react-native-tab-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMediaPicker } from "@/app/features/wish-list/use-media-picker";
+import { useMediaPicker } from "@/hooks/use-media-picker";
 import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
 import { toast } from "@/components/common";
 import { AllMedias, Favorites, Photos, Videos } from "@/components/album";
