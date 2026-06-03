@@ -4,6 +4,7 @@
 export const colors = {
   theme: {
     primary: "#FF6B8B",
+    secondary: "#FF9AAF",
     primaryTint: "#FFE5E9",
     primaryBorder: "rgba(255, 107, 139, 0.2)",
     primaryGlow: "rgba(255, 182, 193, 0.4)",

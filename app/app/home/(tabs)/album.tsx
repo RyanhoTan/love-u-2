@@ -6,7 +6,6 @@ import {
   ImagePlus,
   Plus,
   Sparkles,
-  Video,
   X,
 } from "lucide-react-native";
 import {
@@ -18,10 +17,12 @@ import {
 } from "react-native";
 import { TabBar, SceneMap, TabView } from "react-native-tab-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMediaPicker } from "@/app/features/wish-list/use-media-picker";
 import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
 import { toast } from "@/components/common";
 import { AllMedias, Favorites, Photos, Videos } from "@/components/album";
 import { Row } from "@/components/layout";
+import { colors } from "@/styles/colors";
 
 const AllRoute = () => <AllMedias />;
 const PhotosRoute = () => <Photos />;
@@ -38,6 +39,10 @@ const renderScene = SceneMap({
 export default function Album() {
   const insets = useSafeAreaInsets();
   const { showStyledActionSheet } = useStyledActionSheet();
+  const { pickFromLibrary } = useMediaPicker({
+    mediaTypes: "image",
+    mode: "multiple",
+  });
   const headerMenus = [
     { name: "搜索", icon: Search, onPress: () => toast.info("搜索") },
     { name: "上传", icon: CloudUpload, onPress: () => toast.info("上传") },
@@ -63,17 +68,26 @@ export default function Album() {
     }).start();
   }, [index, indicatorPos]);
 
+  const handlePickImages = async () => {
+    const assets = await pickFromLibrary();
+
+    if (!assets.length) {
+      return;
+    }
+
+    toast.success(`已选择 ${assets.length} 张图片`);
+  };
+
   const openCreateMenu = () => {
     showStyledActionSheet(
       {
-        options: ["创建时光故事", "上传照片", "上传视频", "取消"],
-        cancelButtonIndex: 3,
+        options: ["创建时光故事", "上传照片/视频", "取消"],
+        cancelButtonIndex: 2,
         title: "新建内容",
         icons: [
-          <Sparkles key="story" size={20} color="#FF6B8B" />,
-          <ImagePlus key="photo" size={20} color="#FF6B8B" />,
-          <Video key="video" size={20} color="#FF6B8B" />,
-          <X key="cancel" size={20} color="#FF9AAF" />,
+          <Sparkles key="story" size={20} color={colors.theme.primary} />,
+          <ImagePlus key="photo" size={20} color={colors.theme.primary} />,
+          <X key="cancel" size={20} color={colors.theme.secondary} />,
         ],
       },
       (selectedIndex?: number) => {
@@ -82,10 +96,7 @@ export default function Album() {
             toast.info("创建时光故事");
             break;
           case 1:
-            toast.info("上传照片");
-            break;
-          case 2:
-            toast.info("上传视频");
+            void handlePickImages();
             break;
           default:
             break;
@@ -99,9 +110,9 @@ export default function Album() {
       <Row content="space-between">
         <Text style={{ fontSize: 20, fontWeight: "bold" }}>相册</Text>
         <Row gap={12}>
-          {headerMenus.map((menu, index) => (
+          {headerMenus.map((menu, itemIndex) => (
             <TouchableOpacity
-              key={index}
+              key={itemIndex}
               onPress={menu.onPress}
               style={{ padding: 8 }}
             >
@@ -128,7 +139,7 @@ export default function Album() {
                     position: "absolute",
                     bottom: 0,
                     height: 3,
-                    backgroundColor: "#FF6b81",
+                    backgroundColor: colors.theme.primary,
                     borderRadius: 2,
                     width: tabWidth,
                     transform: [
@@ -139,8 +150,8 @@ export default function Album() {
               );
             }}
             style={{ backgroundColor: "transparent", marginBottom: 16 }}
-            activeColor="#FF6B8B"
-            inactiveColor="#aaa"
+            activeColor={colors.theme.primary}
+            inactiveColor={colors.semantic.textSecondary}
           />
         )}
       />
@@ -172,13 +183,8 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#FF6B8B",
+    backgroundColor: colors.theme.primary,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#FF6B8B",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
   },
 });
