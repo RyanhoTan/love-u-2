@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useActionSheet } from "@expo/react-native-action-sheet";
 import {
   Search,
   CloudUpload,
@@ -19,6 +18,7 @@ import {
 } from "react-native";
 import { TabBar, SceneMap, TabView } from "react-native-tab-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
 import { toast } from "@/components/common";
 import { AllMedias, Favorites, Photos, Videos } from "@/components/album";
 import { Row } from "@/components/layout";
@@ -37,7 +37,7 @@ const renderScene = SceneMap({
 
 export default function Album() {
   const insets = useSafeAreaInsets();
-  const { showActionSheetWithOptions } = useActionSheet();
+  const { showStyledActionSheet } = useStyledActionSheet();
   const headerMenus = [
     { name: "搜索", icon: Search, onPress: () => toast.info("搜索") },
     { name: "上传", icon: CloudUpload, onPress: () => toast.info("上传") },
@@ -64,29 +64,17 @@ export default function Album() {
   }, [index, indicatorPos]);
 
   const openCreateMenu = () => {
-    showActionSheetWithOptions(
+    showStyledActionSheet(
       {
         options: ["创建时光故事", "上传照片", "上传视频", "取消"],
         cancelButtonIndex: 3,
         title: "新建内容",
-        useModal: true,
-        showSeparators: true,
-        tintColor: "#2F2430",
-        cancelButtonTintColor: "#FF6B8B",
-        containerStyle: {
-          ...styles.actionSheet,
-          paddingBottom: Math.max(insets.bottom, 12),
-        },
-        separatorStyle: styles.actionSheetSeparator,
-        titleTextStyle: styles.actionSheetTitle,
-        textStyle: styles.actionSheetText,
         icons: [
           <Sparkles key="story" size={20} color="#FF6B8B" />,
           <ImagePlus key="photo" size={20} color="#FF6B8B" />,
           <Video key="video" size={20} color="#FF6B8B" />,
           <X key="cancel" size={20} color="#FF9AAF" />,
         ],
-        tintIcons: false,
       },
       (selectedIndex?: number) => {
         switch (selectedIndex) {
@@ -192,36 +180,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 8,
-  },
-  actionSheet: {
-    backgroundColor: "#FFFDFE",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255, 107, 139, 0.16)",
-    shadowColor: "#E97894",
-    shadowOffset: {
-      width: 0,
-      height: -8,
-    },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 12,
-    overflow: "hidden",
-  },
-  actionSheetSeparator: {
-    backgroundColor: "#F9DDE4",
-    marginHorizontal: 16,
-    width: undefined,
-  },
-  actionSheetTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#2F2430",
-  },
-  actionSheetText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#2F2430",
   },
 });

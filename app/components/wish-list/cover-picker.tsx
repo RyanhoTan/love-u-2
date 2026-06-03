@@ -1,8 +1,7 @@
-import { useActionSheet } from "@expo/react-native-action-sheet";
 import { LinearGradient } from "expo-linear-gradient";
-import { Camera } from "lucide-react-native";
+import { Camera, Images, X } from "lucide-react-native";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
+import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
 import {
   type PickedMediaItem,
   useMediaPicker,
@@ -15,7 +14,7 @@ type CoverPickerProps = {
 };
 
 export function CoverPicker({ value, onChange }: CoverPickerProps) {
-  const { showActionSheetWithOptions } = useActionSheet();
+  const { showStyledActionSheet } = useStyledActionSheet();
   const { pickFromLibrary, takePhoto } = useMediaPicker({
     mediaTypes: "image",
     mode: "single",
@@ -34,14 +33,16 @@ export function CoverPicker({ value, onChange }: CoverPickerProps) {
   };
 
   const onPress = () => {
-    const options = ["拍照", "从相册选择", "取消"];
-    const cancelButtonIndex = 2;
-
-    showActionSheetWithOptions(
+    showStyledActionSheet(
       {
-        options,
-        cancelButtonIndex,
-        title: "请选择图片来源",
+        options: ["拍照", "从相册选择", "取消"],
+        cancelButtonIndex: 2,
+        title: "选择图片来源",
+        icons: [
+          <Camera key="camera" size={20} color="#FF6B8B" />,
+          <Images key="library" size={20} color="#FF6B8B" />,
+          <X key="cancel" size={20} color="#FF9AAF" />,
+        ],
       },
       (selectedIndex?: number) => {
         switch (selectedIndex) {
