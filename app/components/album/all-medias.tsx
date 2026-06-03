@@ -61,6 +61,39 @@ export function AllMedias() {
 
   return (
     <ScrollView contentContainerStyle={{ gap: 16 }}>
+      {/* 愿望达成 */}
+      <Column>
+        <Row items="center" content="space-between">
+          <Text style={{ fontWeight: "bold" }}>愿望达成</Text>
+          <TouchableOpacity>
+            <Row center gap={6}>
+              <Text style={{ color: "#aaa" }}>全部愿望</Text>
+              <ChevronRight size={16} color="#aaa" />
+            </Row>
+          </TouchableOpacity>
+        </Row>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 12, paddingVertical: 12 }}
+        >
+          <View
+            style={{
+              width: 120,
+              height: 160,
+              borderRadius: 12,
+              backgroundColor: "#ffffff80",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 12,
+            }}
+          >
+            <Text style={{ color: "#aaa", textAlign: "center" }}>
+              愿望达成内容占位
+            </Text>
+          </View>
+        </ScrollView>
+      </Column>
       {/* 时光故事 */}
       <Column>
         <Row items="center" content="space-between">
