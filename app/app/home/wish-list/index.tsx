@@ -14,6 +14,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react-native";
 import { router } from "expo-router";
 import { Tag, type WishTagStatus } from "@/components/wish-list";
+import { colors } from "@/styles/colors";
 
 export default function WishList() {
   const wishList = [
@@ -89,7 +90,7 @@ export default function WishList() {
             <TouchableOpacity
               onPress={() => router.push("/home/wish-list/create")}
             >
-              <Plus color={"#FF6B8B"} height={36} width={36} />
+              <Plus color={colors.theme.primary} height={36} width={36} />
             </TouchableOpacity>
           </Row>
           <View>
@@ -107,7 +108,9 @@ export default function WishList() {
                     <Text
                       style={[
                         styles.categoryName,
-                        selectedTab === index && { color: "#FF6B8B" },
+                        selectedTab === index && {
+                          color: colors.theme.primary,
+                        },
                       ]}
                     >
                       {category.categoryName}
@@ -141,7 +144,7 @@ export default function WishList() {
 
                     <Tag status={wishList[selectedTab].type as WishTagStatus} />
                     <Text
-                      style={{ color: "#888" }}
+                      style={{ color: colors.semantic.textSecondary }}
                     >{`预计时间：${wish.time}`}</Text>
                   </Column>
                 </Row>
@@ -160,7 +163,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   wishItem: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.semantic.page,
     borderRadius: 12,
     padding: 16,
   },
@@ -171,7 +174,7 @@ const styles = StyleSheet.create({
   categoryButton: {
     paddingVertical: 12,
 
-    borderColor: "#FF6B8B",
+    borderColor: colors.theme.primary,
     paddingBottom: 4,
   },
 });

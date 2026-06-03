@@ -1,6 +1,7 @@
 import DatePicker from "react-native-date-picker";
 import { Row } from "@/components/layout";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { colors } from "@/styles/colors";
 
 type DatePickerModalProps = {
   visible: boolean;
@@ -55,11 +56,11 @@ export function DatePickerModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    backgroundColor: colors.semantic.overlay,
     justifyContent: "flex-end",
   },
   content: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.semantic.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 32,
@@ -67,20 +68,20 @@ const styles = StyleSheet.create({
   header: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F5F5F5",
+    borderBottomColor: colors.semantic.divider,
   },
   title: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333333",
+    color: colors.semantic.textPrimary,
   },
   cancelText: {
     fontSize: 16,
-    color: "#999999",
+    color: colors.semantic.textMuted,
   },
   confirmText: {
     fontSize: 16,
-    color: "#FF6B8B",
+    color: colors.theme.primary,
   },
   pickerWrapper: {
     alignItems: "center",

@@ -9,6 +9,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { colors } from "@/styles/colors";
 
 type StyledActionSheetOptions = Omit<
   ActionSheetOptions,
@@ -46,8 +47,8 @@ export function useStyledActionSheet() {
       {
         useModal: true,
         showSeparators: true,
-        tintColor: "#2F2430",
-        cancelButtonTintColor: "#FF6B8B",
+        tintColor: colors.semantic.textPrimary,
+        cancelButtonTintColor: colors.theme.primary,
         tintIcons: false,
         ...restOptions,
         containerStyle: StyleSheet.flatten([
@@ -72,29 +73,29 @@ export function useStyledActionSheet() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#FFFDFE",
+    backgroundColor: colors.semantic.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: "hidden",
   },
   separator: {
-    backgroundColor: "#F9DDE4",
+    backgroundColor: colors.semantic.divider,
     marginHorizontal: 16,
     width: undefined,
   },
   title: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#2F2430",
+    color: colors.semantic.textPrimary,
   },
   message: {
     fontSize: 13,
     lineHeight: 20,
-    color: "#9A7D86",
+    color: colors.semantic.textSecondary,
   },
   text: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#2F2430",
+    color: colors.semantic.textPrimary,
   },
 });

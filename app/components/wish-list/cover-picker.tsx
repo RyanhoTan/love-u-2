@@ -7,6 +7,7 @@ import {
   useMediaPicker,
 } from "@/app/features/wish-list/use-media-picker";
 import { Column } from "@/components/layout";
+import { colors } from "@/styles/colors";
 
 type CoverPickerProps = {
   value: string | null;
@@ -39,9 +40,9 @@ export function CoverPicker({ value, onChange }: CoverPickerProps) {
         cancelButtonIndex: 2,
         title: "选择图片来源",
         icons: [
-          <Camera key="camera" size={20} color="#FF6B8B" />,
-          <Images key="library" size={20} color="#FF6B8B" />,
-          <X key="cancel" size={20} color="#FF9AAF" />,
+          <Camera key="camera" size={20} color={colors.theme.primary} />,
+          <Images key="library" size={20} color={colors.theme.primary} />,
+          <X key="cancel" size={20} color={colors.theme.primary} />,
         ],
       },
       (selectedIndex?: number) => {
@@ -66,13 +67,13 @@ export function CoverPicker({ value, onChange }: CoverPickerProps) {
       onPress={onPress}
     >
       <LinearGradient
-        colors={["#FFE5E9", "#FFFFFF"]}
+        colors={[colors.theme.primaryTint, colors.semantic.page]}
         start={[1, 1]}
         end={[1, 0]}
         style={StyleSheet.absoluteFill}
       />
       <LinearGradient
-        colors={["rgba(255, 182, 193, 0.4)", "transparent"]}
+        colors={[colors.theme.primaryGlow, "transparent"]}
         start={[1, 0]}
         end={[0, 0]}
         style={StyleSheet.absoluteFill}
@@ -83,7 +84,7 @@ export function CoverPicker({ value, onChange }: CoverPickerProps) {
           <Image source={{ uri: value }} style={StyleSheet.absoluteFill} />
         ) : (
           <Column center>
-            <Camera color="#FFADBA" height={36} width={36} />
+            <Camera color={colors.theme.primary} height={36} width={36} />
             <Text>添加封面</Text>
           </Column>
         )}
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255, 107, 139, 0.2)",
+    borderColor: colors.theme.primaryBorder,
   },
   contentContainer: {
     flex: 1,

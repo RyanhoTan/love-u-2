@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ImagesWishFinishPng, ImagesCoverPng } from "@/assets";
 import { LinearGradient } from "expo-linear-gradient";
 import { PinkButton, toast } from "@/components/common";
+import { colors } from "@/styles/colors";
 
 export default function Finish() {
   // TODO: 先写死数据，后续对接接口
@@ -31,7 +32,7 @@ export default function Finish() {
     >
       <View style={styles.headerBackground}>
         <LinearGradient
-          colors={["#FFE5E9", "#FFFFFF"]}
+          colors={[colors.theme.primaryTint, colors.semantic.page]}
           start={[1, 0]}
           end={[1, 1]}
           style={StyleSheet.absoluteFill}
@@ -73,7 +74,7 @@ export default function Finish() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.semantic.page,
   },
   contentContainer: {
     flexGrow: 1,
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
   },
   contentArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.semantic.page,
     padding: 16,
   },
   title: {
@@ -100,11 +101,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   finishDataCard: {
-    backgroundColor: "#FFE5E9AA",
+    backgroundColor: colors.theme.primaryTint,
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "rgba(255, 107, 139, 0.2)",
+    borderColor: colors.theme.primaryBorder,
   },
   memoryImage: {
     width: 100,

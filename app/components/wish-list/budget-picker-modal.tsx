@@ -1,4 +1,5 @@
 import { Row } from "@/components/layout";
+import { colors } from "@/styles/colors";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -91,11 +92,11 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    backgroundColor: colors.semantic.overlay,
     justifyContent: "flex-end",
   },
   content: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.semantic.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -110,28 +111,28 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   confirmText: {
-    color: "#FF6B8B",
+    color: colors.theme.primary,
     fontWeight: "bold",
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: 2,
-    borderBottomColor: "#FF6B8B",
+    borderBottomColor: colors.theme.primary,
     width: "100%",
     paddingBottom: 8,
   },
   currency: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#FF6B8B",
+    color: colors.theme.primary,
     marginRight: 8,
   },
   input: {
     flex: 1,
     fontSize: 28,
     fontWeight: "bold",
-    color: "#1C1C1E",
+    color: colors.semantic.textPrimary,
     padding: 0,
   },
 });

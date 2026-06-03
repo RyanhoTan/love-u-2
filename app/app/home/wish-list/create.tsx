@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NavBar, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
+import { colors } from "@/styles/colors";
 import { BudgetPickerModal } from "@/components/wish-list/budget-picker-modal";
 import {
   CoverPicker,
@@ -145,12 +146,12 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     padding: 8,
-    backgroundColor: "rgba(255, 77, 115, 0.12)",
+    backgroundColor: colors.theme.primarySoftBg,
     borderRadius: 16,
   },
   nextButtonText: {
     fontWeight: "bold",
-    color: "#FF6B8B",
+    color: colors.theme.primary,
   },
   fieldLabel: {
     fontWeight: "bold",
@@ -161,13 +162,13 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     borderWidth: 1,
-    borderColor: "#E5E5E5",
+    borderColor: colors.semantic.border,
   },
   descriptionContainer: {
     width: "100%",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
+    borderColor: colors.semantic.border,
     position: "relative",
   },
   descriptionInput: {
@@ -180,12 +181,12 @@ const styles = StyleSheet.create({
     right: 8,
     bottom: 4,
     fontSize: 12,
-    color: "#999999",
+    color: colors.semantic.textMuted,
   },
   menuTitle: {
     fontWeight: "bold",
   },
   menuValue: {
-    color: "#999999",
+    color: colors.semantic.textMuted,
   },
 });

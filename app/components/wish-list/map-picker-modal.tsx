@@ -1,6 +1,7 @@
 import { Row } from "@/components/layout";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
+import { colors } from "@/styles/colors";
 
 type SelectedLocation = {
   name: string;
@@ -105,7 +106,7 @@ export function MapPickerModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    backgroundColor: colors.semantic.overlay,
     justifyContent: "flex-end",
   },
   topMask: {
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   content: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.semantic.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     height: "60%",
@@ -124,8 +125,8 @@ const styles = StyleSheet.create({
     height: 54,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-    backgroundColor: "#FFFFFF",
+    borderBottomColor: colors.semantic.divider,
+    backgroundColor: colors.semantic.surface,
   },
   placeholder: {
     width: 40,
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
   },
   closeText: {
     fontSize: 16,
-    color: "#666666",
+    color: colors.semantic.textSecondary,
   },
   webviewWrapper: {
     flex: 1,
