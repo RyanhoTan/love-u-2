@@ -40,7 +40,7 @@ export default function Album() {
   const insets = useSafeAreaInsets();
   const { showStyledActionSheet } = useStyledActionSheet();
   const { pickFromLibrary } = useMediaPicker({
-    mediaTypes: "image",
+    mediaTypes: "mixed",
     mode: "multiple",
   });
 
@@ -69,14 +69,14 @@ export default function Album() {
     }).start();
   }, [index, indicatorPos]);
 
-  const handlePickImages = async () => {
+  const handlePickMedia = async () => {
     const assets = await pickFromLibrary();
 
     if (!assets.length) {
       return;
     }
 
-    toast.success(`已选择 ${assets.length} 张图片`);
+    toast.success(`已选择 ${assets.length} 个照片/视频`);
     router.push("/home/album/upload/select-location");
   };
 
@@ -98,7 +98,7 @@ export default function Album() {
             router.push("/home/album/stories/create");
             break;
           case 1:
-            void handlePickImages();
+            void handlePickMedia();
             break;
           default:
             break;
