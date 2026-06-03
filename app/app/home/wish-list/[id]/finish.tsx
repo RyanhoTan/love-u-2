@@ -1,16 +1,18 @@
+import { PinkButton } from "@/components/common";
 import { Column, Row } from "@/components/layout";
-import { Image, Text, View, StyleSheet, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { ImagesWishFinishPng, ImagesCoverPng } from "@/assets";
-import { LinearGradient } from "expo-linear-gradient";
-import { PinkButton, toast } from "@/components/common";
+import { ImagesCoverPng, ImagesWishFinishPng } from "@/assets";
 import { colors } from "@/styles/colors";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Finish() {
-  // TODO: 先写死数据，后续对接接口
+  const { id } = useLocalSearchParams();
+
   const finishData = [
     {
-      title: "一起去看海",
+      title: "一起看海",
       value: "2024.05.03",
     },
     {
@@ -41,29 +43,33 @@ export default function Finish() {
       </View>
       <SafeAreaView style={styles.contentArea}>
         <Column gap={24} center>
-          <Text style={styles.title}>愿望完成啦！🎉</Text>
-          <Text style={styles.subtitle}>一起去看海</Text>
+          <Text style={styles.title}>愿望完成啦！</Text>
+          <Text style={styles.subtitle}>一起看海</Text>
           <Row gap={16}>
-            {finishData.map((item, index) => (
-              <Column key={index} center gap={8} style={styles.finishDataCard}>
+            {finishData.map((item) => (
+              <Column
+                key={item.title}
+                center
+                gap={8}
+                style={styles.finishDataCard}
+              >
                 <Text>{item.title}</Text>
                 <Text>{item.value}</Text>
               </Column>
             ))}
           </Row>
           <Row gap={12} center>
-            {finishImages?.map((image, index) => (
+            {finishImages.map((image, index) => (
               <Image key={index} source={image} style={styles.memoryImage} />
             ))}
           </Row>
-          {/*TODO: 这里看看能不能用AI总结 */}
-          <Text
-            style={styles.summary}
-          >{`“和你一起看海的每一刻，”\n          都是我最珍贵的回忆 ❤`}</Text>
+          <Text style={styles.summary}>
+            “和你一起看海的每一刻，都是我最珍贵的回忆。”
+          </Text>
         </Column>
         <PinkButton
           text="查看回忆"
-          onPress={() => toast.info("跳转到回忆页面")}
+          onPress={() => router.push(`/home/wish-list/${id}/memory`)}
           style={styles.footerButton}
         />
       </SafeAreaView>

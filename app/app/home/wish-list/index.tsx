@@ -21,6 +21,10 @@ function getWishDetailRoute(wishId: number, status: WishTagStatus) {
     return `/home/wish-list/${wishId}/doing` as const;
   }
 
+  if (status === "done") {
+    return `/home/wish-list/${wishId}/memory` as const;
+  }
+
   return `/home/wish-list/${wishId}` as const;
 }
 
