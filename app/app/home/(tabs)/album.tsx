@@ -15,15 +15,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { router } from "expo-router";
 import { TabBar, SceneMap, TabView } from "react-native-tab-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMediaPicker } from "@/hooks/use-media-picker";
-import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
 import { toast } from "@/components/common";
 import { AllMedias, Favorites, Photos, Videos } from "@/components/album";
 import { Row } from "@/components/layout";
+import { useMediaPicker, useStyledActionSheet } from "@/hooks";
 import { colors } from "@/styles/colors";
-import { router } from "expo-router";
 
 const AllRoute = () => <AllMedias />;
 const PhotosRoute = () => <Photos />;
@@ -44,6 +43,7 @@ export default function Album() {
     mediaTypes: "image",
     mode: "multiple",
   });
+
   const headerMenus = [
     { name: "搜索", icon: Search, onPress: () => toast.info("搜索") },
     { name: "上传", icon: CloudUpload, onPress: () => toast.info("上传") },
@@ -77,6 +77,7 @@ export default function Album() {
     }
 
     toast.success(`已选择 ${assets.length} 张图片`);
+    router.push("/home/album/upload/select-location");
   };
 
   const openCreateMenu = () => {
@@ -109,13 +110,13 @@ export default function Album() {
   return (
     <View style={styles.page}>
       <Row content="space-between">
-        <Text style={{ fontSize: 20, fontWeight: "bold" }}>相册</Text>
+        <Text style={styles.title}>相册</Text>
         <Row gap={12}>
           {headerMenus.map((menu, itemIndex) => (
             <TouchableOpacity
               key={itemIndex}
               onPress={menu.onPress}
-              style={{ padding: 8 }}
+              style={styles.headerButton}
             >
               <menu.icon />
             </TouchableOpacity>
@@ -134,6 +135,7 @@ export default function Album() {
             indicatorStyle={{ backgroundColor: "transparent" }}
             renderIndicator={(indicatorProps) => {
               const tabWidth = indicatorProps.layout.width / routes.length;
+
               return (
                 <Animated.View
                   style={{
@@ -178,6 +180,13 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     paddingVertical: 12,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  headerButton: {
+    padding: 8,
   },
   fab: {
     position: "absolute",
