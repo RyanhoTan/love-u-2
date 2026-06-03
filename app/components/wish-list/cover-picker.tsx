@@ -2,10 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Camera, Images, X } from "lucide-react-native";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
-import {
-  type PickedMediaItem,
-  useMediaPicker,
-} from "@/hooks/use-media-picker";
+import { type PickedMediaItem, useMediaPicker } from "@/hooks/use-media-picker";
 import { Column } from "@/components/layout";
 import { colors } from "@/styles/colors";
 

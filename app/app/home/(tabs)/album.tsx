@@ -23,6 +23,7 @@ import { toast } from "@/components/common";
 import { AllMedias, Favorites, Photos, Videos } from "@/components/album";
 import { Row } from "@/components/layout";
 import { colors } from "@/styles/colors";
+import { router } from "expo-router";
 
 const AllRoute = () => <AllMedias />;
 const PhotosRoute = () => <Photos />;
@@ -93,7 +94,7 @@ export default function Album() {
       (selectedIndex?: number) => {
         switch (selectedIndex) {
           case 0:
-            toast.info("创建时光故事");
+            router.push("/home/album/stories/create");
             break;
           case 1:
             void handlePickImages();
