@@ -16,6 +16,14 @@ import { router } from "expo-router";
 import { Tag, type WishTagStatus } from "@/components/wish-list";
 import { colors } from "@/styles/colors";
 
+function getWishDetailRoute(wishId: number, status: WishTagStatus) {
+  if (status === "doing") {
+    return `/home/wish-list/${wishId}/doing` as const;
+  }
+
+  return `/home/wish-list/${wishId}` as const;
+}
+
 export default function WishList() {
   const wishList = [
     {
@@ -38,19 +46,20 @@ export default function WishList() {
         },
       ],
     },
-    {
-      id: 2,
-      type: "planning",
-      categoryName: "计划中",
-      wishList: [
-        {
-          id: 2,
-          img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&h=150&fit=crop",
-          title: "一起养一只猫",
-          time: "202-12-31",
-        },
-      ],
-    },
+    // 后续可能会去掉 `计划中` 这个状态
+    // {
+    //   id: 2,
+    //   type: "planning",
+    //   categoryName: "计划中",
+    //   wishList: [
+    //     {
+    //       id: 2,
+    //       img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&h=150&fit=crop",
+    //       title: "一起养一只猫",
+    //       time: "202-12-31",
+    //     },
+    //   ],
+    // },
     {
       id: 3,
       type: "doing",
@@ -128,7 +137,14 @@ export default function WishList() {
               <TouchableOpacity
                 key={wish.id}
                 style={styles.wishItem}
-                onPress={() => router.push(`/home/wish-list/${wish.id}`)}
+                onPress={() =>
+                  router.push(
+                    getWishDetailRoute(
+                      wish.id,
+                      wishList[selectedTab].type as WishTagStatus,
+                    ),
+                  )
+                }
               >
                 <Row gap={12}>
                   <Image
