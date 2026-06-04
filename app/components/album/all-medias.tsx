@@ -84,7 +84,7 @@ export function AllMedias() {
             <TouchableOpacity
               key={wish.id}
               style={{ borderRadius: 12, overflow: "hidden" }}
-              onPress={() => router.push(`/home/wish-list/${wish.id}`)}
+              onPress={() => router.push(`/home/wish-list/${wish.id}/memory`)}
             >
               <Column>
                 <Image
