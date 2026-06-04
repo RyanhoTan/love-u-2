@@ -163,9 +163,10 @@ export function AllMedias() {
               <Row key={media.id} style={{ alignItems: "stretch" }}>
                 <View
                   style={{
-                    width: 55,
+                    width: 36,
                     alignItems: "center",
                     alignSelf: "stretch",
+                    marginLeft: -8,
                   }}
                 >
                   <TimeLine height={timelineHeights[media.id]} />
