@@ -11,59 +11,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ImagesAnniversaryCalendarPng } from "@/assets";
 import { NavBar, PinkButton } from "@/components/common";
 import { Row } from "@/components/layout";
+import { MOCK_ANNIVERSARY_LIST } from "@/data/mock-anniversary";
 import { colors } from "@/styles/colors";
-
-type AnniversaryItem = {
-  id: string;
-  title: string;
-  date: string;
-  repeatLabel?: string;
-  remainingDays: number;
-  iconBackground: string;
-  iconAccent: string;
-};
-
-const ANNIVERSARY_LIST: AnniversaryItem[] = [
-  {
-    id: "love",
-    title: "恋爱纪念日",
-    date: "2024.06.01",
-    repeatLabel: "每年",
-    remainingDays: 45,
-    iconBackground: "#FFE8F0",
-    iconAccent: "#FF5B93",
-  },
-  {
-    id: "partner-birthday",
-    title: "对方生日",
-    date: "2000.05.20",
-    repeatLabel: "每年",
-    remainingDays: 125,
-    iconBackground: "#FFF0E3",
-    iconAccent: "#FF8B3D",
-  },
-  {
-    id: "my-birthday",
-    title: "我生日",
-    date: "2000.08.15",
-    repeatLabel: "每年",
-    remainingDays: 212,
-    iconBackground: "#FFF2E7",
-    iconAccent: "#FF9A52",
-  },
-  {
-    id: "trip",
-    title: "第一次旅行",
-    date: "2024.10.03",
-    remainingDays: 322,
-    iconBackground: "#EAF5FF",
-    iconAccent: "#5FB4FF",
-  },
-];
 
 export default function AnniversaryScreen() {
   const router = useRouter();
-  const isEmpty = ANNIVERSARY_LIST.length === 0;
+  const isEmpty = MOCK_ANNIVERSARY_LIST.length === 0;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -90,7 +43,7 @@ export default function AnniversaryScreen() {
             <Text style={styles.emptySubtitle}>添加你们的重要日子</Text>
           </View>
         ) : (
-          ANNIVERSARY_LIST.map((item) => (
+          MOCK_ANNIVERSARY_LIST.map((item) => (
             <View key={item.id}>
               <TouchableOpacity activeOpacity={0.9} style={styles.card}>
                 <View

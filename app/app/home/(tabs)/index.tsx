@@ -2,15 +2,18 @@ import { Image, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { Column, Row } from "@/components/layout";
 import {
-  ImagesAvatarMalePng,
+  ImagesAnniversaryCalendarPng,
   ImagesAvatarFemalePng,
-  IconsHomeStatusSvg,
+  ImagesAvatarMalePng,
   IconsHomeDoubleHeartSvg,
   IconsHomeGiftSvg,
+  IconsHomeStatusSvg,
 } from "@/assets";
+import { MOCK_ANNIVERSARY_LIST } from "@/data/mock-anniversary";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const nextAnniversary = MOCK_ANNIVERSARY_LIST[0];
 
   return (
     <Column gap={6} flex={1}>
@@ -85,30 +88,69 @@ export default function HomeScreen() {
           backgroundColor: "#fff",
           borderRadius: 20,
           marginTop: 42,
+          height: 150,
         }}
       >
-        <Column gap={12}>
-          <Text style={{ fontSize: 14 }}>下一个纪念日</Text>
-          <Row>
-            <Text style={{ fontSize: 18 }}>恋爱纪念日还剩</Text>
+        {nextAnniversary ? (
+          <Column content="space-around" gap={12} style={{ height: "100%" }}>
+            <Text style={{ fontSize: 14 }}>下一个纪念日</Text>
+            <Row>
+              <Text style={{ fontSize: 18 }}>{nextAnniversary.title}还剩</Text>
+              <Text
+                style={{ fontSize: 18, fontWeight: "bold", color: "#ff5b7e" }}
+              >
+                {nextAnniversary.remainingDays}
+              </Text>
+              <Text style={{ fontSize: 18 }}> 天</Text>
+            </Row>
             <Text
-              style={{ fontSize: 18, fontWeight: "bold", color: "#ff5b7e" }}
+              style={{
+                backgroundColor: "#f0f0f0",
+                padding: 4,
+                borderRadius: 6,
+                alignSelf: "flex-start",
+              }}
             >
-              1
+              {nextAnniversary.date}
             </Text>
-            <Text style={{ fontSize: 18 }}> 天</Text>
-          </Row>
-          <Text
-            style={{
-              backgroundColor: "#f0f0f0",
-              padding: 4,
-              borderRadius: 6,
-              alignSelf: "flex-start",
-            }}
+          </Column>
+        ) : (
+          <Row
+            content="space-around"
+            gap={10}
+            style={{ paddingVertical: 4, height: "100%" }}
           >
-            2024.01.01
-          </Text>
-        </Column>
+            <Image
+              source={ImagesAnniversaryCalendarPng}
+              style={{ width: 120, height: 120, resizeMode: "contain" }}
+            />
+            <Column content="space-between" gap={8}>
+              <Text style={{ fontSize: 18, fontWeight: "700" }}>
+                还没有纪念日
+              </Text>
+              <Text style={{ fontSize: 14, color: "#8F8F95" }}>
+                记录属于你们的重要日子
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push("/home/anniversary/create")}
+                style={{
+                  paddingHorizontal: 28,
+                  paddingVertical: 10,
+                  backgroundColor: "#2F8CFF",
+                  borderRadius: 12,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}
+                >
+                  添加纪念日
+                </Text>
+              </TouchableOpacity>
+            </Column>
+          </Row>
+        )}
       </TouchableOpacity>
     </Column>
   );
