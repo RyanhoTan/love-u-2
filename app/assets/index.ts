@@ -18,6 +18,7 @@ export { default as IconsHomeStatusHappySvg } from "./icons/home/status/happy.sv
 export { default as IconsHomeStatusMissYouSvg } from "./icons/home/status/miss-you.svg";
 export { default as IconsHomeStatusSadSvg } from "./icons/home/status/sad.svg";
 export { default as IconsHomeStatusShockSvg } from "./icons/home/status/shock.svg";
+export const ImagesAnniversaryCalendarPng = require("./images/anniversary/calendar.png");
 export const ImagesAuthBackgroundPng = require("./images/auth/auth-background.png");
 export const ImagesAvatarFemalePng = require("./images/avatar-female.png");
 export const ImagesAvatarMalePng = require("./images/avatar-male.png");
