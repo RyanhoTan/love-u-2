@@ -65,7 +65,9 @@ export function AllMedias() {
       <Column>
         <Row items="center" content="space-between">
           <Text style={{ fontWeight: "bold" }}>愿望达成</Text>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/home/wish-list?tab=done")}
+          >
             <Row center gap={6}>
               <Text style={{ color: "#aaa" }}>全部愿望</Text>
               <ChevronRight size={16} color="#aaa" />
