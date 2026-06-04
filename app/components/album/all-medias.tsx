@@ -7,6 +7,7 @@ import { Column, Row } from "../layout";
 import { ChevronRight, ChevronsUpDown, Grid2x2 } from "lucide-react-native";
 import { ImagesCoverPng } from "@/assets";
 import { STORIES } from "@/data/mock-stories";
+import { MOCK_WISH_CATEGORIES } from "@/data/mock-media";
 import { TimeLine } from "./time-line";
 import { useImageViewer } from "@/hooks/use-image-viewer";
 
@@ -79,21 +80,26 @@ export function AllMedias() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 12, paddingVertical: 12 }}
         >
-          <View
-            style={{
-              width: 120,
-              height: 160,
-              borderRadius: 12,
-              backgroundColor: "#ffffff80",
-              alignItems: "center",
-              justifyContent: "center",
-              paddingHorizontal: 12,
-            }}
-          >
-            <Text style={{ color: "#aaa", textAlign: "center" }}>
-              愿望达成内容占位
-            </Text>
-          </View>
+          {MOCK_WISH_CATEGORIES[2].wishList.map((wish) => (
+            <TouchableOpacity
+              key={wish.id}
+              style={{ borderRadius: 12, overflow: "hidden" }}
+              onPress={() => router.push(`/home/wish-list/${wish.id}`)}
+            >
+              <Column>
+                <Image
+                  source={{ uri: wish.cover }}
+                  style={{ width: 120, height: 120 }}
+                />
+                <Column bg="#ffffff80" style={{ width: 120, padding: 6 }}>
+                  <Text numberOfLines={1}>{wish.title}</Text>
+                  <Text style={{ color: "#aaa", fontSize: 12 }}>
+                    {wish.time}
+                  </Text>
+                </Column>
+              </Column>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
       </Column>
       {/* 时光故事 */}

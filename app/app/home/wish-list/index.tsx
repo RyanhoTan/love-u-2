@@ -14,78 +14,21 @@ import { ImagesAuthBackgroundPng } from "@/assets";
 import { Plus } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SceneMap, TabBar, TabView } from "react-native-tab-view";
-import { Tag, type WishTagStatus } from "@/components/wish-list";
+import { Tag } from "@/components/wish-list";
+import {
+  MOCK_WISH_CATEGORIES,
+  type MockWishCategory,
+  type WishStatus,
+} from "@/data/mock-media";
 import { Column, Row } from "@/components/layout";
 import { colors } from "@/styles/colors";
 
-type WishItem = {
-  id: number;
-  img: string;
-  title: string;
-  time: string;
-};
-
-type WishCategory = {
-  id: number;
-  type: WishTagStatus;
-  categoryName: string;
-  wishList: WishItem[];
-};
-
 type WishRoute = {
-  key: WishTagStatus;
+  key: WishStatus;
   title: string;
 };
 
-const wishList: WishCategory[] = [
-  {
-    id: 1,
-    type: "todo",
-    categoryName: "想做",
-    wishList: [
-      {
-        id: 1,
-        img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150&h=150&fit=crop",
-        title: "一起去看海",
-        time: "2024-12-31",
-      },
-      {
-        id: 3,
-        img: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=150&h=150&fit=crop",
-        title: "一起去旅行",
-        time: "2024-12-32",
-      },
-    ],
-  },
-  {
-    id: 3,
-    type: "doing",
-    categoryName: "进行中",
-    wishList: [
-      {
-        id: 2,
-        img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&h=150&fit=crop",
-        title: "一起养一只猫",
-        time: "2024-131",
-      },
-    ],
-  },
-  {
-    id: 4,
-    type: "done",
-    categoryName: "已完成",
-    wishList: [
-      {
-        id: 2,
-        img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&h=150&fit=crop",
-        title: "一起养一只猫",
-        time: "2024",
-      },
-    ],
-  },
-];
-
-function getWishDetailRoute(wishId: number, status: WishTagStatus) {
+function getWishDetailRoute(wishId: number, status: WishStatus) {
   if (status === "doing") {
     return `/home/wish-list/${wishId}/doing` as const;
   }
@@ -97,7 +40,7 @@ function getWishDetailRoute(wishId: number, status: WishTagStatus) {
   return `/home/wish-list/${wishId}` as const;
 }
 
-function WishListScene({ category }: { category: WishCategory }) {
+function WishListScene({ category }: { category: MockWishCategory }) {
   return (
     <ScrollView
       contentContainerStyle={styles.listContent}
@@ -114,7 +57,7 @@ function WishListScene({ category }: { category: WishCategory }) {
           <Row gap={12}>
             <Image
               source={{
-                uri: wish.img,
+                uri: wish.cover,
               }}
               style={{ width: 100, height: 100, borderRadius: 8 }}
             />
@@ -135,9 +78,9 @@ function WishListScene({ category }: { category: WishCategory }) {
   );
 }
 
-const TodoRoute = () => <WishListScene category={wishList[0]} />;
-const DoingRoute = () => <WishListScene category={wishList[1]} />;
-const DoneRoute = () => <WishListScene category={wishList[2]} />;
+const TodoRoute = () => <WishListScene category={MOCK_WISH_CATEGORIES[0]} />;
+const DoingRoute = () => <WishListScene category={MOCK_WISH_CATEGORIES[1]} />;
+const DoneRoute = () => <WishListScene category={MOCK_WISH_CATEGORIES[2]} />;
 
 const renderScene = SceneMap({
   todo: TodoRoute,
@@ -149,7 +92,7 @@ export default function WishList() {
   const layout = useWindowDimensions();
   const params = useLocalSearchParams<{ tab?: string }>();
   const [index, setIndex] = useState(params.tab === "done" ? 2 : 0);
-  const routes: WishRoute[] = wishList.map((category) => ({
+  const routes: WishRoute[] = MOCK_WISH_CATEGORIES.map((category) => ({
     key: category.type,
     title: category.categoryName,
   }));
