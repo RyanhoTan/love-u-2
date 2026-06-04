@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FF416C" />
+      <stop offset="100%" stop-color="#FF4B2B" />
+    </linearGradient>
+
+    <linearGradient id="envelopeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#F5F5F5" />
+    </linearGradient>
+
+    <linearGradient id="innerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFD1DC" />
+      <stop offset="100%" stop-color="#FFA6C9" />
+    </linearGradient>
+
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#FF416C" flood-opacity="0.2" />
+    </filter>
+    <filter id="envShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.08" />
+    </filter>
+  </defs>
+
+  <g transform="translate(-112, 10) scale(0.78)">
+    <g fill="#FF6B81" opacity="0.6">
+      <path d="M280 150 L283 157 L290 160 L283 163 L280 170 L277 163 L270 160 L277 157 Z" />
+      <path d="M530 130 L532 135 L538 137 L532 139 L530 145 L528 139 L522 137 L528 135 Z" />
+      <path d="M340 310 L341 314 L345 315 L341 316 L340 320 L339 316 L335 315 L339 314 Z" />
+    </g>
+
+    <g id="Envelope" filter="url(#envShadow)">
+      <polygon points="250,450 550,450 550,300 400,180 250,300" fill="url(#innerGrad)" />
+      
+      <path d="M 270,330 L 530,330 L 530,450 L 270,450 Z" fill="#FFFFFF" opacity="0.9" />
+      <line x1="300" y1="360" x2="440" y2="360" stroke="#FFB6C1" stroke-width="3" stroke-linecap="round" />
+      <line x1="300" y1="390" x2="500" y2="390" stroke="#FFB6C1" stroke-width="3" stroke-linecap="round" />
+      <line x1="300" y1="420" x2="470" y2="420" stroke="#FFB6C1" stroke-width="3" stroke-linecap="round" />
+
+      <polygon points="250,450 400,350 250,298" fill="#F0F0F0" stroke="#EAEAEA" stroke-width="1" />
+      <polygon points="550,450 400,350 550,298" fill="#E8E8E8" stroke="#EAEAEA" stroke-width="1" />
+      <polygon points="250,450 550,450 400,350" fill="url(#envelopeGrad)" stroke="#E2E2E2" stroke-width="1" />
+    </g>
+
+    <g filter="url(#shadow)" transform="translate(400, 230)">
+      <path d="M 0, -45 
+               C -25, -75  -70, -60  -70, -15 
+               C -70, 20   -20, 55    0, 75 
+               C 20, 55    70, 20    70, -15 
+               C 70, -60   25, -75   0, -45 Z" 
+            fill="url(#heartGrad)" />
+      <path d="M -50,-20 C -50,-45 -30,-55 -10,-50 C -20,-45 -35,-35 -35,-15 C -35,-5 -45,-5 -50,-20 Z" fill="#FFFFFF" opacity="0.25" />
+    </g>
+
+    <g fill="#FF4B2B" opacity="0.8">
+      <path d="M 230, 200 C 220, 185 200, 190 200, 205 C 200, 220 220, 230 230, 240 C 240, 230 260, 220 260, 205 C 260, 190 240, 185 230, 200 Z" transform="rotate(-15 230 210) scale(0.5)" />
+      <path d="M 550, 240 C 540, 225 520, 230 520, 245 C 520, 260 540, 270 550, 280 C 560, 270 580, 260 580, 245 C 580, 230 560, 225 550, 240 Z" transform="rotate(20 550 250) scale(0.6)" />
+    </g>
+  </g>
+</svg>

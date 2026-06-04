@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import {
   ScrollView,
   StyleSheet,
@@ -59,6 +60,8 @@ const ANNIVERSARY_LIST: AnniversaryItem[] = [
 ];
 
 export default function AnniversaryScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <NavBar
@@ -75,40 +78,52 @@ export default function AnniversaryScreen() {
         showsVerticalScrollIndicator={false}
       >
         {ANNIVERSARY_LIST.map((item) => (
-            <>
-          <TouchableOpacity
-            key={item.id}
-            activeOpacity={0.9}
-            style={styles.card}
-          >
-            <View style={[styles.iconWrap, { backgroundColor: item.iconBackground }]}>
+          <>
+            <TouchableOpacity
+              key={item.id}
+              activeOpacity={0.9}
+              style={styles.card}
+            >
               <View
-                style={[styles.iconPlaceholder, { backgroundColor: item.iconAccent }]}
-              />
-            </View>
+                style={[
+                  styles.iconWrap,
+                  { backgroundColor: item.iconBackground },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.iconPlaceholder,
+                    { backgroundColor: item.iconAccent },
+                  ]}
+                />
+              </View>
 
-            <View style={styles.cardBody}>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardDate}>
-                {item.date}
-                {item.repeatLabel ? (
-                  <Text style={styles.cardDateHint}>（{item.repeatLabel}）</Text>
-                ) : null}
+              <View style={styles.cardBody}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardDate}>
+                  {item.date}
+                  {item.repeatLabel ? (
+                    <Text style={styles.cardDateHint}>
+                      （{item.repeatLabel}）
+                    </Text>
+                  ) : null}
+                </Text>
+              </View>
+
+              <Text style={styles.remainingText}>
+                还有{" "}
+                <Text style={styles.remainingNumber}>{item.remainingDays}</Text>{" "}
+                天
               </Text>
-            </View>
-
-            <Text style={styles.remainingText}>
-              还有 <Text style={styles.remainingNumber}>{item.remainingDays}</Text> 天
-            </Text>
-          </TouchableOpacity>
-          <Row style={styles.divider} />
+            </TouchableOpacity>
+            <Row style={styles.divider} />
           </>
         ))}
       </ScrollView>
 
       <PinkButton
         text="添加纪念日"
-        onPress={() => {}}
+        onPress={() => router.push("/home/anniversary/create")}
         style={styles.buttonShell}
       />
     </SafeAreaView>
@@ -185,7 +200,7 @@ const styles = StyleSheet.create({
     marginTop: "auto",
     marginBottom: 12,
   },
-    divider: {
+  divider: {
     height: 1,
     backgroundColor: "#eee",
     width: "80%",

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <style>
+      @keyframes float {
+        0% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(-1px, -3px) scale(1.05); }
+        100% { transform: translate(0, 0) scale(1); }
+      }
+      .flame {
+        animation: float 1.5s ease-in-out infinite;
+        transform-origin: 200px 110px;
+      }
+    </style>
+    
+    <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="200" cy="320" rx="140" ry="20" fill="#E0E6ED" />
+  <ellipse cx="200" cy="316" rx="130" ry="15" fill="#FFFFFF" filter="url(#drop-shadow)" />
+
+  <path d="M 80 240 A 120 25 0 0 0 320 240 L 320 300 A 120 25 0 0 1 80 300 Z" fill="#965A38" />
+  <ellipse cx="200" cy="240" rx="120" ry="25" fill="#AB6B43" />
+
+  <path d="M 100 170 A 100 20 0 0 0 300 170 L 300 240 A 100 20 0 0 1 100 240 Z" fill="#FAD2E1" />
+  <ellipse cx="200" cy="170" rx="100" ry="20" fill="#FFF0F5" />
+
+  <path d="M 100 170 
+           Q 110 185 120 170 
+           Q 135 195 150 170 
+           Q 160 175 170 170 
+           Q 185 190 200 170 
+           Q 215 180 230 170 
+           Q 245 195 260 170 
+           Q 280 180 300 170
+           A 100 20 0 0 1 100 170 Z" fill="#FFB5A7" />
+
+  <g transform="translate(140, 150)">
+    <path d="M 0 10 Q -12 -5 0 -15 Q 12 -5 0 10 Z" fill="#E63946" />
+    <ellipse cx="0" cy="-12" rx="6" ry="2" fill="#70E000" />
+  </g>
+  <g transform="translate(260, 150)">
+    <path d="M 0 10 Q -12 -5 0 -15 Q 12 -5 0 10 Z" fill="#E63946" />
+    <ellipse cx="0" cy="-12" rx="6" ry="2" fill="#70E000" />
+  </g>
+
+  <rect x="195" y="110" width="10" height="45" rx="2" fill="#4EA8DE" />
+  <path d="M 195 120 L 205 115 M 195 135 L 205 130 M 195 150 L 205 145" stroke="#FFFFFF" stroke-width="2" />
+  <line x1="200" y1="110" x2="200" y2="102" stroke="#333333" stroke-width="2" />
+
+  <g class="flame">
+    <path d="M 200 102 C 190 92 192 77 200 65 C 208 77 210 92 200 102 Z" fill="#FFB703" opacity="0.6" />
+    <path d="M 200 99 C 194 92 195 82 200 73 C 205 82 206 92 200 99 Z" fill="#FB8500" />
+  </g>
+</svg>

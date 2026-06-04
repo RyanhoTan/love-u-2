@@ -79,7 +79,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Row>
       <TouchableOpacity
-      onPress={() => router.push("/home/anniversary")}
+        onPress={() => router.push("/home/anniversary")}
         style={{
           padding: 16,
           backgroundColor: "#fff",
