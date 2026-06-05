@@ -11,10 +11,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ImagesAuthBackgroundPng } from "@/assets";
-import { Plus } from "lucide-react-native";
+import { MapPin, Plus } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SceneMap, TabBar, TabView } from "react-native-tab-view";
-import { Tag } from "@/components/wish-list";
+import { MapOverviewModal, Tag, type MapMarker } from "@/components/wish-list";
 import {
   MOCK_WISH_CATEGORIES,
   type MockWishCategory,
@@ -27,6 +27,30 @@ type WishRoute = {
   key: WishStatus;
   title: string;
 };
+
+const MAP_MARKERS: MapMarker[] = [
+  {
+    id: "shanghai",
+    name: "上海",
+    latitude: 31.2304,
+    longitude: 121.4737,
+    color: "#ff6b81",
+  },
+  {
+    id: "hangzhou",
+    name: "杭州",
+    latitude: 30.2741,
+    longitude: 120.1551,
+    color: "#35baf6",
+  },
+  {
+    id: "suzhou",
+    name: "苏州",
+    latitude: 31.2989,
+    longitude: 120.5853,
+    color: "#b17cff",
+  },
+];
 
 function getWishDetailRoute(wishId: number, status: WishStatus) {
   if (status === "doing") {
@@ -92,6 +116,7 @@ export default function WishList() {
   const layout = useWindowDimensions();
   const params = useLocalSearchParams<{ tab?: string }>();
   const [index, setIndex] = useState(params.tab === "done" ? 2 : 0);
+  const [mapVisible, setMapVisible] = useState(false);
   const routes: WishRoute[] = MOCK_WISH_CATEGORIES.map((category) => ({
     key: category.type,
     title: category.categoryName,
@@ -109,11 +134,20 @@ export default function WishList() {
         <SafeAreaView style={styles.safeArea}>
           <Row content="space-between" items="center">
             <Text style={styles.title}>愿望清单</Text>
-            <TouchableOpacity
-              onPress={() => router.push("/home/wish-list/create")}
-            >
-              <Plus color={colors.theme.primary} height={36} width={36} />
-            </TouchableOpacity>
+            <Row gap={8} items="center">
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => setMapVisible(true)}
+              >
+                <MapPin color={colors.theme.primary} height={22} width={22} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => router.push("/home/wish-list/create")}
+              >
+                <Plus color={colors.theme.primary} height={22} width={22} />
+              </TouchableOpacity>
+            </Row>
           </Row>
 
           <TabView
@@ -146,6 +180,11 @@ export default function WishList() {
               />
             )}
           />
+          <MapOverviewModal
+            visible={mapVisible}
+            onClose={() => setMapVisible(false)}
+            markers={MAP_MARKERS}
+          />
         </SafeAreaView>
       </ImageBackground>
     </View>
@@ -163,6 +202,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.88)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   tabView: {
     flex: 1,
