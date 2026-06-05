@@ -14,9 +14,27 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     scheme: "loveumobile",
     orientation: "portrait",
     userInterfaceStyle: "automatic",
-    plugins: ["expo-router"],
+    plugins: [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          locationAlwaysPermission:
+            "我们需要您的定位权限以获取周边美食和景点。",
+          locationWhenInUsePermission:
+            "我们需要您的定位权限以获取周边美食和景点。",
+        },
+      ],
+    ],
     android: {
       package: "com.loveumobile.app",
+      permissions: ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+    },
+    ios: {
+      infoPlist: {
+        NSLocationWhenInUseUsageDescription:
+          "我们需要您的定位权限以获取周边美食和景点。",
+      },
     },
     web: {
       bundler: "metro",
