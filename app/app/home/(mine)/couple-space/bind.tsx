@@ -1,6 +1,15 @@
 import { useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { ImagesWishHugHeartPng } from "@/assets";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
@@ -8,6 +17,7 @@ import { Column, Row } from "@/components/layout";
 const MY_INVITE_CODE = "8K7H2Q";
 
 export default function CoupleSpaceBindScreen() {
+  const router = useRouter();
   const [inviteCode, setInviteCode] = useState("");
 
   const handleCopyCode = () => {
@@ -20,7 +30,7 @@ export default function CoupleSpaceBindScreen() {
       return;
     }
 
-    toast.success("绑定申请已提交");
+    router.push("/home/couple-space/finish");
   };
 
   return (
