@@ -7,31 +7,33 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useRouter } from "expo-router";
 import {
-  ChevronRight,
+  BarChart3,
   Bell,
+  ChevronRight,
   Heart,
   Info,
+  LucideProps,
   Palette,
   Shield,
   User,
-  LucideProps,
-  BarChart3,
 } from "lucide-react-native";
 import { ImagesAvatarMalePng } from "@/assets";
-import { Row } from "@/components/layout";
 import { toast } from "@/components/common";
+import { Row } from "@/components/layout";
 import { useAuth } from "@/app/features/auth/auth-context";
 
 interface MenuItem {
   id: string;
   title: string;
-  icon: React.ComponentType<LucideProps>; // 约束图标名称
+  icon: React.ComponentType<LucideProps>;
   iconColor: string;
   onPress: () => void;
 }
 
 export default function Mine() {
+  const router = useRouter();
   const { signOut, user } = useAuth();
 
   const menuItems: MenuItem[] = [
@@ -40,7 +42,7 @@ export default function Mine() {
       title: "个人资料",
       icon: User,
       iconColor: "#4A90FF",
-      onPress: () => toast.info("个人资料"),
+      onPress: () => router.push("/home/profile" as never),
     },
     {
       id: "space",
