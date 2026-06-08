@@ -42,14 +42,14 @@ export default function Mine() {
       title: "个人资料",
       icon: User,
       iconColor: "#4A90FF",
-      onPress: () => router.push("/home/profile" as never),
+      onPress: () => router.push("/home/profile"),
     },
     {
       id: "space",
       title: "情侣空间",
       icon: Heart,
       iconColor: "#FF5C8A",
-      onPress: () => toast.info("情侣空间"),
+      onPress: () => router.push("/home/couple-space/bind"),
     },
     {
       id: "notification",
