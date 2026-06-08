@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
   Modal,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as Location from "expo-location";
 import { Locate, Search, X } from "lucide-react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import { IconsWishListNoImgSvg } from "@/assets";
@@ -49,11 +47,6 @@ type WebViewMapMessage =
       longitude: number;
     }
   | {
-      type: "debug";
-      message: string;
-      extra?: unknown;
-    }
-  | {
       type: "locateResult";
       success: boolean;
       latitude?: number;
@@ -68,10 +61,21 @@ type AmapPoi = {
   location?: string;
   distance?: string | number;
   type?: string;
+  typecode?: string;
   photos?: {
     title?: string;
     url?: string;
   }[];
+};
+
+type AmapPlaceSearchResponse = {
+  pois?: AmapPoi[];
+};
+
+type AmapRegeoResponse = {
+  regeocode?: {
+    pois?: AmapPoi[];
+  };
 };
 
 const CATEGORY_OPTIONS: { key: PlaceCategory; label: string }[] = [
@@ -89,63 +93,42 @@ const DEFAULT_CENTER = {
 
 const DEFAULT_RADIUS = 2000;
 
-const CATEGORY_KEYWORDS: Record<Exclude<PlaceCategory, "all">, string> = {
-  food: "美食",
-  scenic: "景点",
-  shopping: "购物",
-  other: "生活服务",
+const CATEGORY_TYPE_CODES: Record<Exclude<PlaceCategory, "all">, string[]> = {
+  food: ["050000"],
+  scenic: ["110000"],
+  shopping: ["060000"],
+  other: ["070000", "080000", "100000", "120000", "150000"],
 };
 
-function formatUnknownError(error: unknown) {
-  if (error instanceof Error) {
-    return `${error.name}: ${error.message}`;
+const CATEGORY_KEYS = Object.keys(CATEGORY_TYPE_CODES) as Exclude<
+  PlaceCategory,
+  "all"
+>[];
+
+function createAmapTypesParam(category: PlaceCategory) {
+  if (category === "all") {
+    return "";
   }
 
-  if (typeof error === "string") {
-    return error;
-  }
-
-  try {
-    return JSON.stringify(error);
-  } catch {
-    return String(error);
-  }
+  return CATEGORY_TYPE_CODES[category].join("|");
 }
 
-function getCurrentLocationWithTimeout(timeoutMs: number) {
-  return new Promise<Location.LocationObject>((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      reject(new Error(`Location timeout after ${timeoutMs}ms`));
-    }, timeoutMs);
-
-    Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.High,
-      mayShowUserSettingsDialog: true,
-    })
-      .then((location) => {
-        clearTimeout(timeoutId);
-        resolve(location);
-      })
-      .catch((error) => {
-        clearTimeout(timeoutId);
-        reject(error);
-      });
-  });
+function isTypeCodeInCategory(
+  typeCode: string,
+  category: Exclude<PlaceCategory, "all">,
+) {
+  return CATEGORY_TYPE_CODES[category].some((categoryTypeCode) =>
+    typeCode.startsWith(categoryTypeCode.slice(0, 2)),
+  );
 }
 
-function guessCategory(typeText: string | undefined): PlaceCategory {
-  const text = typeText || "";
+function guessCategory(poi: AmapPoi): PlaceCategory {
+  const typeCode = poi.typecode || "";
 
-  if (text.includes("餐饮") || text.includes("美食")) {
-    return "food";
-  }
-
-  if (text.includes("风景") || text.includes("景点") || text.includes("旅游")) {
-    return "scenic";
-  }
-
-  if (text.includes("购物")) {
-    return "shopping";
+  for (const category of CATEGORY_KEYS) {
+    if (isTypeCodeInCategory(typeCode, category)) {
+      return category;
+    }
   }
 
   return "other";
@@ -181,7 +164,7 @@ function mapPoiToPlaceItem(poi: AmapPoi, index: number): PlaceItem | null {
     return null;
   }
 
-  const category = guessCategory(poi.type);
+  const category = guessCategory(poi);
   const photoUrl = poi.photos?.find((photo) => Boolean(photo.url))?.url;
 
   return {
@@ -194,6 +177,71 @@ function mapPoiToPlaceItem(poi: AmapPoi, index: number): PlaceItem | null {
     cover: photoUrl,
     category,
   };
+}
+
+function getAmapPoiMergeKeys(poi: AmapPoi) {
+  const keys: string[] = [];
+
+  if (poi.id) {
+    keys.push(`id:${poi.id}`);
+  }
+
+  if (poi.name && poi.location) {
+    keys.push(`name-location:${poi.name}-${poi.location}`);
+  }
+
+  return keys;
+}
+
+function hasPoiPhoto(poi: AmapPoi) {
+  return Boolean(poi.photos?.some((photo) => Boolean(photo.url)));
+}
+
+function mergeAmapPoi(existing: AmapPoi, incoming: AmapPoi): AmapPoi {
+  return {
+    id: incoming.id || existing.id,
+    name: incoming.name || existing.name,
+    address: incoming.address || existing.address,
+    location: incoming.location || existing.location,
+    distance: incoming.distance || existing.distance,
+    type: incoming.type || existing.type,
+    typecode: incoming.typecode || existing.typecode,
+    photos: hasPoiPhoto(existing)
+      ? existing.photos
+      : hasPoiPhoto(incoming)
+        ? incoming.photos
+        : existing.photos || incoming.photos,
+  };
+}
+
+function mergeAmapPoiGroups(groups: AmapPoi[][]) {
+  const poiIndexByKey = new Map<string, number>();
+  const mergedPois: AmapPoi[] = [];
+
+  for (const group of groups) {
+    for (const poi of group) {
+      const keys = getAmapPoiMergeKeys(poi);
+      const existingIndex = keys
+        .map((key) => poiIndexByKey.get(key))
+        .find((index): index is number => index !== undefined);
+
+      if (existingIndex !== undefined) {
+        mergedPois[existingIndex] = mergeAmapPoi(
+          mergedPois[existingIndex],
+          poi,
+        );
+        continue;
+      }
+
+      mergedPois.push(poi);
+      const nextIndex = mergedPois.length - 1;
+      keys.forEach((key) => {
+        poiIndexByKey.set(key, nextIndex);
+      });
+    }
+  }
+
+  return mergedPois;
 }
 
 function createMapHtml(center: { latitude: number; longitude: number }) {
@@ -228,9 +276,6 @@ function createMapHtml(center: { latitude: number; longitude: number }) {
     "<script>",
     "function postMessageToNative(data) {",
     "  window.ReactNativeWebView.postMessage(JSON.stringify(data));",
-    "}",
-    "function postDebug(message, extra) {",
-    '  postMessageToNative({ type: "debug", message: message, extra: extra });',
     "}",
     "function locateWithAmap() {",
     "  try {",
@@ -288,25 +333,21 @@ function createMapHtml(center: { latitude: number; longitude: number }) {
     "  });",
     "}",
     "window.__LOVEU_MAP__.on('complete', function() {",
-    '  postDebug("map-complete", initialCenter);',
     '  postMessageToNative({ type: "mapReady" });',
     "  setTimeout(function() {",
     '    postCenter("mapMoved");',
     "  }, 200);",
     "});",
     "window.__LOVEU_MAP__.on('moveend', function() {",
-    '  postDebug("map-moveend");',
     '  postCenter("mapMoved");',
     "});",
     "window.addEventListener('message', function(event) {",
     "  try {",
     "    var payload = JSON.parse(event.data);",
     "    if (payload && payload.type === 'locateUser') {",
-    "      postDebug('webview-locateUser-received');",
     "      locateWithAmap();",
     "    }",
     "  } catch (error) {",
-    "    postDebug('webview-message-error', String(error));",
     "  }",
     "});",
     "</script>",
@@ -334,10 +375,13 @@ export function MapPickerModal({
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [locationDebugText, setLocationDebugText] = useState("");
+  const fetchPlacesRequestIdRef = useRef(0);
 
   const mapHtml = useMemo(() => createMapHtml(DEFAULT_CENTER), []);
-  const mapSource = useMemo(() => ({ html: mapHtml }), [mapHtml]);
+  const mapSource = useMemo(
+    () => ({ html: mapHtml, baseUrl: "https://webapi.amap.com/" }),
+    [mapHtml],
+  );
 
   const moveMapTo = useCallback((latitude: number, longitude: number) => {
     console.log("[MapPickerModal] moveMapTo called", {
@@ -357,25 +401,12 @@ export function MapPickerModal({
       (function() {
         try {
           if (!window.__LOVEU_MAP__) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: "debug",
-              message: "inject-moveTo-map-undefined"
-            }));
             return;
           }
 
           window.__LOVEU_MAP__.setCenter([${longitude}, ${latitude}]);
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: "debug",
-            message: "inject-moveTo-success",
-            extra: { latitude: ${latitude}, longitude: ${longitude} }
-          }));
         } catch (error) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: "debug",
-            message: "inject-moveTo-error",
-            extra: String(error)
-          }));
+          console.log(error);
         }
       })();
       true;
@@ -390,9 +421,9 @@ export function MapPickerModal({
       isMapReady: isMapReadyRef.current,
     });
 
-    if (!isMapReadyRef.current) {
-      setLocationDebugText("地图尚未就绪，暂时无法使用高德定位");
-      return;
+    if (!isMapReadyRef.current || !webViewRef.current) {
+      toast.info("地图尚未就绪，暂时无法使用高德定位");
+      return false;
     }
 
     webViewRef.current?.injectJavaScript(`
@@ -403,6 +434,8 @@ export function MapPickerModal({
       })();
       true;
     `);
+
+    return true;
   }, []);
 
   const filteredPlaces = useMemo(() => {
@@ -418,27 +451,26 @@ export function MapPickerModal({
     null;
 
   const fetchPlaces = useCallback(
-    async (keyword?: string, mode?: "around" | "text") => {
+    async (
+      keyword?: string,
+      mode?: "around" | "text",
+      centerOverride?: typeof DEFAULT_CENTER,
+    ) => {
       const amapKey = process.env.EXPO_PUBLIC_AMAP_SERVICE_KEY || "";
 
       if (!amapKey) {
         return;
       }
 
+      const requestId = ++fetchPlacesRequestIdRef.current;
       setLoading(true);
 
       try {
         const trimmedKeyword = keyword?.trim() || "";
-        const categoryKeyword =
-          activeCategory === "all"
-            ? ""
-            : CATEGORY_KEYWORDS[
-                activeCategory as Exclude<PlaceCategory, "all">
-              ];
+        const typesParam = createAmapTypesParam(activeCategory);
+        const searchCenter = centerOverride || mapCenter;
 
-        const isGlobalSearch =
-          mode === "text" ? Boolean(trimmedKeyword) : Boolean(trimmedKeyword);
-        const realKeyword = trimmedKeyword || categoryKeyword;
+        const isGlobalSearch = mode === "text" && Boolean(trimmedKeyword);
 
         const url = new URL(
           isGlobalSearch
@@ -451,27 +483,57 @@ export function MapPickerModal({
         url.searchParams.set("extensions", "all");
 
         if (isGlobalSearch) {
-          url.searchParams.set("keywords", realKeyword);
+          url.searchParams.set("keywords", trimmedKeyword);
           url.searchParams.set(
             "location",
-            `${mapCenter.longitude},${mapCenter.latitude}`,
+            `${searchCenter.longitude},${searchCenter.latitude}`,
           );
+
+          if (typesParam) {
+            url.searchParams.set("types", typesParam);
+          }
         } else {
           url.searchParams.set(
             "location",
-            `${mapCenter.longitude},${mapCenter.latitude}`,
+            `${searchCenter.longitude},${searchCenter.latitude}`,
           );
           url.searchParams.set("radius", String(DEFAULT_RADIUS));
           url.searchParams.set("sortrule", "distance");
 
-          if (realKeyword) {
-            url.searchParams.set("keywords", realKeyword);
+          if (typesParam) {
+            url.searchParams.set("types", typesParam);
           }
         }
 
-        const response = await fetch(url.toString());
-        const data = (await response.json()) as { pois?: AmapPoi[] };
-        const nextPlaces = (data.pois || [])
+        const placeResponse = await fetch(url.toString());
+        const placeData =
+          (await placeResponse.json()) as AmapPlaceSearchResponse;
+        let pois = placeData.pois || [];
+
+        if (!isGlobalSearch) {
+          const regeoUrl = new URL("https://restapi.amap.com/v3/geocode/regeo");
+          regeoUrl.searchParams.set("key", amapKey);
+          regeoUrl.searchParams.set(
+            "location",
+            `${searchCenter.longitude},${searchCenter.latitude}`,
+          );
+          regeoUrl.searchParams.set("radius", String(DEFAULT_RADIUS));
+          regeoUrl.searchParams.set("extensions", "all");
+
+          if (typesParam) {
+            regeoUrl.searchParams.set("poitype", typesParam);
+          }
+
+          const regeoResponse = await fetch(regeoUrl.toString());
+          const regeoData = (await regeoResponse.json()) as AmapRegeoResponse;
+          pois = mergeAmapPoiGroups([regeoData.regeocode?.pois || [], pois]);
+        }
+
+        if (requestId !== fetchPlacesRequestIdRef.current) {
+          return;
+        }
+
+        const nextPlaces = pois
           .map(mapPoiToPlaceItem)
           .filter((item): item is PlaceItem => Boolean(item));
 
@@ -487,14 +549,20 @@ export function MapPickerModal({
           moveMapTo(nextPlaces[0].latitude, nextPlaces[0].longitude);
         }
       } catch (error) {
+        if (requestId !== fetchPlacesRequestIdRef.current) {
+          return;
+        }
+
         console.log("failed to fetch places", error);
         setPlaces([]);
         setSelectedPlaceId(null);
       } finally {
-        setLoading(false);
+        if (requestId === fetchPlacesRequestIdRef.current) {
+          setLoading(false);
+        }
       }
     },
-    [activeCategory, mapCenter.latitude, mapCenter.longitude, moveMapTo],
+    [activeCategory, moveMapTo, mapCenter],
   );
 
   const fetchPlacesRef = useRef(fetchPlaces);
@@ -509,11 +577,10 @@ export function MapPickerModal({
       setPlaces([]);
       setSelectedPlaceId(null);
       setMapCenter(DEFAULT_CENTER);
-      setLocationDebugText("");
     } else {
       suppressNextMapMovedRef.current = true;
       moveMapTo(DEFAULT_CENTER.latitude, DEFAULT_CENTER.longitude);
-      void fetchPlacesRef.current(undefined, "around");
+      void fetchPlacesRef.current(undefined, "around", DEFAULT_CENTER);
     }
   }, [visible, moveMapTo]);
 
@@ -523,132 +590,20 @@ export function MapPickerModal({
     void fetchPlaces(trimmed || undefined, mode);
   }, [fetchPlaces, searchText]);
 
-  // TODO：这里死活获取不到用户位置
-  const handleLocateUser = useCallback(async () => {
+  const handleLocateUser = useCallback(() => {
     if (locating) {
       console.log("[MapPickerModal] handleLocateUser skipped because locating");
       return;
     }
 
-    try {
-      console.log("[MapPickerModal] handleLocateUser start");
-      setLocating(true);
-      setLocationDebugText("开始定位...");
+    console.log("[MapPickerModal] handleLocateUser start");
+    setLocating(true);
+    const locatingRequested = requestWebViewLocate();
 
-      const servicesEnabled = await Location.hasServicesEnabledAsync();
-      console.log(
-        "[MapPickerModal] location services enabled",
-        servicesEnabled,
-      );
-
-      if (!servicesEnabled) {
-        const message = "系统定位服务未开启";
-        setLocationDebugText(message);
-        toast.error("定位失败，请开启系统定位", message);
-        return;
-      }
-
-      const currentPermission = await Location.getForegroundPermissionsAsync();
-      console.log(
-        "[MapPickerModal] current foreground permission",
-        currentPermission,
-      );
-
-      const permission = await Location.requestForegroundPermissionsAsync();
-      console.log("[MapPickerModal] location permission result", permission);
-
-      if (!permission.granted) {
-        const message = `定位权限未授权: ${permission.status}`;
-        setLocationDebugText(message);
-        toast.info("请先允许定位权限", message);
-        return;
-      }
-
-      if (Platform.OS === "android") {
-        try {
-          setLocationDebugText("正在请求高精度定位...");
-          await Location.enableNetworkProviderAsync();
-          console.log(
-            "[MapPickerModal] enableNetworkProviderAsync resolved successfully",
-          );
-        } catch (error) {
-          console.log(
-            "[MapPickerModal] enableNetworkProviderAsync failed or canceled",
-            error,
-          );
-        }
-      }
-
-      setLocationDebugText("正在获取当前位置...");
-
-      let currentLocation: Location.LocationObject | null = null;
-      let usedLastKnownLocation = false;
-
-      try {
-        currentLocation = await getCurrentLocationWithTimeout(12000);
-      } catch (error) {
-        console.log(
-          "[MapPickerModal] getCurrentPositionAsync failed, trying last known position",
-          error,
-        );
-
-        const lastKnownLocation = await Location.getLastKnownPositionAsync({
-          maxAge: 1000 * 60 * 10,
-          requiredAccuracy: 3000,
-        });
-
-        console.log(
-          "[MapPickerModal] last known location result",
-          lastKnownLocation,
-        );
-
-        if (!lastKnownLocation) {
-          console.log(
-            "[MapPickerModal] no last known location, fallback to AMap geolocation",
-          );
-          setLocationDebugText("系统定位超时，正在尝试高德定位...");
-          requestWebViewLocate();
-          return;
-        }
-
-        currentLocation = lastKnownLocation;
-        usedLastKnownLocation = true;
-      }
-
-      console.log("[MapPickerModal] current location success", {
-        latitude: currentLocation.coords.latitude,
-        longitude: currentLocation.coords.longitude,
-        accuracy: currentLocation.coords.accuracy,
-        usedLastKnownLocation,
-      });
-
-      setLocationDebugText(
-        usedLastKnownLocation
-          ? `实时定位超时，已使用最近位置: ${currentLocation.coords.latitude.toFixed(6)}, ${currentLocation.coords.longitude.toFixed(6)}`
-          : `定位成功: ${currentLocation.coords.latitude.toFixed(6)}, ${currentLocation.coords.longitude.toFixed(6)}`,
-      );
-
-      if (usedLastKnownLocation) {
-        toast.info(
-          "实时定位较慢，已使用最近位置",
-          `${currentLocation.coords.latitude.toFixed(6)}, ${currentLocation.coords.longitude.toFixed(6)}`,
-        );
-      }
-
-      moveMapTo(
-        currentLocation.coords.latitude,
-        currentLocation.coords.longitude,
-      );
-    } catch (error) {
-      const message = formatUnknownError(error);
-      console.log("[MapPickerModal] failed to locate user", error);
-      setLocationDebugText(`定位异常: ${message}`);
-      toast.error("定位失败，请稍后重试", message);
-    } finally {
-      console.log("[MapPickerModal] handleLocateUser end");
+    if (!locatingRequested) {
       setLocating(false);
     }
-  }, [locating, moveMapTo, requestWebViewLocate]);
+  }, [locating, requestWebViewLocate]);
 
   const handleMapMessage = useCallback(
     (event: WebViewMessageEvent) => {
@@ -674,30 +629,24 @@ export function MapPickerModal({
           return;
         }
 
-        if (data.type === "debug") {
-          console.log(
-            "[MapPickerModal] webview debug",
-            data.message,
-            data.extra,
-          );
-          return;
-        }
-
         if (data.type === "locateResult") {
           console.log("[MapPickerModal] webview locate result", data);
+          setLocating(false);
 
           if (!data.success || !data.latitude || !data.longitude) {
             const message = data.message || "高德定位失败";
-            setLocationDebugText(`高德定位失败: ${message}`);
             toast.error("定位失败，请稍后重试", message);
             return;
           }
 
-          setLocationDebugText(
-            `高德定位成功: ${data.latitude.toFixed(6)}, ${data.longitude.toFixed(6)}`,
-          );
+          const nextCenter = {
+            latitude: data.latitude,
+            longitude: data.longitude,
+          };
+          setMapCenter(nextCenter);
           suppressNextMapMovedRef.current = true;
-          moveMapTo(data.latitude, data.longitude);
+          moveMapTo(nextCenter.latitude, nextCenter.longitude);
+          void fetchPlacesRef.current(undefined, "around", nextCenter);
           return;
         }
 
@@ -714,12 +663,13 @@ export function MapPickerModal({
             return;
           }
 
-          setMapCenter({
+          const nextCenter = {
             latitude: data.latitude,
             longitude: data.longitude,
-          });
+          };
+          setMapCenter(nextCenter);
 
-          void fetchPlacesRef.current(undefined, "around");
+          void fetchPlacesRef.current(undefined, "around", nextCenter);
         }
       } catch (error) {
         console.log("[MapPickerModal] failed to parse map message", error);
@@ -765,8 +715,6 @@ export function MapPickerModal({
         />
 
         <View style={styles.sheet}>
-          <View style={styles.grabber} />
-
           <View style={styles.header}>
             <View style={styles.headerSpacer} />
             <Text style={styles.title}>选择地点</Text>
@@ -807,22 +755,16 @@ export function MapPickerModal({
               ref={webViewRef}
               originWhitelist={["*"]}
               source={mapSource}
+              geolocationEnabled
               onMessage={handleMapMessage}
-              onLoadStart={() => {
-                console.log("[MapPickerModal] WebView load start");
-                setLocationDebugText("地图开始加载");
-              }}
-              onLoadEnd={() => {
-                console.log("[MapPickerModal] WebView load end");
-                setLocationDebugText((current) => current || "地图加载完成");
-              }}
               onError={(event) => {
                 console.log(
                   "[MapPickerModal] WebView error",
                   event.nativeEvent,
                 );
-                setLocationDebugText(
-                  `地图加载失败: ${event.nativeEvent.description || "unknown"}`,
+                toast.error(
+                  "地图加载失败",
+                  event.nativeEvent.description || "unknown",
                 );
               }}
               style={styles.webview}
@@ -845,13 +787,6 @@ export function MapPickerModal({
               />
             </TouchableOpacity>
           </View>
-
-          {locationDebugText ? (
-            <View style={styles.debugCard}>
-              <Text style={styles.debugLabel}>定位调试</Text>
-              <Text style={styles.debugText}>{locationDebugText}</Text>
-            </View>
-          ) : null}
 
           <ScrollView
             horizontal
@@ -968,21 +903,13 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   sheet: {
-    height: "82%",
+    height: "85%",
     backgroundColor: "#fffaf7",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 20,
-  },
-  grabber: {
-    alignSelf: "center",
-    width: 56,
-    height: 6,
-    borderRadius: 999,
-    backgroundColor: "#ddd3d5",
-    marginBottom: 14,
   },
   header: {
     flexDirection: "row",
@@ -1067,26 +994,6 @@ const styles = StyleSheet.create({
   },
   locateButtonDisabled: {
     opacity: 0.72,
-  },
-  debugCard: {
-    backgroundColor: "#fff4f6",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255, 107, 139, 0.18)",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 12,
-  },
-  debugLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colors.theme.primary,
-    marginBottom: 4,
-  },
-  debugText: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: colors.semantic.textPrimary,
   },
   categoryTabs: {
     flexGrow: 0,
