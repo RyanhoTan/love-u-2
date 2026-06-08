@@ -1,63 +1,87 @@
-import { Column, Row } from "@/components/layout";
+import React from "react";
 import {
-  Text,
-  StyleSheet,
   Image,
-  TouchableOpacity,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { ImagesAvatarFemalePng } from "@/assets";
 import {
   ChevronRight,
-  ShieldCog,
   Bell,
-  LockKeyhole,
-  Settings,
+  Heart,
   Info,
+  Palette,
+  Shield,
+  User,
   LucideProps,
+  BarChart3,
 } from "lucide-react-native";
-import React from "react";
-import { PinkButton, toast } from "@/components/common";
+import { ImagesAvatarMalePng } from "@/assets";
+import { Row } from "@/components/layout";
+import { toast } from "@/components/common";
 import { useAuth } from "@/app/features/auth/auth-context";
 
-interface SettingItem {
+interface MenuItem {
   id: string;
   title: string;
   icon: React.ComponentType<LucideProps>; // 约束图标名称
+  iconColor: string;
   onPress: () => void;
 }
 
 export default function Mine() {
-  const { signOut } = useAuth();
-  const settingList: SettingItem[] = [
+  const { signOut, user } = useAuth();
+
+  const menuItems: MenuItem[] = [
     {
-      id: "security",
-      title: "账号与安全",
-      icon: ShieldCog,
-      onPress: () => toast.info("账号与安全"),
+      id: "profile",
+      title: "个人资料",
+      icon: User,
+      iconColor: "#4A90FF",
+      onPress: () => toast.info("个人资料"),
+    },
+    {
+      id: "space",
+      title: "情侣空间",
+      icon: Heart,
+      iconColor: "#FF5C8A",
+      onPress: () => toast.info("情侣空间"),
     },
     {
       id: "notification",
       title: "通知设置",
       icon: Bell,
+      iconColor: "#FFB020",
       onPress: () => toast.info("通知设置"),
     },
     {
-      id: "privacy",
-      title: "隐私设置",
-      icon: LockKeyhole,
-      onPress: () => toast.info("隐私设置"),
+      id: "theme",
+      title: "主题换肤",
+      icon: Palette,
+      iconColor: "#6C63FF",
+      onPress: () => toast.info("主题换肤"),
     },
     {
-      id: "general",
-      title: "通用设置",
-      icon: Settings,
-      onPress: () => toast.info("通用设置"),
+      id: "report",
+      title: "恋爱报告",
+      icon: BarChart3,
+      iconColor: "#9C4DFF",
+      onPress: () => toast.info("恋爱报告"),
+    },
+    {
+      id: "privacy",
+      title: "隐私与安全",
+      icon: Shield,
+      iconColor: "#5A6BFF",
+      onPress: () => toast.info("隐私与安全"),
     },
     {
       id: "about",
       title: "关于我们",
       icon: Info,
+      iconColor: "#3EA0FF",
       onPress: () => toast.info("关于我们"),
     },
   ];
@@ -69,67 +93,140 @@ export default function Mine() {
 
   return (
     <ScrollView
-      contentContainerStyle={{ flex: 1 }}
+      contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >
-      <Column gap={12}>
-        <Text style={styles.title}>设置</Text>
-        <TouchableOpacity onPress={() => toast.info("个人信息")}>
-          <Row
-            items="center"
-            content="space-between"
-            style={{
-              padding: 12,
-              backgroundColor: "#fff",
-              borderRadius: 12,
-              height: 110,
-            }}
-          >
-            <Row gap={12} items="center">
-              <Image
-                source={ImagesAvatarFemalePng}
-                style={{ width: 64, height: 64, borderRadius: 32 }}
-              />
+      <View style={styles.header}>
+        <Image source={ImagesAvatarMalePng} style={styles.avatar} />
 
-              <Column gap={4}>
-                <Text style={{ fontSize: 16 }}>我的昵称</Text>
-                <Text style={{ fontSize: 14, color: "#666" }}>个人信息</Text>
-              </Column>
-            </Row>
+        <View style={styles.profileText}>
+          <Text style={styles.username}>{user?.username || "Ryanho"}</Text>
 
-            <ChevronRight size={24} color={"#999595"} />
+          <Row items="center" gap={6} style={styles.badge}>
+            <Text style={styles.badgeText}>Sweet Boy</Text>
           </Row>
-        </TouchableOpacity>
+        </View>
+      </View>
 
-        {settingList.map((item) => (
+      <View style={styles.menuCard}>
+        {menuItems.map((item, index) => (
           <TouchableOpacity
             key={item.id}
-            style={styles.SettingItem}
+            style={[
+              styles.menuItem,
+              index < menuItems.length - 1 && styles.menuItemBorder,
+            ]}
             onPress={item.onPress}
+            activeOpacity={0.85}
           >
-            <Row content="space-between" items="center">
-              <Row gap={12} items="center">
-                <item.icon size={24} color={"#999595"} />
-                <Text style={{ fontSize: 16 }}>{item.title}</Text>
+            <Row items="center" content="space-between">
+              <Row items="center" gap={14}>
+                <View style={styles.iconWrap}>
+                  <item.icon
+                    size={18}
+                    color={item.iconColor}
+                    strokeWidth={2.2}
+                  />
+                </View>
+                <Text style={styles.menuText}>{item.title}</Text>
               </Row>
-              <ChevronRight size={24} color={"#999595"} />
+
+              <ChevronRight size={18} color="#C8C6D1" />
             </Row>
           </TouchableOpacity>
         ))}
-        <PinkButton text="退出登录" onPress={handleSignOut} />
-      </Column>
+      </View>
+
+      <TouchableOpacity
+        style={styles.signOutButton}
+        onPress={handleSignOut}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.signOutText}>退出登录</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
+  contentContainer: {
+    flexGrow: 1,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
-  SettingItem: {
-    padding: 20,
-    backgroundColor: "#fff",
-    borderRadius: 12,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 18,
+  },
+  avatar: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: "#FDE8ED",
+  },
+  profileText: {
+    gap: 10,
+  },
+  username: {
+    fontSize: 30,
+    fontWeight: "700",
+    color: "#2E2430",
+  },
+  badge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+  },
+  badgeText: {
+    fontSize: 14,
+    color: "#8F6C79",
+    fontWeight: "600",
+  },
+  menuCard: {
+    marginTop: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.94)",
+    borderRadius: 22,
+    overflow: "hidden",
+    shadowColor: "#F4A7B9",
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+  },
+  menuItem: {
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+  },
+  menuItemBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#F2E4EA",
+  },
+  iconWrap: {
+    width: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  menuText: {
+    fontSize: 18,
+    color: "#34313B",
+    fontWeight: "500",
+  },
+  signOutButton: {
+    marginTop: 18,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 238, 242, 0.95)",
+  },
+  signOutText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FF5C84",
   },
 });
