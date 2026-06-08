@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Image,
   ScrollView,
@@ -56,7 +56,7 @@ export default function Mine() {
       title: "通知设置",
       icon: Bell,
       iconColor: "#FFB020",
-      onPress: () => toast.info("通知设置"),
+      onPress: () => router.push("/home/notification-settings"),
     },
     {
       id: "theme",
