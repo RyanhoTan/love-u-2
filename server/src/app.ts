@@ -7,6 +7,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 路由
+import userRouter from "./router/user.js";
+app.use("/login", userRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "route not found" });
