@@ -5,13 +5,8 @@ export interface AuthUser {
   username: string;
 }
 
-interface LoginResponse {
-  token: string;
-  user: AuthUser;
-}
-
-interface MeResponse {
-  user: AuthUser;
+interface RegisterResponse {
+  message: string;
 }
 
 const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
@@ -48,17 +43,9 @@ async function request<T>(path: string, init?: RequestInit) {
   return data as T;
 }
 
-export async function login(username: string, password: string) {
-  return request<LoginResponse>("/api/auth/login", {
+export async function register(username: string, password: string) {
+  return request<RegisterResponse>("/login/register", {
     method: "POST",
     body: JSON.stringify({ username, password }),
-  });
-}
-
-export async function fetchCurrentUser(token: string) {
-  return request<MeResponse>("/api/auth/me", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 }
