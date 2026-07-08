@@ -4,29 +4,25 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node ./scripts/ensure-env.mjs && pnpm run prisma:setup && tsx watch src/index.ts",
+    "dev": "node ./scripts/ensure-env.mjs && tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "lint": "eslint \"src/**/*.ts\"",
-    "prisma:setup": "node ./scripts/ensure-env.mjs && prisma generate && prisma migrate deploy",
-    "prisma:generate": "node ./scripts/ensure-env.mjs && prisma generate",
-    "prisma:migrate": "node ./scripts/ensure-env.mjs && prisma migrate dev --name init",
-    "prisma:deploy": "node ./scripts/ensure-env.mjs && prisma migrate deploy"
+    "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
-    "@prisma/client": "^6.10.1",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mysql2": "^3.15.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.0",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "eslint": "^9.39.1",
-    "prisma": "^6.10.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

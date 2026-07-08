@@ -4,7 +4,7 @@
 
 - Frontend: Expo + React Native + Expo Router + TypeScript
 - Backend: Node.js + Express + TypeScript
-- Database: SQLite + Prisma
+- Database: MySQL
 - Package manager: pnpm
 
 ## 1. Prerequisites
@@ -42,20 +42,20 @@ EXPO_PUBLIC_API_URL=http://localhost:3001
 Backend (`server/.env`):
 
 ```env
-DATABASE_URL="file:./dev.db"
+MYSQL_URL="mysql://root:password@127.0.0.1:3306/love_u_2"
 PORT=3001
 ```
 
-## 4. Prisma Database
+## 4. Backend Status
 
-After dependencies are installed:
+The old Prisma + SQLite backend has been cleared.
+`server` is now a clean Express + TypeScript scaffold prepared for a `mysql2` rebuild.
 
-```powershell
-pnpm --dir server prisma:generate
-pnpm --dir server prisma:migrate
-```
+Current API behavior:
 
-This creates `server/prisma/dev.db` and applies the initial `Todo` migration.
+- `GET /health` returns basic service status
+- `GET|POST|PATCH /api/auth/*` currently returns `501`
+- `GET|POST|PATCH /api/todos/*` currently returns `501`
 
 ## 5. Run Development
 
@@ -70,19 +70,14 @@ This starts:
 - backend: `http://localhost:3001`
 - expo dev server in `app`
 
-## 6. API Endpoints
+## 6. Next Backend Steps
 
-- `GET /health` -> `{ status: "ok", timestamp: string }`
-- `POST /api/auth/login` with `{ "username": "...", "password": "..." }`
-- `GET /api/auth/me` with `Authorization: Bearer <token>`
-- `GET /api/todos` -> `Todo[]`
-- `POST /api/todos` with `{ "title": "..." }`
-- `PATCH /api/todos/:id` toggles `completed`
+Recommended rebuild order:
 
-Default demo account:
-
-- username: `demo`
-- password: `123456`
+- create MySQL tables
+- add `src/db.ts` query helpers
+- rebuild auth routes
+- rebuild business modules such as todos / couple space / wishes
 
 ## 7. Lint
 
