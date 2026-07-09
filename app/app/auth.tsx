@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import {
   ImageBackground,
@@ -8,24 +8,51 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { toast } from "@/components/common";
-import { register } from "@/app/features/auth/api";
+import { login, register } from "@/app/features/auth/api";
 import { useAuth } from "@/app/features/auth/auth-context";
+import { IconsAuthHeartSvg, IconsAuthWechatSvg, ImagesAuthBackgroundPng } from "@/assets";
+import { toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
-import {
-  IconsAuthHeartSvg,
-  IconsAuthWechatSvg,
-  ImagesAuthBackgroundPng,
-} from "@/assets";
 
 export default function Auth() {
   const router = useRouter();
-  const { setUserSession } = useAuth();
+  const { isAuthenticated, isRestoring, setUserSession } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    if (!isRestoring && isAuthenticated) {
+      router.replace("/home");
+    }
+  }, [isAuthenticated, isRestoring, router]);
+
+  const handleLogin = async () => {
+    const trimmedUsername = username.trim();
+
+    if (!trimmedUsername || !password) {
+      toast.error("请输入账号和密码");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const response = await login(trimmedUsername, password);
+      await setUserSession({
+        token: response.token,
+        user: response.user,
+      });
+      toast.success("登录成功");
+      router.replace("/home");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "登录失败，请稍后重试";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleRegister = async () => {
     const trimmedUsername = username.trim();
@@ -48,9 +75,9 @@ export default function Auth() {
     try {
       setIsSubmitting(true);
       await register(trimmedUsername, password);
-      setUserSession({ id: 0, username: trimmedUsername });
-      toast.success("注册成功");
-      router.replace("/auth");
+      toast.success("注册成功，请登录");
+      setShowConfirmPassword(false);
+      setConfirmPassword("");
     } catch (error) {
       const message = error instanceof Error ? error.message : "注册失败，请稍后重试";
       toast.error(message);
@@ -58,6 +85,10 @@ export default function Auth() {
       setIsSubmitting(false);
     }
   };
+
+  if (isRestoring) {
+    return null;
+  }
 
   return (
     <ImageBackground source={ImagesAuthBackgroundPng} style={{ flex: 1 }}>
@@ -104,23 +135,21 @@ export default function Auth() {
         </Column>
         <Column gap={12}>
           <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => {
-              toast.info("登录接口已移除，请使用注册按钮");
-            }}
+            disabled={isSubmitting}
+            style={[styles.loginButton, isSubmitting && styles.disabledButton]}
+            onPress={() => void handleLogin()}
           >
-            <Text style={{ color: "#fff" }}>登录</Text>
+            <Text style={{ color: "#fff" }}>{isSubmitting ? "登录中..." : "登录"}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             disabled={isSubmitting}
-            style={styles.signUpButton}
+            style={[styles.signUpButton, isSubmitting && styles.disabledButton]}
             onPress={() => {
               if (!showConfirmPassword) {
                 setShowConfirmPassword(true);
                 return;
               }
 
-              setShowConfirmPassword(true);
               void handleRegister();
             }}
           >
@@ -169,5 +198,8 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 });

@@ -91,6 +91,7 @@ export default function Mine() {
   const handleSignOut = () => {
     signOut();
     toast.success("退出登录成功");
+    router.replace("/auth");
   };
 
   return (

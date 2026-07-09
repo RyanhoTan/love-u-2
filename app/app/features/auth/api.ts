@@ -9,6 +9,12 @@ interface RegisterResponse {
   message: string;
 }
 
+export interface LoginResponse {
+  message: string;
+  token: string;
+  user: AuthUser;
+}
+
 const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 const API_BASE_URL =
@@ -44,7 +50,14 @@ async function request<T>(path: string, init?: RequestInit) {
 }
 
 export async function register(username: string, password: string) {
-  return request<RegisterResponse>("/login/register", {
+  return request<RegisterResponse>("/user/register", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
+}
+
+export async function login(username: string, password: string) {
+  return request<LoginResponse>("/user/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
   });
