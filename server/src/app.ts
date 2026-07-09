@@ -24,7 +24,7 @@ app.use(express.json());
 
 // 路由
 import userRouter from "./router/user.js";
-app.use("/login", userRouter);
+app.use("/user", userRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "route not found" });
