@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -11,17 +12,89 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ImagesWishHugHeartPng } from "@/assets";
+import { useAuth } from "@/app/features/auth/auth-context";
+import { createCoupleInvite, getCoupleSpace } from "@/app/features/couple-space/api";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 
-const MY_INVITE_CODE = "8K7H2Q";
-
 export default function CoupleSpaceBindScreen() {
   const router = useRouter();
+  const { token } = useAuth();
   const [inviteCode, setInviteCode] = useState("");
+  const [myInviteCode, setMyInviteCode] = useState("");
+  const [isInviteLoading, setIsInviteLoading] = useState(true);
+  const [isInviteReady, setIsInviteReady] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadInviteCode() {
+      if (!token) {
+        if (!isMounted) {
+          return;
+        }
+
+        setMyInviteCode("");
+        setIsInviteReady(false);
+        setIsInviteLoading(false);
+        return;
+      }
+
+      setIsInviteLoading(true);
+
+      try {
+        const coupleSpaceResponse = await getCoupleSpace(token);
+        const existingCode = coupleSpaceResponse.coupleSpace.activeInvite?.code ?? "";
+
+        if (existingCode) {
+          if (!isMounted) {
+            return;
+          }
+
+          setMyInviteCode(existingCode);
+          setIsInviteReady(true);
+          return;
+        }
+
+        const inviteResponse = await createCoupleInvite(token);
+        if (!isMounted) {
+          return;
+        }
+
+        const nextInviteCode = inviteResponse.invite?.code ?? "";
+        setMyInviteCode(nextInviteCode);
+        setIsInviteReady(Boolean(nextInviteCode));
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        setMyInviteCode("");
+        setIsInviteReady(false);
+        toast.error(
+          error instanceof Error ? error.message : "邀请码获取失败，请稍后重试"
+        );
+      } finally {
+        if (isMounted) {
+          setIsInviteLoading(false);
+        }
+      }
+    }
+
+    void loadInviteCode();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token]);
 
   const handleCopyCode = () => {
-    toast.success("邀请码已复制");
+    if (!myInviteCode) {
+      toast.info("邀请码还没有准备好");
+      return;
+    }
+
+    toast.success("邀请码已生成");
   };
 
   const handleBind = () => {
@@ -55,11 +128,21 @@ export default function CoupleSpaceBindScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionLabel}>我的邀请码</Text>
           <Row items="center" content="space-between" style={styles.codeRow}>
-            <Text style={styles.myCode}>{MY_INVITE_CODE}</Text>
+            {isInviteLoading ? (
+              <ActivityIndicator color="#FF4F7A" />
+            ) : (
+              <Text style={styles.myCode}>
+                {isInviteReady ? myInviteCode : "------"}
+              </Text>
+            )}
             <TouchableOpacity
               activeOpacity={0.85}
-              style={styles.copyButton}
+              style={[
+                styles.copyButton,
+                !isInviteReady && styles.copyButtonDisabled,
+              ]}
               onPress={handleCopyCode}
+              disabled={!isInviteReady}
             >
               <Text style={styles.copyText}>复制</Text>
             </TouchableOpacity>
@@ -140,6 +223,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: "#FFFFFF",
+    minHeight: 58,
   },
   myCode: {
     fontSize: 24,
@@ -154,6 +238,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 8,
+  },
+  copyButtonDisabled: {
+    borderColor: "#E9DEE3",
   },
   copyText: {
     fontSize: 14,

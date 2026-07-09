@@ -1,16 +1,10 @@
 import type { Request, Response } from "express";
-import jwt from "jsonwebtoken";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
-import { config } from "../config.js";
+import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
 import { updateUserProfileSchema } from "../schema/user.js";
 import { parseRequestBody } from "../validation.js";
-
-interface AuthTokenPayload extends jwt.JwtPayload {
-  sub: string;
-  username?: string;
-}
 
 interface UserInfoRow extends RowDataPacket {
   id: number;
@@ -30,45 +24,6 @@ interface ColumnNameRow extends RowDataPacket {
 }
 
 let usersTableColumnsPromise: Promise<Set<string>> | null = null;
-
-function getBearerToken(req: Request) {
-  const authorization = req.header("Authorization");
-
-  if (!authorization) {
-    throw new HttpError(401, "invalid or expired token");
-  }
-
-  const [scheme, token] = authorization.split(" ");
-  if (scheme !== "Bearer" || !token) {
-    throw new HttpError(401, "invalid or expired token");
-  }
-
-  return token;
-}
-
-function getAuthTokenPayload(req: Request): AuthTokenPayload {
-  const token = getBearerToken(req);
-
-  try {
-    const payload = jwt.verify(token, config.jwtSecret);
-    if (
-      !payload ||
-      typeof payload !== "object" ||
-      typeof payload.sub !== "string" ||
-      payload.sub.trim() === ""
-    ) {
-      throw new HttpError(401, "invalid or expired token");
-    }
-
-    return payload as AuthTokenPayload;
-  } catch (error) {
-    if (error instanceof HttpError) {
-      throw error;
-    }
-
-    throw new HttpError(401, "invalid or expired token");
-  }
-}
 
 async function getUsersTableColumns() {
   usersTableColumnsPromise ??= db
@@ -164,12 +119,7 @@ function serializeUser(user: UserInfoRow) {
 }
 
 export async function getUserInfo(req: Request, res: Response) {
-  const auth = getAuthTokenPayload(req);
-  const userId = Number(auth.sub);
-
-  if (!Number.isInteger(userId) || userId <= 0) {
-    throw new HttpError(401, "invalid or expired token");
-  }
+  const userId = getAuthenticatedUserId(req);
 
   const columns = await getUsersTableColumns();
   const user = await findUserById(userId, columns);
@@ -185,12 +135,7 @@ export async function getUserInfo(req: Request, res: Response) {
 }
 
 export async function updateUserInfo(req: Request, res: Response) {
-  const auth = getAuthTokenPayload(req);
-  const userId = Number(auth.sub);
-
-  if (!Number.isInteger(userId) || userId <= 0) {
-    throw new HttpError(401, "invalid or expired token");
-  }
+  const userId = getAuthenticatedUserId(req);
 
   const payload = parseRequestBody(updateUserProfileSchema, req.body);
   const columns = await getUsersTableColumns();
