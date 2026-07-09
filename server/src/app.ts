@@ -2,6 +2,8 @@ import cors from "cors";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
 import { isHttpError } from "./errors.js";
+import userRouter from "./router/user.js";
+import userinfoRouter from "./router/userinfo.js";
 
 const app = express();
 
@@ -23,8 +25,8 @@ app.use(cors());
 app.use(express.json());
 
 // 路由
-import userRouter from "./router/user.js";
 app.use("/user", userRouter);
+app.use("/userinfo", userinfoRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "route not found" });

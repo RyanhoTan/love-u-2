@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { AuthUser } from "./api";
+import { getUserInfo, type AuthSessionUser, type AuthUser } from "./api";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -14,7 +14,7 @@ const AUTH_STORAGE_KEY = "love-u-auth-session";
 
 interface AuthSession {
   token: string;
-  user: AuthUser;
+  user: AuthSessionUser;
 }
 
 interface AuthContextValue {
@@ -23,8 +23,14 @@ interface AuthContextValue {
   token: string | null;
   isRestoring: boolean;
   isAuthenticated: boolean;
+  refreshUser: () => Promise<AuthUser | null>;
+  updateStoredUser: (nextUser: AuthUser | null) => Promise<void>;
   setUserSession: (session: AuthSession | null) => Promise<void>;
   signOut: () => void;
+}
+
+function isAuthUser(user: AuthSessionUser): user is AuthUser {
+  return "nickname" in user;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -38,6 +44,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     : user
       ? "authenticated"
       : "unauthenticated";
+
+  const persistSession = async (nextToken: string, nextUser: AuthUser) => {
+    const nextSession: AuthSession = {
+      token: nextToken,
+      user: nextUser,
+    };
+
+    setToken(nextToken);
+    setUser(nextUser);
+    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextSession));
+  };
 
   useEffect(() => {
     async function restoreSession() {
@@ -53,10 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        setToken(session.token);
-        setUser(session.user);
+        const userInfo = await getUserInfo(session.token);
+        await persistSession(session.token, userInfo.user);
       } catch {
         await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+        setToken(null);
+        setUser(null);
       } finally {
         setIsRestoring(false);
       }
@@ -64,6 +83,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     void restoreSession();
   }, []);
+
+  const updateStoredUser = async (nextUser: AuthUser | null) => {
+    if (!token || !nextUser) {
+      setToken(null);
+      setUser(null);
+      await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+      return;
+    }
+
+    await persistSession(token, nextUser);
+  };
+
+  const refreshUser = async () => {
+    if (!token) {
+      return null;
+    }
+
+    const userInfo = await getUserInfo(token);
+    await persistSession(token, userInfo.user);
+    return userInfo.user;
+  };
 
   const setUserSession = async (session: AuthSession | null) => {
     if (!session) {
@@ -73,9 +113,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setToken(session.token);
-    setUser(session.user);
-    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+    const nextUser = isAuthUser(session.user)
+      ? session.user
+      : (await getUserInfo(session.token)).user;
+
+    await persistSession(session.token, nextUser);
   };
 
   const value: AuthContextValue = {
@@ -84,6 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     token,
     isRestoring,
     isAuthenticated: Boolean(user),
+    refreshUser,
+    updateStoredUser,
     setUserSession,
     signOut: () => {
       void setUserSession(null);

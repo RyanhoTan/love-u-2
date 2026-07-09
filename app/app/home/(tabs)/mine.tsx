@@ -35,6 +35,8 @@ interface MenuItem {
 export default function Mine() {
   const router = useRouter();
   const { signOut, user } = useAuth();
+  const displayName = user?.nickname?.trim() || user?.username || "username";
+  const displaySignature = user?.signature?.trim() || "signature";
 
   const menuItems: MenuItem[] = [
     {
@@ -103,10 +105,10 @@ export default function Mine() {
         <Image source={ImagesAvatarMalePng} style={styles.avatar} />
 
         <View style={styles.profileText}>
-          <Text style={styles.username}>{user?.username || "Ryanho"}</Text>
+          <Text style={styles.username}>{displayName}</Text>
 
           <Row items="center" gap={6} style={styles.badge}>
-            <Text style={styles.badgeText}>Sweet Boy</Text>
+            <Text style={styles.badgeText}>{displaySignature}</Text>
           </Row>
         </View>
       </View>

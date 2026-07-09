@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Image,
   ImageSourcePropType,
@@ -42,10 +42,29 @@ export default function ProfileScreen() {
   });
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
-  const [nickname, setNickname] = useState(user?.username || "");
+  const [nickname, setNickname] = useState("");
   const [signature, setSignature] = useState("");
   const [birthday, setBirthday] = useState(new Date("2004-05-20"));
   const [openDatePicker, setOpenDatePicker] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    setNickname(user.nickname?.trim() || user.username || "");
+    setSignature(user.signature?.trim() || "");
+    setAvatarUri(user.avatar || null);
+
+    if (!user.birthday) {
+      return;
+    }
+
+    const parsedBirthday = new Date(user.birthday);
+    if (!Number.isNaN(parsedBirthday.getTime())) {
+      setBirthday(parsedBirthday);
+    }
+  }, [user]);
 
   const avatarSource: ImageSourcePropType = avatarUri
     ? { uri: avatarUri }

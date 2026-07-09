@@ -2,22 +2,13 @@ import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { RowDataPacket } from "mysql2";
-import { z } from "zod";
 import { config } from "../config.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
+import { authSchema } from "../schema/user.js";
 import { parseRequestBody } from "../validation.js";
 
 const SALT_ROUNDS = 10;
-const authSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(1, "username is required"),
-  password: z
-    .string()
-    .min(1, "password is required"),
-});
 
 export async function register(req: Request, res: Response) {
   const { username, password } = parseRequestBody(authSchema, req.body);
@@ -46,6 +37,11 @@ interface UserRow extends RowDataPacket {
   username: string;
   password_hash: string;
 }
+
+
+
+
+
 
 export async function login(req: Request, res: Response) {
   const { username, password } = parseRequestBody(authSchema, req.body);
@@ -83,3 +79,5 @@ export async function login(req: Request, res: Response) {
     }
   });
 }
+
+

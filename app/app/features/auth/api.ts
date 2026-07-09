@@ -3,6 +3,14 @@ import { Platform } from "react-native";
 export interface AuthUser {
   id: number;
   username: string;
+  nickname: string | null;
+  avatar: string | null;
+  signature: string | null;
+  birthday: string | null;
+  gender: string | null;
+  coupleStatus: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 interface RegisterResponse {
@@ -12,8 +20,15 @@ interface RegisterResponse {
 export interface LoginResponse {
   message: string;
   token: string;
+  user: AuthSessionUser;
+}
+
+interface UserInfoResponse {
+  message: string;
   user: AuthUser;
 }
+
+export type AuthSessionUser = Pick<AuthUser, "id" | "username"> | AuthUser;
 
 const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -60,5 +75,14 @@ export async function login(username: string, password: string) {
   return request<LoginResponse>("/user/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
+  });
+}
+
+export async function getUserInfo(token: string) {
+  return request<UserInfoResponse>("/userinfo", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 }
