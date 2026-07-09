@@ -1,6 +1,7 @@
-﻿import React from "react";
+import React from "react";
 import {
   Image,
+  type ImageSourcePropType,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,15 +15,15 @@ import {
   ChevronRight,
   Heart,
   Info,
-  LucideProps,
+  type LucideProps,
   Palette,
   Shield,
   User,
 } from "lucide-react-native";
 import { ImagesAvatarMalePng } from "@/assets";
+import { useAuth } from "@/app/features/auth/auth-context";
 import { toast } from "@/components/common";
 import { Row } from "@/components/layout";
-import { useAuth } from "@/app/features/auth/auth-context";
 
 interface MenuItem {
   id: string;
@@ -37,6 +38,9 @@ export default function Mine() {
   const { signOut, user } = useAuth();
   const displayName = user?.nickname?.trim() || user?.username || "username";
   const displaySignature = user?.signature?.trim() || "signature";
+  const avatarSource: ImageSourcePropType = user?.avatar
+    ? { uri: user.avatar }
+    : ImagesAvatarMalePng;
 
   const menuItems: MenuItem[] = [
     {
@@ -102,7 +106,7 @@ export default function Mine() {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.header}>
-        <Image source={ImagesAvatarMalePng} style={styles.avatar} />
+        <Image source={avatarSource} style={styles.avatar} />
 
         <View style={styles.profileText}>
           <Text style={styles.username}>{displayName}</Text>

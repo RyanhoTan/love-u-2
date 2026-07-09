@@ -1,9 +1,11 @@
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import type { RowDataPacket } from "mysql2";
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { config } from "../config.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
+import { updateUserProfileSchema } from "../schema/user.js";
+import { parseRequestBody } from "../validation.js";
 
 interface AuthTokenPayload extends jwt.JwtPayload {
   sub: string;
@@ -119,15 +121,7 @@ function formatDateTime(value: Date | string | null) {
   return value.toISOString();
 }
 
-export async function getUserInfo(req: Request, res: Response) {
-  const auth = getAuthTokenPayload(req);
-  const userId = Number(auth.sub);
-
-  if (!Number.isInteger(userId) || userId <= 0) {
-    throw new HttpError(401, "invalid or expired token");
-  }
-
-  const columns = await getUsersTableColumns();
+async function findUserById(userId: number, columns: Set<string>) {
   const selectFields = [
     "`id`",
     "`username`",
@@ -151,24 +145,108 @@ export async function getUserInfo(req: Request, res: Response) {
     [userId]
   );
 
-  const user = rows[0];
+  return rows[0] ?? null;
+}
+
+function serializeUser(user: UserInfoRow) {
+  return {
+    id: user.id,
+    username: user.username,
+    nickname: user.nickname,
+    avatar: user.avatar,
+    signature: user.signature,
+    birthday: formatDateOnly(user.birthday),
+    gender: user.gender,
+    coupleStatus: user.coupleStatus,
+    createdAt: formatDateTime(user.createdAt),
+    updatedAt: formatDateTime(user.updatedAt),
+  };
+}
+
+export async function getUserInfo(req: Request, res: Response) {
+  const auth = getAuthTokenPayload(req);
+  const userId = Number(auth.sub);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw new HttpError(401, "invalid or expired token");
+  }
+
+  const columns = await getUsersTableColumns();
+  const user = await findUserById(userId, columns);
+
   if (!user) {
     throw new HttpError(404, "user not found");
   }
 
   res.status(200).json({
     message: "get user info success",
-    user: {
-      id: user.id,
-      username: user.username,
-      nickname: user.nickname,
-      avatar: user.avatar,
-      signature: user.signature,
-      birthday: formatDateOnly(user.birthday),
-      gender: user.gender,
-      coupleStatus: user.coupleStatus,
-      createdAt: formatDateTime(user.createdAt),
-      updatedAt: formatDateTime(user.updatedAt),
-    }
+    user: serializeUser(user),
+  });
+}
+
+export async function updateUserInfo(req: Request, res: Response) {
+  const auth = getAuthTokenPayload(req);
+  const userId = Number(auth.sub);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw new HttpError(401, "invalid or expired token");
+  }
+
+  const payload = parseRequestBody(updateUserProfileSchema, req.body);
+  const columns = await getUsersTableColumns();
+  const assignments: string[] = [];
+  const values: Array<string | null | number> = [];
+
+  if (columns.has("nickname")) {
+    assignments.push("`nickname` = ?");
+    values.push(payload.nickname || null);
+  }
+
+  if (columns.has("avatar")) {
+    assignments.push("`avatar` = ?");
+    values.push(payload.avatar || null);
+  }
+
+  if (columns.has("signature")) {
+    assignments.push("`signature` = ?");
+    values.push(payload.signature || null);
+  }
+
+  if (columns.has("birthday")) {
+    assignments.push("`birthday` = ?");
+    values.push(payload.birthday);
+  }
+
+  if (assignments.length === 0) {
+    throw new HttpError(500, "users table does not support profile updates");
+  }
+
+  if (columns.has("updated_at")) {
+    assignments.push("`updated_at` = CURRENT_TIMESTAMP");
+  }
+
+  values.push(userId);
+
+  const [result] = await db.query<ResultSetHeader>(
+    `
+      UPDATE users
+      SET ${assignments.join(", ")}
+      WHERE id = ?
+    `,
+    values
+  );
+
+  if (result.affectedRows === 0) {
+    throw new HttpError(404, "user not found");
+  }
+
+  const nextUser = await findUserById(userId, columns);
+  if (!nextUser) {
+    throw new HttpError(404, "user not found");
+  }
+
+  res.status(200).json({
+    message: "update user info success",
+    user: serializeUser(nextUser),
   });
 }

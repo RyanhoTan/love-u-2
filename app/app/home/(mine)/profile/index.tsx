@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Image,
-  ImageSourcePropType,
+  type ImageSourcePropType,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { Camera, ChevronRight, Images, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { updateUserProfile } from "@/app/features/auth/api";
+import { useAuth } from "@/app/features/auth/auth-context";
 import { ImagesAvatarMalePng } from "@/assets";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
@@ -20,8 +22,8 @@ import {
   useMediaPicker,
   useStyledActionSheet,
 } from "@/hooks";
-import { useAuth } from "@/app/features/auth/auth-context";
 import { colors } from "@/styles/colors";
+import { useRouter } from "expo-router";
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -32,7 +34,8 @@ function formatDate(date: Date) {
 }
 
 export default function ProfileScreen() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { token, updateStoredUser, user } = useAuth();
   const { showStyledActionSheet } = useStyledActionSheet();
   const { pickFromLibrary, takePhoto } = useMediaPicker({
     mediaTypes: "image",
@@ -46,6 +49,7 @@ export default function ProfileScreen() {
   const [signature, setSignature] = useState("");
   const [birthday, setBirthday] = useState(new Date("2004-05-20"));
   const [openDatePicker, setOpenDatePicker] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -107,8 +111,40 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleSave = () => {
-    toast.success("保存成功");
+  const handleSave = async () => {
+    if (!token) {
+      toast.error("登录状态已失效，请重新登录");
+      return;
+    }
+
+    const trimmedNickname = nickname.trim();
+    const trimmedSignature = signature.trim();
+
+    if (!trimmedNickname) {
+      toast.error("请输入昵称");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await updateUserProfile(token, {
+        nickname: trimmedNickname,
+        avatar: avatarUri,
+        signature: trimmedSignature,
+        birthday: formatDate(birthday),
+      });
+
+      await updateStoredUser(response.user);
+      toast.success("保存成功");
+      router.replace("/home/mine");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "保存失败，请稍后重试";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -178,8 +214,8 @@ export default function ProfileScreen() {
         </Column>
 
         <PinkButton
-          text="保存"
-          onPress={handleSave}
+          text={isSubmitting ? "保存中..." : "保存"}
+          onPress={() => void handleSave()}
           style={styles.saveButton}
         />
       </ScrollView>

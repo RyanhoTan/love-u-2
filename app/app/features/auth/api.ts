@@ -28,7 +28,19 @@ interface UserInfoResponse {
   user: AuthUser;
 }
 
+interface UpdateUserProfileResponse {
+  message: string;
+  user: AuthUser;
+}
+
 export type AuthSessionUser = Pick<AuthUser, "id" | "username"> | AuthUser;
+
+export interface UpdateUserProfilePayload {
+  nickname: string;
+  avatar: string | null;
+  signature: string;
+  birthday: string;
+}
 
 const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -84,5 +96,18 @@ export async function getUserInfo(token: string) {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+  });
+}
+
+export async function updateUserProfile(
+  token: string,
+  payload: UpdateUserProfilePayload,
+) {
+  return request<UpdateUserProfileResponse>("/userinfo", {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
   });
 }

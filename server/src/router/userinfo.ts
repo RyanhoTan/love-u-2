@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { getUserInfo } from "../router_handler/userinfo.js";
+import { getUserInfo, updateUserInfo } from "../router_handler/userinfo.js";
 
 const router = Router();
 
 router.get("/", getUserInfo);
+router.put("/", updateUserInfo);
 
 export default router;
