@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Camera,
   CalendarDays,
@@ -12,6 +12,7 @@ import {
   Plus,
   X,
 } from "lucide-react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import {
   Image,
   ScrollView,
@@ -30,8 +31,6 @@ import {
   IconsHomeStatusShockSvg,
   ImagesCoverPng,
 } from "@/assets";
-import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
-import { type PickedMediaItem, useMediaPicker } from "@/hooks/use-media-picker";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import {
@@ -40,6 +39,13 @@ import {
   MapPickerModal,
   Tag,
 } from "@/components/wish-list";
+import {
+  createWishRecord,
+  getWishById,
+  type WishItem,
+} from "@/app/features/wish-list/api";
+import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
+import { type PickedMediaItem, useMediaPicker } from "@/hooks/use-media-picker";
 
 type SelectedLocation = {
   name: string;
@@ -58,7 +64,11 @@ const STATUS_ICONS = [
 const MAX_MEDIA_COUNT = 99;
 
 export default function CreateRecord() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const { showStyledActionSheet } = useStyledActionSheet();
+  const [wish, setWish] = useState<WishItem | null>(null);
+  const [loadingWish, setLoadingWish] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [text, setText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] =
@@ -75,6 +85,31 @@ export default function CreateRecord() {
     mode: "multiple",
     selectionLimit: MAX_MEDIA_COUNT,
   });
+
+  useEffect(() => {
+    const parsedWishId = Number(id);
+
+    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+      toast.error("愿望不存在");
+      setLoadingWish(false);
+      return;
+    }
+
+    const loadWish = async () => {
+      try {
+        const response = await getWishById(parsedWishId);
+        setWish(response.wish);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "加载愿望详情失败";
+        toast.error(message);
+      } finally {
+        setLoadingWish(false);
+      }
+    };
+
+    void loadWish();
+  }, [id]);
 
   const addMedia = async (pickMedia: () => Promise<PickedMediaItem[]>) => {
     const assets = await pickMedia();
@@ -123,30 +158,76 @@ export default function CreateRecord() {
     );
   };
 
+  const handleSave = async () => {
+    const parsedWishId = Number(id);
+
+    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+      toast.error("愿望不存在");
+      return;
+    }
+
+    if (!text.trim() && selectedMedia.length === 0) {
+      toast.error("请填写记录内容或添加媒体");
+      return;
+    }
+
+    if (submitting) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await createWishRecord(parsedWishId, {
+        content: text.trim(),
+        recordDate: date.toISOString().slice(0, 10),
+        mood: selectedStatus || "",
+        locationName: selectedLocation?.name || "",
+        latitude: selectedLocation?.latitude ?? null,
+        longitude: selectedLocation?.longitude ?? null,
+        budgetAmount: budget ? Number(budget) : null,
+        mediaUrls: selectedMedia.map((media) => media.uri),
+      });
+      toast.success("记录保存成功");
+      router.back();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "保存记录失败";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const wishCoverSource = wish?.cover ? { uri: wish.cover } : ImagesCoverPng;
+
   return (
     <SafeAreaView style={styles.page}>
       <NavBar title="进行中" rightContent={<Ellipsis />} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <Row style={styles.wishCard}>
-          <Image source={ImagesCoverPng} style={styles.wishCover} />
+          <Image source={wishCoverSource} style={styles.wishCover} />
 
           <Column flex={1} style={styles.wishInfo} gap={12}>
             <Row items="center" gap={8}>
-              <Text style={styles.wishTitle}>一起去看海</Text>
-              <Tag status="planning" />
+              <Text style={styles.wishTitle}>{wish?.title || "愿望记录"}</Text>
+              <Tag status={wish?.status || "planning"} />
             </Row>
 
             <Text numberOfLines={1} style={styles.wishDescription}>
-              想和你一起去看海，等日出日落，吹吹海风。
+              {wish?.description || "记录这次愿望旅程里值得记住的瞬间"}
             </Text>
 
             <Row items="center" gap={4}>
               <MapPin size={15} color="#666" />
-              <Text style={styles.wishMeta}>三亚 · 大东海</Text>
+              <Text style={styles.wishMeta}>
+                {wish?.locationName || "还没有设置地点"}
+              </Text>
             </Row>
           </Column>
         </Row>
+
+        {loadingWish && <Text style={styles.loadingText}>正在加载愿望信息...</Text>}
 
         <TouchableOpacity
           onPress={() => setOpenDatePicker(true)}
@@ -177,19 +258,20 @@ export default function CreateRecord() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.moodList}
           >
-            {STATUS_ICONS.map(({ id, name, Icon }) => (
-              <Column key={id} center>
+            {STATUS_ICONS.map(({ id: statusId, name, Icon }) => (
+              <Column key={statusId} center>
                 <TouchableOpacity
                   style={styles.moodButton}
                   onPress={() => {
-                    setSelectedStatus(id);
+                    setSelectedStatus(statusId);
                     toast.info(name);
                   }}
                 >
                   <View
                     style={[
                       styles.moodIconWrapper,
-                      selectedStatus === id && styles.moodIconWrapperActive,
+                      selectedStatus === statusId &&
+                        styles.moodIconWrapperActive,
                     ]}
                   >
                     <Icon width={36} height={36} />
@@ -214,15 +296,12 @@ export default function CreateRecord() {
                   {media.thumbnailUri && (
                     <Image
                       source={{ uri: media.thumbnailUri }}
-                      style={{
-                        ...StyleSheet.absoluteFill,
-                        resizeMode: "cover",
-                      }}
+                      style={StyleSheet.absoluteFill}
                     />
                   )}
                   <View
                     style={{
-                      ...StyleSheet.absoluteFill,
+                      ...StyleSheet.absoluteFillObject,
                       backgroundColor: "rgba(0,0,0,0.2)",
                     }}
                   />
@@ -257,9 +336,10 @@ export default function CreateRecord() {
             </TouchableOpacity>
           )}
         </Row>
-        <Text style={{ alignSelf: "flex-end", color: "#aaa" }}>
+        <Text style={styles.mediaCount}>
           {`${selectedMedia.length} / ${MAX_MEDIA_COUNT}`}
         </Text>
+
         <Column gap={12}>
           <Row items="center" gap={16}>
             <Text>地点</Text>
@@ -294,7 +374,10 @@ export default function CreateRecord() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <PinkButton text="保存" onPress={() => toast.success("记录已保存")} />
+        <PinkButton
+          text={submitting ? "保存中..." : "保存"}
+          onPress={() => void handleSave()}
+        />
       </View>
 
       <DatePickerModal
@@ -357,6 +440,9 @@ const styles = StyleSheet.create({
   wishMeta: {
     fontSize: 14,
     color: "#666",
+  },
+  loadingText: {
+    color: "#999",
   },
   dateButton: {
     alignSelf: "flex-end",
@@ -461,6 +547,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  mediaCount: {
+    alignSelf: "flex-end",
+    color: "#aaa",
+  },
   locationButton: {
     flex: 1,
     justifyContent: "space-between",
@@ -477,5 +567,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 16,
+    paddingBottom: 12,
   },
 });

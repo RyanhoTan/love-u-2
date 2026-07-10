@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createWish,
+  createWishRecord,
   getWishById,
   getWishRecords,
   getWishes,
@@ -10,6 +11,7 @@ const router = Router();
 
 router.get("/", getWishes);
 router.get("/:id/records", getWishRecords);
+router.post("/:id/records", createWishRecord);
 router.get("/:id", getWishById);
 router.post("/", createWish);
 

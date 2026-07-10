@@ -3,7 +3,11 @@ import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
-import { createWishSchema, type WishStatus } from "../schema/wish.js";
+import {
+  createWishRecordSchema,
+  createWishSchema,
+  type WishStatus,
+} from "../schema/wish.js";
 import { parseRequestBody } from "../validation.js";
 
 interface CoupleRelationshipRow extends RowDataPacket {
@@ -407,5 +411,115 @@ export async function createWish(req: Request, res: Response) {
   res.status(201).json({
     message: "create wish success",
     wish: serializeWish(wish),
+  });
+}
+
+export async function createWishRecord(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  const wishId = Number(req.params.id);
+
+  if (!Number.isInteger(wishId) || wishId <= 0) {
+    throw new HttpError(400, "wish id is invalid");
+  }
+
+  const payload = parseRequestBody(createWishRecordSchema, req.body);
+  const scope = await buildWishScope(userId);
+  const [wishRows] = await db.query<WishRow[]>(
+    `
+      SELECT
+        id,
+        relationship_id,
+        created_by_user_id,
+        title,
+        description,
+        cover,
+        target_date,
+        location_name,
+        latitude,
+        longitude,
+        budget_amount,
+        status,
+        is_seed,
+        created_at,
+        updated_at
+      FROM wishes
+      WHERE id = ?
+        AND ${scope.sql}
+      LIMIT 1
+    `,
+    [wishId, ...scope.values]
+  );
+
+  const wish = wishRows[0];
+  if (!wish) {
+    throw new HttpError(404, "wish not found");
+  }
+
+  if (!(await hasTable("wish_records"))) {
+    throw new HttpError(500, "wish records table not found");
+  }
+
+  const [result] = await db.query<ResultSetHeader>(
+    `
+      INSERT INTO wish_records (
+        wish_id,
+        created_by_user_id,
+        content,
+        record_date,
+        mood,
+        location_name,
+        latitude,
+        longitude,
+        budget_amount,
+        media_urls
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    [
+      wishId,
+      userId,
+      payload.content || null,
+      payload.recordDate,
+      payload.mood || null,
+      payload.locationName || null,
+      payload.latitude,
+      payload.longitude,
+      payload.budgetAmount,
+      JSON.stringify(payload.mediaUrls),
+    ]
+  );
+
+  const [recordRows] = await db.query<WishRecordRow[]>(
+    `
+      SELECT
+        id,
+        wish_id,
+        created_by_user_id,
+        content,
+        record_date,
+        mood,
+        location_name,
+        latitude,
+        longitude,
+        budget_amount,
+        media_urls,
+        created_at,
+        updated_at
+      FROM wish_records
+      WHERE id = ?
+      LIMIT 1
+    `,
+    [result.insertId]
+  );
+
+  const record = recordRows[0];
+  if (!record) {
+    throw new HttpError(500, "failed to create wish record");
+  }
+
+  res.status(201).json({
+    message: "create wish record success",
+    wish: serializeWish(wish),
+    record: serializeWishRecord(record),
   });
 }

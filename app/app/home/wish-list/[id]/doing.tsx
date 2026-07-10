@@ -1,26 +1,26 @@
-import { NavBar, PinkButton, toast } from "@/components/common";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useState, useEffect } from "react";
-import { useImageViewer } from "@/hooks/use-image-viewer";
+import { useCallback, useEffect, useState } from "react";
 import type { ImageSourcePropType } from "react-native";
 import {
-  Image,
   Dimensions,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
-  View,
   TouchableOpacity,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ImagesCoverPng } from "@/assets";
+import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import { Tag, VerticalDashedLine } from "@/components/wish-list";
-import { router, useLocalSearchParams } from "expo-router";
 import {
   getWishRecords,
   type WishItem,
   type WishRecordItem,
 } from "@/app/features/wish-list/api";
+import { useImageViewer } from "@/hooks/use-image-viewer";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -39,6 +39,25 @@ export default function Doing() {
   const [wish, setWish] = useState<WishItem | null>(null);
   const [records, setRecords] = useState<WishRecordItem[]>([]);
   const { openViewer, Viewer } = useImageViewer();
+
+  const loadData = useCallback(async () => {
+    const parsedWishId = Number(id);
+
+    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+      toast.error("愿望不存在");
+      return;
+    }
+
+    try {
+      const response = await getWishRecords(parsedWishId);
+      setWish(response.wish);
+      setRecords(response.records);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "加载愿望记录失败";
+      toast.error(message);
+    }
+  }, [id]);
 
   useEffect(() => {
     if (wish?.cover) {
@@ -66,27 +85,14 @@ export default function Doing() {
   }, [wish?.cover]);
 
   useEffect(() => {
-    const parsedWishId = Number(id);
-
-    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
-      toast.error("愿望不存在");
-      return;
-    }
-
-    const loadData = async () => {
-      try {
-        const response = await getWishRecords(parsedWishId);
-        setWish(response.wish);
-        setRecords(response.records);
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "加载愿望记录失败";
-        toast.error(message);
-      }
-    };
-
     void loadData();
-  }, [id]);
+  }, [loadData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadData();
+    }, [loadData]),
+  );
 
   const coverSource: ImageSourcePropType = wish?.cover
     ? { uri: wish.cover }
@@ -121,7 +127,7 @@ export default function Doing() {
             <Text style={styles.title}>{wish?.title || "一起去看海"}</Text>
             <Tag status="doing" />
           </Row>
-          <Text style={{ fontWeight: "bold" }}>我们的旅程</Text>
+          <Text style={styles.sectionTitle}>我们的旅程</Text>
           <Row style={styles.divider} />
 
           {!!records.length ? (
@@ -162,7 +168,7 @@ export default function Doing() {
               );
             })
           ) : (
-            <Text style={{ color: "#666" }}>暂无记录，快去添加第一条吧！</Text>
+            <Text style={styles.emptyText}>暂无记录，快去添加第一条吧。</Text>
           )}
         </Column>
       </ScrollView>
@@ -184,6 +190,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
+    fontWeight: "bold",
+  },
+  sectionTitle: {
     fontWeight: "bold",
   },
   divider: {
@@ -220,5 +229,8 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 8,
     resizeMode: "cover",
+  },
+  emptyText: {
+    color: "#666",
   },
 });

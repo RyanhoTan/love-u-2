@@ -51,6 +51,12 @@ interface CreateWishResponse {
   wish: WishItem;
 }
 
+interface CreateWishRecordResponse {
+  message: string;
+  wish: WishItem;
+  record: WishRecordItem;
+}
+
 interface GetWishRecordsResponse {
   message: string;
   wish: WishItem;
@@ -66,6 +72,17 @@ export interface CreateWishPayload {
   latitude: number | null;
   longitude: number | null;
   budgetAmount: number | null;
+}
+
+export interface CreateWishRecordPayload {
+  content: string;
+  recordDate: string;
+  mood: string;
+  locationName: string;
+  latitude: number | null;
+  longitude: number | null;
+  budgetAmount: number | null;
+  mediaUrls: string[];
 }
 
 export async function getWishes() {
@@ -90,5 +107,15 @@ export async function createWish(payload: CreateWishPayload) {
 export async function getWishRecords(id: number) {
   return requestWithAuth<GetWishRecordsResponse>(`/wishes/${id}/records`, {
     method: "GET",
+  });
+}
+
+export async function createWishRecord(
+  id: number,
+  payload: CreateWishRecordPayload,
+) {
+  return requestWithAuth<CreateWishRecordResponse>(`/wishes/${id}/records`, {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 }
