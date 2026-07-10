@@ -10,7 +10,7 @@ Create a Git commit with a professional Conventional Commits message based on th
 ## Workflow
 
 1. Inspect the changed area at a high level without reading unrelated files.
-2. Use `git diff` to understand the actual changes.
+2. Use `git diff` to understand the actual changes relative to the current `HEAD`, and write the commit message from that diff rather than from the user's wording alone.
 3. If staged changes exist, treat the staged set as the user's explicit selection and commit only those changes.
 4. If no changes are staged, stage the relevant uncommitted changes explicitly with `git add`.
 5. Generate a Conventional Commits message, using a bullet-point body when the change spans multiple edits.
@@ -18,6 +18,18 @@ Create a Git commit with a professional Conventional Commits message based on th
 7. Immediately verify the newly created commit message for encoding issues by inspecting `HEAD`.
 8. If the message is garbled, rewrite only the commit you just created with a UTF-8 message file and `git commit --amend -F`.
 9. Do not amend older existing commits and do not push.
+
+## Encoding Safety
+
+Treat commit-message encoding as a reliability-critical step.
+
+- Do not trust PowerShell console rendering alone when judging whether Chinese text is stored correctly.
+- Prefer creating `.git-commit-message.txt` with `apply_patch` so the message text is written exactly as intended.
+- Avoid generating the final message file through PowerShell string literals, `Set-Content`, `Out-File`, or ad-hoc shell pipelines when the message contains Chinese text, because these frequently introduce BOMs, `?` replacement characters, or escaped `\\u` sequences.
+- If you must rewrite the message file programmatically, verify the file contents before committing and prefer a method that writes plain UTF-8 text without transformation.
+- If `git commit` output looks correct but `git cat-file -p HEAD` looks wrong, assume the terminal may be misrendering and verify the actual message file or other raw artifact before amending repeatedly.
+- If the message file itself contains `?` replacement characters or literal `\\uXXXX` sequences, treat that as a real corruption bug and regenerate the file before amending.
+- Keep a narrow loop: write message file, commit or amend once, inspect once, fix only if the stored content is truly wrong.
 
 ## Allowed Git Commands
 
@@ -72,14 +84,32 @@ Use these extended types when they fit better:
 - For broad changes, summarize at the feature, module, or page level.
 - For small isolated changes, describe the concrete edit.
 - Prefer the user's stated intent when provided, but combine it with the actual diff.
+- Base the final title and body on what changed compared with the previous commit, not on a paraphrase of the user's request.
+- If the user's request and the actual diff differ in scope, describe the actual diff.
 - Do not mechanically restate fragmented or incomplete user wording.
 - When a body is needed, use short bullet points instead of prose paragraphs.
+- Choose the commit `type` and summary from the dominant outcome of the full change set, not just the last debugging step.
+- If a change introduces a new endpoint, new data flow, or new page-level capability and also includes follow-up fixes discovered during implementation, prefer `feat` unless the net result is only a bug correction.
+- Do not downscope a commit to `fix` merely because part of the work involved correcting mistakes found before the commit was created.
+- Before finalizing the message, sanity-check: "If I read only this commit title later, would I understand the main thing that was added or changed?"
 
 ## Body And Footer
 
 - Write the commit message in Simplified Chinese.
 
 For significant or complex changes, include a bullet-point body. Each bullet should describe one concrete change or reason, not implementation minutiae. Wrap body lines at about 72 characters.
+
+When the change set mixes feature work and corrective follow-up:
+
+- Put the feature addition in the title if it is the primary outcome.
+- Put the corrective details in the body bullets.
+- Use `fix` only when the commit's main effect is restoring or correcting existing behavior.
+
+Before committing, do a final diff-based check:
+
+- Ask "What would a teammate learn from `git show --stat` and the patch?"
+- Make the commit message answer that question.
+- Avoid titles that merely restate task instructions such as "按要求修改", "处理用户反馈", or "继续完善功能" unless the diff itself is truly that broad and nonspecific.
 
 Use footers only when appropriate. For breaking changes, include:
 
@@ -105,12 +135,16 @@ Do not use `-m` with `git commit -F`. Do not put textual `\n` sequences inside a
 
 When the commit message contains non-ASCII text, prefer writing the message to a UTF-8 file and passing it with `git commit -F <file>`. After committing, always inspect `git cat-file -p HEAD` to confirm the stored message is not garbled.
 
+When creating the UTF-8 message file, prefer `apply_patch` over shell redirection so the text is preserved exactly and does not pick up shell-specific encoding issues.
+
 If the just-created commit message is garbled, fix it immediately by rewriting only `HEAD` with a UTF-8 message file:
 
 ```sh
 git -c i18n.commitEncoding=utf-8 commit --amend -F .git-commit-message.txt
 git cat-file -p HEAD
 ```
+
+If the amended message still appears wrong, inspect the message file itself before trying another amend. Do not repeatedly amend based only on terminal rendering.
 
 If creating the commit is impossible, output only the final commit message text so the user can use it directly.
 
