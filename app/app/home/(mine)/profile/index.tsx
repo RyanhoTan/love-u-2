@@ -35,7 +35,7 @@ function formatDate(date: Date) {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { token, updateStoredUser, user } = useAuth();
+  const { updateStoredUser, user } = useAuth();
   const { showStyledActionSheet } = useStyledActionSheet();
   const { pickFromLibrary, takePhoto } = useMediaPicker({
     mediaTypes: "image",
@@ -112,11 +112,6 @@ export default function ProfileScreen() {
   };
 
   const handleSave = async () => {
-    if (!token) {
-      toast.error("登录状态已失效，请重新登录");
-      return;
-    }
-
     const trimmedNickname = nickname.trim();
     const trimmedSignature = signature.trim();
 

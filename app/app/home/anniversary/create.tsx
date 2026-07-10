@@ -20,7 +20,6 @@ import {
   type AnniversaryType,
   type AnniversaryRepeatType,
 } from "@/app/features/anniversary/api";
-import { useAuth } from "@/app/features/auth/auth-context";
 import { NavBar, toast } from "@/components/common";
 import { DatePickerModal } from "@/components/wish-list/date-picker-modal";
 import { Column, Row } from "@/components/layout";
@@ -81,7 +80,6 @@ function getReminderDaysBefore(remind7: boolean, remind3: boolean, remindDay: bo
 
 export default function AnniversaryCreateScreen() {
   const router = useRouter();
-  const { token } = useAuth();
   const { showStyledActionSheet } = useStyledActionSheet();
   const [title, setTitle] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<AnniversaryType>("love");
@@ -140,11 +138,6 @@ export default function AnniversaryCreateScreen() {
 
     if (!trimmedTitle) {
       toast.error("请输入纪念日名称");
-      return;
-    }
-
-    if (!token) {
-      toast.error("登录状态已失效，请重新登录");
       return;
     }
 
