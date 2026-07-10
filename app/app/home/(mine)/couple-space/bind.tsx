@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import * as Clipboard from "expo-clipboard";
 import {
   ActivityIndicator,
   Image,
@@ -88,13 +89,18 @@ export default function CoupleSpaceBindScreen() {
     };
   }, [token]);
 
-  const handleCopyCode = () => {
+  const handleCopyCode = async () => {
     if (!myInviteCode) {
       toast.info("邀请码还没有准备好");
       return;
     }
 
-    toast.success("邀请码已生成");
+    try {
+      await Clipboard.setStringAsync(myInviteCode);
+      toast.success("邀请码已复制");
+    } catch {
+      toast.error("复制失败，请稍后重试");
+    }
   };
 
   const handleBind = () => {
