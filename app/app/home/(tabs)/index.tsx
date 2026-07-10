@@ -1,5 +1,8 @@
-import { Image, Text, TouchableOpacity } from "react-native";
+import { useEffect, useState } from "react";
+import { Image, Text, TouchableOpacity, type ImageSourcePropType } from "react-native";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/app/features/auth/auth-context";
+import { getCoupleSpace, type CoupleSpace } from "@/app/features/couple-space/api";
 import { Column, Row } from "@/components/layout";
 import {
   ImagesAnniversaryCalendarPng,
@@ -13,24 +16,67 @@ import { MOCK_ANNIVERSARY_LIST } from "@/data/mock-anniversary";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { token, user } = useAuth();
   const nextAnniversary = MOCK_ANNIVERSARY_LIST[0];
+  const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCoupleSpace() {
+      if (!token) {
+        if (isMounted) {
+          setCoupleSpace(null);
+        }
+        return;
+      }
+
+      try {
+        const response = await getCoupleSpace(token);
+        if (isMounted) {
+          setCoupleSpace(response.coupleSpace);
+        }
+      } catch {
+        if (isMounted) {
+          setCoupleSpace(null);
+        }
+      }
+    }
+
+    void loadCoupleSpace();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token]);
+
+  const leftAvatarSource: ImageSourcePropType = user?.avatar
+    ? { uri: user.avatar }
+    : ImagesAvatarMalePng;
+  const rightAvatarSource: ImageSourcePropType = coupleSpace?.partner?.avatar
+    ? { uri: coupleSpace.partner.avatar }
+    : ImagesAvatarFemalePng;
+  const daysInLoveText = `${coupleSpace?.daysInLove ?? 0}`;
+  const anniversaryDateText = coupleSpace?.relationship?.anniversaryDate
+    ? coupleSpace.relationship.anniversaryDate.replace(/-/g, ".")
+    : "--.--.--";
 
   return (
     <Column gap={6} flex={1}>
       <Row gap={20} items="center" content="center" style={{ marginTop: 60 }}>
         <Image
-          source={ImagesAvatarMalePng}
+          source={leftAvatarSource}
           style={{ width: 80, height: 80, borderRadius: 50 }}
         />
         <Image
-          source={ImagesAvatarFemalePng}
+          source={rightAvatarSource}
           style={{ width: 80, height: 80, borderRadius: 50 }}
         />
       </Row>
       <Text style={{ fontSize: 16, marginHorizontal: "auto" }}>我们在一起</Text>
       <Row content="center" items="baseline" gap={8}>
         <Text style={{ fontSize: 64, fontWeight: "bold", color: "#ff5b7e" }}>
-          520
+          {daysInLoveText}
         </Text>
         <Text style={{ fontSize: 16, color: "#ff5b7e", fontWeight: "bold" }}>
           天
@@ -39,7 +85,7 @@ export default function HomeScreen() {
       <Text
         style={{ fontSize: 16, marginHorizontal: "auto", color: "#929091" }}
       >
-        2023年01月01日
+        {anniversaryDateText}
       </Text>
       <Row center gap={12} style={{ overflow: "hidden" }}>
         <TouchableOpacity onPress={() => router.push("/home/status")}>

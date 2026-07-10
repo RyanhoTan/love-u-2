@@ -14,9 +14,12 @@ interface UserInfoRow extends RowDataPacket {
   signature: string | null;
   birthday: Date | string | null;
   gender: string | null;
-  coupleStatus: string | null;
   createdAt: Date | string | null;
   updatedAt: Date | string | null;
+}
+
+interface CoupleRelationshipStatusRow extends RowDataPacket {
+  status: string;
 }
 
 interface ColumnNameRow extends RowDataPacket {
@@ -61,7 +64,10 @@ function formatDateOnly(value: Date | string | null) {
     return value.slice(0, 10);
   }
 
-  return value.toISOString().slice(0, 10);
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function formatDateTime(value: Date | string | null) {
@@ -85,7 +91,6 @@ async function findUserById(userId: number, columns: Set<string>) {
     selectOptionalColumn(columns, "signature", "signature"),
     selectOptionalColumn(columns, "birthday", "birthday"),
     selectOptionalColumn(columns, "gender", "gender"),
-    selectOptionalColumn(columns, "couple_status", "coupleStatus"),
     selectOptionalColumn(columns, "created_at", "createdAt"),
     selectOptionalColumn(columns, "updated_at", "updatedAt"),
   ];
@@ -103,7 +108,25 @@ async function findUserById(userId: number, columns: Set<string>) {
   return rows[0] ?? null;
 }
 
-function serializeUser(user: UserInfoRow) {
+async function findCurrentCoupleStatus(userId: number) {
+  const [rows] = await db.query<CoupleRelationshipStatusRow[]>(
+    `
+      SELECT status
+      FROM couple_relationships
+      WHERE user_a_id = ? OR user_b_id = ?
+      ORDER BY
+        CASE WHEN status = 'bound' THEN 0 ELSE 1 END,
+        updated_at DESC,
+        id DESC
+      LIMIT 1
+    `,
+    [userId, userId]
+  );
+
+  return rows[0]?.status ?? null;
+}
+
+function serializeUser(user: UserInfoRow, coupleStatus: string | null) {
   return {
     id: user.id,
     username: user.username,
@@ -112,7 +135,7 @@ function serializeUser(user: UserInfoRow) {
     signature: user.signature,
     birthday: formatDateOnly(user.birthday),
     gender: user.gender,
-    coupleStatus: user.coupleStatus,
+    coupleStatus,
     createdAt: formatDateTime(user.createdAt),
     updatedAt: formatDateTime(user.updatedAt),
   };
@@ -123,6 +146,7 @@ export async function getUserInfo(req: Request, res: Response) {
 
   const columns = await getUsersTableColumns();
   const user = await findUserById(userId, columns);
+  const coupleStatus = await findCurrentCoupleStatus(userId);
 
   if (!user) {
     throw new HttpError(404, "user not found");
@@ -130,7 +154,7 @@ export async function getUserInfo(req: Request, res: Response) {
 
   res.status(200).json({
     message: "get user info success",
-    user: serializeUser(user),
+    user: serializeUser(user, coupleStatus),
   });
 }
 
@@ -186,12 +210,13 @@ export async function updateUserInfo(req: Request, res: Response) {
   }
 
   const nextUser = await findUserById(userId, columns);
+  const coupleStatus = await findCurrentCoupleStatus(userId);
   if (!nextUser) {
     throw new HttpError(404, "user not found");
   }
 
   res.status(200).json({
     message: "update user info success",
-    user: serializeUser(nextUser),
+    user: serializeUser(nextUser, coupleStatus),
   });
 }

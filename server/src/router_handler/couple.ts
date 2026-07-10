@@ -60,7 +60,10 @@ function formatDateOnly(value: Date | string | null) {
     return value.slice(0, 10);
   }
 
-  return value.toISOString().slice(0, 10);
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function formatDateTime(value: Date | string | null) {
@@ -142,7 +145,7 @@ async function findActiveRelationshipByUserId(
         updated_at,
         unbound_at
       FROM ${COUPLE_RELATIONSHIPS_TABLE}
-      WHERE status = 'active'
+      WHERE status = 'bound'
         AND (user_a_id = ? OR user_b_id = ?)
       LIMIT 1
     `,
@@ -290,28 +293,6 @@ function getDaysInLove(anniversaryDate: Date | string | null) {
   }
 
   return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-}
-
-async function syncUsersCoupleStatus(
-  executor: typeof db | PoolConnection,
-  userIds: number[],
-  coupleStatus: string,
-) {
-  const userColumns = await getUsersTableColumns();
-
-  if (!userColumns.has("couple_status")) {
-    return;
-  }
-
-  const placeholders = userIds.map(() => "?").join(", ");
-  await executor.query(
-    `
-      UPDATE users
-      SET couple_status = ?
-      WHERE id IN (${placeholders})
-    `,
-    [coupleStatus, ...userIds]
-  );
 }
 
 function generateInviteCode() {
@@ -472,7 +453,7 @@ export async function bindCoupleSpace(req: Request, res: Response) {
           user_b_id,
           status
         )
-        VALUES (?, ?, 'active')
+        VALUES (?, ?, 'bound')
       `,
       [invite.inviter_user_id, userId]
     );
@@ -490,7 +471,6 @@ export async function bindCoupleSpace(req: Request, res: Response) {
       [userId, invite.code]
     );
 
-    await syncUsersCoupleStatus(connection, [invite.inviter_user_id, userId], "bound");
     await connection.commit();
 
     const response = await buildCoupleSpaceResponse(userId);
@@ -517,14 +497,14 @@ export async function updateCoupleSpace(req: Request, res: Response) {
       SET
         anniversary_date = ?,
         updated_at = CURRENT_TIMESTAMP
-      WHERE status = 'active'
+      WHERE status = 'bound'
         AND (user_a_id = ? OR user_b_id = ?)
     `,
     [payload.anniversaryDate, userId, userId]
   );
 
   if (result.affectedRows === 0) {
-    throw new HttpError(404, "active couple relationship not found");
+    throw new HttpError(404, "bound couple relationship not found");
   }
 
   const response = await buildCoupleSpaceResponse(userId);
@@ -545,7 +525,7 @@ export async function unbindCoupleSpace(req: Request, res: Response) {
 
     const relationship = await findActiveRelationshipByUserId(connection, userId);
     if (!relationship) {
-      throw new HttpError(404, "active couple relationship not found");
+      throw new HttpError(404, "bound couple relationship not found");
     }
 
     await connection.query<ResultSetHeader>(
@@ -558,12 +538,6 @@ export async function unbindCoupleSpace(req: Request, res: Response) {
         WHERE id = ?
       `,
       [relationship.id]
-    );
-
-    await syncUsersCoupleStatus(
-      connection,
-      [relationship.user_a_id, relationship.user_b_id],
-      "single"
     );
 
     await connection.commit();
