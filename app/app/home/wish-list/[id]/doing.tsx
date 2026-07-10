@@ -1,7 +1,8 @@
-import { NavBar, PinkButton } from "@/components/common";
+import { NavBar, PinkButton, toast } from "@/components/common";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
 import { useImageViewer } from "@/hooks/use-image-viewer";
+import type { ImageSourcePropType } from "react-native";
 import {
   Image,
   Dimensions,
@@ -11,71 +12,101 @@ import {
   View,
   TouchableOpacity,
 } from "react-native";
-import {
-  ImagesCoverPng,
-  ImagesAvatarMalePng,
-  ImagesAvatarFemalePng,
-} from "@/assets";
+import { ImagesCoverPng } from "@/assets";
 import { Column, Row } from "@/components/layout";
 import { Tag, VerticalDashedLine } from "@/components/wish-list";
 import { router, useLocalSearchParams } from "expo-router";
+import {
+  getWishRecords,
+  type WishItem,
+  type WishRecordItem,
+} from "@/app/features/wish-list/api";
 
 const { width: screenWidth } = Dimensions.get("window");
 
+function formatMonthDay(dateText: string) {
+  const parts = dateText.split("-");
+  if (parts.length !== 3) {
+    return dateText;
+  }
+
+  return `${parts[1]}/${parts[2]}`;
+}
+
 export default function Doing() {
-  const { wishId } = useLocalSearchParams();
-  const [imageHeight, setImageHeight] = useState(150); // 给个默认高度防止闪烁
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const [imageHeight, setImageHeight] = useState(150);
+  const [wish, setWish] = useState<WishItem | null>(null);
+  const [records, setRecords] = useState<WishRecordItem[]>([]);
   const { openViewer, Viewer } = useImageViewer();
+
   useEffect(() => {
-    // 功能：获取本地图片的原始宽高，并根据屏幕宽度等比例缩放高度
+    if (wish?.cover) {
+      Image.getSize(
+        wish.cover,
+        (width, height) => {
+          const calculatedHeight = screenWidth * (height / width);
+          setImageHeight(calculatedHeight);
+        },
+        () => {
+          const asset = Image.resolveAssetSource(ImagesCoverPng);
+          if (asset?.width && asset?.height) {
+            setImageHeight(screenWidth * (asset.height / asset.width));
+          }
+        },
+      );
+      return;
+    }
+
     const asset = Image.resolveAssetSource(ImagesCoverPng);
-    if (asset && asset.width && asset.height) {
-      // 核心公式：实际高度 = 屏幕宽度 * (原图高 / 原图宽)
+    if (asset?.width && asset?.height) {
       const calculatedHeight = screenWidth * (asset.height / asset.width);
       setImageHeight(calculatedHeight);
     }
-  }, []);
+  }, [wish?.cover]);
 
-  //   TODO: 先写死数据，后续对接接口
-  const recordData = [
-    {
-      id: "1",
-      date: "05/01",
-      title:
-        "出发啦！✈️ \n今天内容特别多，哪怕换行撑高了页面，左边的线也不会断。\n我们先坐飞机去三亚，晚上可以去吃海鲜大餐\n我们先坐飞机去三亚，\n我们先坐飞机去三亚，\n我们先坐飞机去三亚，\n我们先坐飞机去三亚， 🦞   🦐",
-      images: [
-        ImagesCoverPng,
-        ImagesAvatarMalePng,
-        ImagesAvatarFemalePng,
-        ImagesCoverPng,
-        ImagesAvatarMalePng,
-        ImagesAvatarFemalePng,
-        ImagesCoverPng,
-      ],
-    },
-    {
-      id: "2",
-      date: "05/02",
-      title: "到达三亚，天气很好 ☀️",
-      images: [ImagesAvatarMalePng, ImagesAvatarFemalePng],
-    },
-    { id: "3", date: "05/03", title: "蜈支洲岛一日游 🏝️", images: [] },
-  ];
+  useEffect(() => {
+    const parsedWishId = Number(id);
+
+    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+      toast.error("愿望不存在");
+      return;
+    }
+
+    const loadData = async () => {
+      try {
+        const response = await getWishRecords(parsedWishId);
+        setWish(response.wish);
+        setRecords(response.records);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "加载愿望记录失败";
+        toast.error(message);
+      }
+    };
+
+    void loadData();
+  }, [id]);
+
+  const coverSource: ImageSourcePropType = wish?.cover
+    ? { uri: wish.cover }
+    : ImagesCoverPng;
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <NavBar
         rightContent={
           <TouchableOpacity
-            onPress={() => router.push(`/home/wish-list/${wishId}/finish`)}
+            onPress={() => router.push(`/home/wish-list/${id}/finish`)}
           >
             <Text>结束愿望</Text>
           </TouchableOpacity>
         }
       />
       <ScrollView showsVerticalScrollIndicator={false}>
-        <TouchableOpacity onPress={() => openViewer(ImagesCoverPng)}>
+        <TouchableOpacity onPress={() => openViewer(coverSource)}>
           <Image
-            source={ImagesCoverPng}
+            source={coverSource}
             style={{
               width: screenWidth,
               height: imageHeight,
@@ -87,40 +118,41 @@ export default function Doing() {
         </TouchableOpacity>
         <Column gap={24} style={styles.container}>
           <Row gap={12}>
-            {/* TODO: 这是title， 先写死 */}
-            <Text style={styles.title}>一起去看海</Text>
-            {/* TODO: 先写死 */}
+            <Text style={styles.title}>{wish?.title || "一起去看海"}</Text>
             <Tag status="doing" />
           </Row>
           <Text style={{ fontWeight: "bold" }}>我们的旅程</Text>
           <Row style={styles.divider} />
 
-          {!!recordData ? (
-            recordData.map((item, index) => {
-              const isLastItem = index === recordData.length - 1;
+          {!!records.length ? (
+            records.map((item, index) => {
+              const isLastItem = index === records.length - 1;
 
               return (
-                // 这一行由右侧内容最高的那一边决定整体高度
                 <Row key={item.id}>
-                  {/* 【左侧轴线区域】 */}
                   <View style={styles.axisContainer}>
-                    <Text style={styles.dateText}>{item.date}</Text>
-                    {/* 重点：SVG 虚线会包裹在 axisContainer 剩余的空间里自动拉伸 */}
+                    <Text style={styles.dateText}>
+                      {formatMonthDay(item.recordDate)}
+                    </Text>
                     {!isLastItem && <VerticalDashedLine />}
                   </View>
 
-                  {/* 【右侧内容区域】 */}
                   <View style={styles.contentContainer}>
-                    <Text style={styles.contentTitle}>{item.title}</Text>
+                    <Text style={styles.contentTitle}>
+                      {item.content || "这一天还没有补充内容"}
+                    </Text>
 
-                    {item.images && item.images.length > 0 && (
+                    {item.mediaUrls.length > 0 && (
                       <Row style={styles.imageGrid}>
-                        {item.images.map((img, idx) => (
+                        {item.mediaUrls.map((img, idx) => (
                           <TouchableOpacity
-                            key={idx}
-                            onPress={() => openViewer(img)}
+                            key={`${item.id}-${idx}`}
+                            onPress={() => openViewer({ uri: img })}
                           >
-                            <Image source={img} style={styles.gridImage} />
+                            <Image
+                              source={{ uri: img }}
+                              style={styles.gridImage}
+                            />
                           </TouchableOpacity>
                         ))}
                       </Row>
@@ -138,9 +170,7 @@ export default function Doing() {
       <View style={{ paddingHorizontal: 16 }}>
         <PinkButton
           text="添加记录"
-          onPress={() =>
-            router.push(`/home/wish-list/${wishId}/records/create`)
-          }
+          onPress={() => router.push(`/home/wish-list/${id}/records/create`)}
         />
       </View>
       {Viewer}
@@ -164,7 +194,6 @@ const styles = StyleSheet.create({
   axisContainer: {
     width: 55,
     alignItems: "center",
-    // 关键：不要给这里设固定高度，让它天然和右侧的 contentContainer 等高
   },
   dateText: {
     fontSize: 20,
@@ -174,7 +203,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     paddingLeft: 12,
-    paddingBottom: 30, // 决定了每天行程之间的间距（也就是虚线下延的长度）
+    paddingBottom: 30,
   },
   contentTitle: {
     fontSize: 14,

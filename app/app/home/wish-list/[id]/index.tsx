@@ -35,7 +35,7 @@ import { getWishById, type WishItem } from "@/app/features/wish-list/api";
 const { width: screenWidth } = Dimensions.get("window");
 
 export default function WishListDetail() {
-  const { wishId } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id?: string }>();
   // 页面：愿望清单详情页
   // 状态：动态存储计算后的图片高度
   const { openViewer, Viewer } = useImageViewer();
@@ -43,7 +43,7 @@ export default function WishListDetail() {
   const [wish, setWish] = useState<WishItem | null>(null);
 
   useEffect(() => {
-    const parsedWishId = Number(wishId);
+    const parsedWishId = Number(id);
 
     if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
       toast.error("愿望不存在");
@@ -62,7 +62,7 @@ export default function WishListDetail() {
     };
 
     void loadWish();
-  }, [wishId]);
+  }, [id]);
 
   useEffect(() => {
     // 功能：获取图片的原始宽高，并根据屏幕宽度等比例缩放高度
@@ -239,7 +239,7 @@ export default function WishListDetail() {
         <Row style={styles.submitButtonWrapper}>
           <PinkButton
             text="开始计划"
-            onPress={() => router.push(`/home/wish-list/${wishId}/doing`)}
+            onPress={() => router.push(`/home/wish-list/${id}/doing`)}
             style={{ flex: 1 }}
           />
         </Row>

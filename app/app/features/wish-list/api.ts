@@ -20,6 +20,22 @@ export interface WishItem {
   updatedAt: string;
 }
 
+export interface WishRecordItem {
+  id: number;
+  wishId: number;
+  createdByUserId: number;
+  content: string;
+  recordDate: string;
+  mood: string;
+  locationName: string;
+  latitude: number | null;
+  longitude: number | null;
+  budgetAmount: number | null;
+  mediaUrls: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface GetWishesResponse {
   message: string;
   wishes: WishItem[];
@@ -33,6 +49,12 @@ interface GetWishResponse {
 interface CreateWishResponse {
   message: string;
   wish: WishItem;
+}
+
+interface GetWishRecordsResponse {
+  message: string;
+  wish: WishItem;
+  records: WishRecordItem[];
 }
 
 export interface CreateWishPayload {
@@ -62,5 +84,11 @@ export async function createWish(payload: CreateWishPayload) {
   return requestWithAuth<CreateWishResponse>("/wishes", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function getWishRecords(id: number) {
+  return requestWithAuth<GetWishRecordsResponse>(`/wishes/${id}/records`, {
+    method: "GET",
   });
 }
