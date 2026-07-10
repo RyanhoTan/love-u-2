@@ -1,4 +1,6 @@
+import { useCallback, useState } from "react";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   Image,
   ScrollView,
@@ -9,21 +11,79 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ImagesAnniversaryCalendarPng } from "@/assets";
-import { NavBar, PinkButton } from "@/components/common";
+import {
+  getAnniversaries,
+  type AnniversaryItem,
+} from "@/app/features/anniversary/api";
+import { useAuth } from "@/app/features/auth/auth-context";
+import { NavBar, PinkButton, toast } from "@/components/common";
 import { Row } from "@/components/layout";
-import { MOCK_ANNIVERSARY_LIST } from "@/data/mock-anniversary";
 import { colors } from "@/styles/colors";
+
+function formatDisplayDate(dateText: string) {
+  return dateText.replace(/-/g, ".");
+}
+
+function getRepeatLabel(item: AnniversaryItem) {
+  return item.repeatType === "yearly" ? "每年" : undefined;
+}
+
+function getTypeColors(type: AnniversaryItem["type"]) {
+  switch (type) {
+    case "love":
+      return { iconBackground: "#FFE8F0", iconAccent: "#FF5B93" };
+    case "birthday":
+      return { iconBackground: "#FFF0E3", iconAccent: "#FF8B3D" };
+    case "holiday":
+      return { iconBackground: "#FFF2E7", iconAccent: "#FF9A52" };
+    case "custom":
+    default:
+      return { iconBackground: "#EAF5FF", iconAccent: "#5FB4FF" };
+  }
+}
 
 export default function AnniversaryScreen() {
   const router = useRouter();
-  const isEmpty = MOCK_ANNIVERSARY_LIST.length === 0;
+  const { token } = useAuth();
+  const [anniversaries, setAnniversaries] = useState<AnniversaryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadAnniversaries = useCallback(async () => {
+    if (!token) {
+      setAnniversaries([]);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await getAnniversaries(token);
+      setAnniversaries(response.anniversaries);
+    } catch (error) {
+      setAnniversaries([]);
+      const message = error instanceof Error ? error.message : "获取纪念日失败";
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadAnniversaries();
+    }, [loadAnniversaries])
+  );
+
+  const isEmpty = anniversaries.length === 0;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <NavBar
         title="纪念日"
         rightContent={
-          <TouchableOpacity activeOpacity={0.85}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => toast.info("编辑功能开发中")}
+          >
             <Text style={styles.headerAction}>编辑</Text>
           </TouchableOpacity>
         }
@@ -39,50 +99,53 @@ export default function AnniversaryScreen() {
               source={ImagesAnniversaryCalendarPng}
               style={styles.emptyImage}
             />
-            <Text style={styles.emptyTitle}>还没有纪念日</Text>
-            <Text style={styles.emptySubtitle}>添加你们的重要日子</Text>
+            <Text style={styles.emptyTitle}>
+              {isLoading ? "正在加载纪念日" : "还没有纪念日"}
+            </Text>
+            <Text style={styles.emptySubtitle}>
+              {isLoading ? "请稍候..." : "添加你们的重要日子"}
+            </Text>
           </View>
         ) : (
-          MOCK_ANNIVERSARY_LIST.map((item) => (
-            <View key={item.id}>
-              <TouchableOpacity activeOpacity={0.9} style={styles.card}>
-                <View
-                  style={[
-                    styles.iconWrap,
-                    { backgroundColor: item.iconBackground },
-                  ]}
-                >
+          anniversaries.map((item) => {
+            const palette = getTypeColors(item.type);
+            const repeatLabel = getRepeatLabel(item);
+
+            return (
+              <View key={item.id}>
+                <TouchableOpacity activeOpacity={0.9} style={styles.card}>
                   <View
                     style={[
-                      styles.iconPlaceholder,
-                      { backgroundColor: item.iconAccent },
+                      styles.iconWrap,
+                      { backgroundColor: palette.iconBackground },
                     ]}
-                  />
-                </View>
+                  >
+                    <View
+                      style={[
+                        styles.iconPlaceholder,
+                        { backgroundColor: palette.iconAccent },
+                      ]}
+                    />
+                  </View>
 
-                <View style={styles.cardBody}>
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardDate}>
-                    {item.date}
-                    {item.repeatLabel ? (
-                      <Text style={styles.cardDateHint}>
-                        （{item.repeatLabel}）
-                      </Text>
-                    ) : null}
+                  <View style={styles.cardBody}>
+                    <Text style={styles.cardTitle}>{item.title}</Text>
+                    <Text style={styles.cardDate}>
+                      {formatDisplayDate(item.nextOccurrenceDate)}
+                      {repeatLabel ? (
+                        <Text style={styles.cardDateHint}>（{repeatLabel}）</Text>
+                      ) : null}
+                    </Text>
+                  </View>
+
+                  <Text style={styles.remainingText}>
+                    还有 <Text style={styles.remainingNumber}>{item.remainingDays}</Text> 天
                   </Text>
-                </View>
-
-                <Text style={styles.remainingText}>
-                  还有{" "}
-                  <Text style={styles.remainingNumber}>
-                    {item.remainingDays}
-                  </Text>{" "}
-                  天
-                </Text>
-              </TouchableOpacity>
-              <Row style={styles.divider} />
-            </View>
-          ))
+                </TouchableOpacity>
+                <Row style={styles.divider} />
+              </View>
+            );
+          })
         )}
       </ScrollView>
 

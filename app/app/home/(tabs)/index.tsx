@@ -1,7 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Image, Text, TouchableOpacity, type ImageSourcePropType } from "react-native";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "@/app/features/auth/auth-context";
+import {
+  getAnniversaries,
+  type AnniversaryItem,
+} from "@/app/features/anniversary/api";
 import { getCoupleSpace, type CoupleSpace } from "@/app/features/couple-space/api";
 import { Column, Row } from "@/components/layout";
 import {
@@ -12,44 +17,44 @@ import {
   IconsHomeGiftSvg,
   IconsHomeStatusSvg,
 } from "@/assets";
-import { MOCK_ANNIVERSARY_LIST } from "@/data/mock-anniversary";
+
+function formatDisplayDate(dateText: string) {
+  return dateText.replace(/-/g, ".");
+}
 
 export default function HomeScreen() {
   const router = useRouter();
   const { token, user } = useAuth();
-  const nextAnniversary = MOCK_ANNIVERSARY_LIST[0];
+  const [anniversaries, setAnniversaries] = useState<AnniversaryItem[]>([]);
   const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadCoupleSpace() {
-      if (!token) {
-        if (isMounted) {
-          setCoupleSpace(null);
-        }
-        return;
-      }
-
-      try {
-        const response = await getCoupleSpace(token);
-        if (isMounted) {
-          setCoupleSpace(response.coupleSpace);
-        }
-      } catch {
-        if (isMounted) {
-          setCoupleSpace(null);
-        }
-      }
+  const loadHomeData = useCallback(async () => {
+    if (!token) {
+      setCoupleSpace(null);
+      setAnniversaries([]);
+      return;
     }
 
-    void loadCoupleSpace();
-
-    return () => {
-      isMounted = false;
-    };
+    try {
+      const [coupleSpaceResponse, anniversariesResponse] = await Promise.all([
+        getCoupleSpace(token),
+        getAnniversaries(token),
+      ]);
+      setCoupleSpace(coupleSpaceResponse.coupleSpace);
+      setAnniversaries(anniversariesResponse.anniversaries);
+    } catch {
+      setCoupleSpace(null);
+      setAnniversaries([]);
+    }
   }, [token]);
 
+  useFocusEffect(
+    useCallback(() => {
+      void loadHomeData();
+    }, [loadHomeData])
+  );
+
+  const nextAnniversary = anniversaries[0];
   const leftAvatarSource: ImageSourcePropType = user?.avatar
     ? { uri: user.avatar }
     : ImagesAvatarMalePng;
@@ -157,7 +162,7 @@ export default function HomeScreen() {
                 alignSelf: "flex-start",
               }}
             >
-              {nextAnniversary.date}
+              {formatDisplayDate(nextAnniversary.nextOccurrenceDate)}
             </Text>
           </Column>
         ) : (

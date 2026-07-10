@@ -10,18 +10,25 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight } from "lucide-react-native";
+import { useRouter } from "expo-router";
 import {
   IconsAnniversaryCakeSvg,
   IconsAnniversaryLetterLoveSvg,
 } from "@/assets";
-import { NavBar } from "@/components/common";
+import {
+  createAnniversary,
+  type AnniversaryType,
+  type AnniversaryRepeatType,
+} from "@/app/features/anniversary/api";
+import { useAuth } from "@/app/features/auth/auth-context";
+import { NavBar, toast } from "@/components/common";
 import { DatePickerModal } from "@/components/wish-list/date-picker-modal";
 import { Column, Row } from "@/components/layout";
 import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
 import { colors } from "@/styles/colors";
 
 type CategoryItem = {
-  id: string;
+  id: AnniversaryType;
   label: string;
   Icon: ComponentType<SvgProps>;
 };
@@ -48,15 +55,43 @@ function formatDate(date: Date) {
   return `${year}.${month}.${day}`;
 }
 
+function formatApiDate(date: Date) {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getReminderDaysBefore(remind7: boolean, remind3: boolean, remindDay: boolean) {
+  if (remind7) {
+    return 7;
+  }
+
+  if (remind3) {
+    return 3;
+  }
+
+  if (remindDay) {
+    return 0;
+  }
+
+  return 0;
+}
+
 export default function AnniversaryCreateScreen() {
+  const router = useRouter();
+  const { token } = useAuth();
   const { showStyledActionSheet } = useStyledActionSheet();
-  const [selectedCategory, setSelectedCategory] = useState("love");
+  const [title, setTitle] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<AnniversaryType>("love");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [openDatePicker, setOpenDatePicker] = useState(false);
-  const [repeatType, setRepeatType] = useState("每年");
+  const [repeatType, setRepeatType] = useState<AnniversaryRepeatType>("yearly");
   const [remind7, setRemind7] = useState(true);
-  const [remind3, setRemind3] = useState(true);
+  const [remind3, setRemind3] = useState(false);
   const [remindDay, setRemindDay] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const remindOptions: RemindItem[] = [
     {
@@ -83,19 +118,53 @@ export default function AnniversaryCreateScreen() {
     showStyledActionSheet(
       {
         title: "选择重复方式",
-        options: ["每年", "每月", "取消"],
+        options: ["每年", "不重复", "取消"],
         cancelButtonIndex: 2,
       },
       (selectedIndex?: number) => {
         if (selectedIndex === 0) {
-          setRepeatType("每年");
+          setRepeatType("yearly");
         }
 
         if (selectedIndex === 1) {
-          setRepeatType("每月");
+          setRepeatType("none");
         }
-      },
+      }
     );
+  };
+
+  const repeatLabel = repeatType === "yearly" ? "每年" : "不重复";
+
+  const handleSave = async () => {
+    const trimmedTitle = title.trim();
+
+    if (!trimmedTitle) {
+      toast.error("请输入纪念日名称");
+      return;
+    }
+
+    if (!token) {
+      toast.error("登录状态已失效，请重新登录");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await createAnniversary(token, {
+        title: trimmedTitle,
+        type: selectedCategory,
+        originalDate: formatApiDate(selectedDate),
+        repeatType,
+        reminderDaysBefore: getReminderDaysBefore(remind7, remind3, remindDay),
+      });
+      toast.success("纪念日已保存");
+      router.back();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "保存纪念日失败";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -103,8 +172,8 @@ export default function AnniversaryCreateScreen() {
       <NavBar
         title="新增纪念日"
         rightContent={
-          <TouchableOpacity activeOpacity={0.85}>
-            <Text style={styles.saveText}>保存</Text>
+          <TouchableOpacity activeOpacity={0.85} onPress={() => void handleSave()}>
+            <Text style={styles.saveText}>{isSubmitting ? "保存中..." : "保存"}</Text>
           </TouchableOpacity>
         }
       />
@@ -119,6 +188,9 @@ export default function AnniversaryCreateScreen() {
             placeholder="例如：恋爱纪念日"
             placeholderTextColor="#C8C8C8"
             style={styles.input}
+            value={title}
+            onChangeText={setTitle}
+            editable={!isSubmitting}
           />
         </Column>
 
@@ -128,6 +200,7 @@ export default function AnniversaryCreateScreen() {
             activeOpacity={0.85}
             style={styles.selector}
             onPress={() => setOpenDatePicker(true)}
+            disabled={isSubmitting}
           >
             <Text style={styles.selectorValue}>{formatDate(selectedDate)}</Text>
             <ChevronRight size={18} color="#C3C3C3" />
@@ -140,8 +213,9 @@ export default function AnniversaryCreateScreen() {
             activeOpacity={0.85}
             style={styles.selector}
             onPress={openRepeatSelector}
+            disabled={isSubmitting}
           >
-            <Text style={styles.selectorValue}>{repeatType}</Text>
+            <Text style={styles.selectorValue}>{repeatLabel}</Text>
             <ChevronRight size={18} color="#C3C3C3" />
           </TouchableOpacity>
         </Column>
@@ -158,6 +232,7 @@ export default function AnniversaryCreateScreen() {
                   key={category.id}
                   activeOpacity={0.85}
                   onPress={() => setSelectedCategory(category.id)}
+                  disabled={isSubmitting}
                   style={[
                     styles.categoryCard,
                     isSelected && styles.categoryCardActive,
@@ -185,6 +260,7 @@ export default function AnniversaryCreateScreen() {
               <Switch
                 value={option.value}
                 onValueChange={option.onValueChange}
+                disabled={isSubmitting}
                 trackColor={{
                   false: "#D9D9D9",
                   true: colors.theme.primaryBorder,
