@@ -164,7 +164,7 @@ export async function updateUserInfo(req: Request, res: Response) {
   const payload = parseRequestBody(updateUserProfileSchema, req.body);
   const columns = await getUsersTableColumns();
   const assignments: string[] = [];
-  const values: Array<string | null | number> = [];
+  const values: (string | null | number)[] = [];
 
   if (columns.has("nickname")) {
     assignments.push("`nickname` = ?");

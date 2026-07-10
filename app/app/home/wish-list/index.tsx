@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Text,
   StyleSheet,
@@ -12,45 +12,35 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ImagesAuthBackgroundPng } from "@/assets";
 import { MapPin, Plus } from "lucide-react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { SceneMap, TabBar, TabView } from "react-native-tab-view";
 import { MapOverviewModal, Tag, type MapMarker } from "@/components/wish-list";
-import {
-  MOCK_WISH_CATEGORIES,
-  type MockWishCategory,
-  type WishStatus,
-} from "@/data/mock-media";
 import { Column, Row } from "@/components/layout";
 import { colors } from "@/styles/colors";
+import { toast } from "@/components/common";
+import {
+  getWishes,
+  type WishItem,
+  type WishStatus,
+} from "@/app/features/wish-list/api";
 
 type WishRoute = {
   key: WishStatus;
   title: string;
 };
 
-const MAP_MARKERS: MapMarker[] = [
-  {
-    id: "shanghai",
-    name: "上海",
-    latitude: 31.2304,
-    longitude: 121.4737,
-    color: "#ff6b81",
-  },
-  {
-    id: "hangzhou",
-    name: "杭州",
-    latitude: 30.2741,
-    longitude: 120.1551,
-    color: "#35baf6",
-  },
-  {
-    id: "suzhou",
-    name: "苏州",
-    latitude: 31.2989,
-    longitude: 120.5853,
-    color: "#b17cff",
-  },
-];
+type WishCategory = {
+  id: number;
+  type: WishStatus;
+  categoryName: string;
+  wishList: {
+    id: number;
+    cover: string;
+    title: string;
+    time: string;
+    status: WishStatus;
+  }[];
+};
 
 function getWishDetailRoute(wishId: number, status: WishStatus) {
   if (status === "doing") {
@@ -64,7 +54,7 @@ function getWishDetailRoute(wishId: number, status: WishStatus) {
   return `/home/wish-list/${wishId}` as const;
 }
 
-function WishListScene({ category }: { category: MockWishCategory }) {
+function WishListScene({ category }: { category: WishCategory }) {
   return (
     <ScrollView
       contentContainerStyle={styles.listContent}
@@ -81,7 +71,7 @@ function WishListScene({ category }: { category: MockWishCategory }) {
           <Row gap={12}>
             <Image
               source={{
-                uri: wish.cover,
+                uri: wish.cover || "https://picsum.photos/seed/love-u/600/800",
               }}
               style={{ width: 100, height: 100, borderRadius: 8 }}
             />
@@ -102,25 +92,111 @@ function WishListScene({ category }: { category: MockWishCategory }) {
   );
 }
 
-const TodoRoute = () => <WishListScene category={MOCK_WISH_CATEGORIES[0]} />;
-const DoingRoute = () => <WishListScene category={MOCK_WISH_CATEGORIES[1]} />;
-const DoneRoute = () => <WishListScene category={MOCK_WISH_CATEGORIES[2]} />;
-
-const renderScene = SceneMap({
-  todo: TodoRoute,
-  doing: DoingRoute,
-  done: DoneRoute,
-});
-
 export default function WishList() {
   const layout = useWindowDimensions();
   const params = useLocalSearchParams<{ tab?: string }>();
   const [index, setIndex] = useState(params.tab === "done" ? 2 : 0);
   const [mapVisible, setMapVisible] = useState(false);
-  const routes: WishRoute[] = MOCK_WISH_CATEGORIES.map((category) => ({
+  const [wishes, setWishes] = useState<WishItem[]>([]);
+
+  const refreshWishes = useCallback(async () => {
+    try {
+      const response = await getWishes();
+      setWishes(response.wishes);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "加载愿望清单失败";
+      toast.error(message);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshWishes();
+    }, [refreshWishes]),
+  );
+
+  const categories = useMemo<WishCategory[]>(
+    () => [
+      {
+        id: 1,
+        type: "todo",
+        categoryName: "想做",
+        wishList: wishes
+          .filter((wish) => wish.status === "todo")
+          .map((wish) => ({
+            id: wish.id,
+            cover: wish.cover,
+            title: wish.title,
+            time: wish.targetDate,
+            status: wish.status,
+          })),
+      },
+      {
+        id: 2,
+        type: "doing",
+        categoryName: "进行中",
+        wishList: wishes
+          .filter((wish) => wish.status === "doing")
+          .map((wish) => ({
+            id: wish.id,
+            cover: wish.cover,
+            title: wish.title,
+            time: wish.targetDate,
+            status: wish.status,
+          })),
+      },
+      {
+        id: 3,
+        type: "done",
+        categoryName: "已完成",
+        wishList: wishes
+          .filter((wish) => wish.status === "done")
+          .map((wish) => ({
+            id: wish.id,
+            cover: wish.cover,
+            title: wish.title,
+            time: wish.targetDate,
+            status: wish.status,
+          })),
+      },
+    ],
+    [wishes],
+  );
+
+  const routes: WishRoute[] = categories.map((category) => ({
     key: category.type,
     title: category.categoryName,
   }));
+
+  const markers = useMemo<MapMarker[]>(
+    () =>
+      wishes
+        .filter((wish) => wish.latitude !== null && wish.longitude !== null)
+        .map((wish) => ({
+          id: String(wish.id),
+          name: wish.locationName || wish.title,
+          latitude: wish.latitude as number,
+          longitude: wish.longitude as number,
+          color:
+            wish.status === "todo"
+              ? "#ff6b81"
+              : wish.status === "doing"
+                ? "#35baf6"
+                : "#b17cff",
+        })),
+    [wishes],
+  );
+
+  const TodoRoute = () => <WishListScene category={categories[0]} />;
+  const DoingRoute = () => <WishListScene category={categories[1]} />;
+  const DoneRoute = () => <WishListScene category={categories[2]} />;
+
+  const renderScene = SceneMap({
+    todo: TodoRoute,
+    doing: DoingRoute,
+    done: DoneRoute,
+  });
 
   useEffect(() => {
     if (params.tab === "done") {
@@ -183,7 +259,7 @@ export default function WishList() {
           <MapOverviewModal
             visible={mapVisible}
             onClose={() => setMapVisible(false)}
-            markers={MAP_MARKERS}
+            markers={markers}
           />
         </SafeAreaView>
       </ImageBackground>

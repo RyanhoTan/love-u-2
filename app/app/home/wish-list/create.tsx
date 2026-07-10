@@ -17,6 +17,7 @@ import {
   DatePickerModal,
   MapPickerModal,
 } from "@/components/wish-list";
+import { createWish } from "@/app/features/wish-list/api";
 import { router } from "expo-router";
 
 type SelectedLocation = {
@@ -31,6 +32,7 @@ export default function CreateWishList() {
   const [openMapPicker, setOpenMapPicker] = useState(false);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
 
   const [text, setText] = useState("");
   const maxLength = 200;
@@ -40,6 +42,7 @@ export default function CreateWishList() {
 
   const [budget, setBudget] = useState("");
   const [openBudgetPicker, setOpenBudgetPicker] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const menus = [
     {
@@ -59,6 +62,35 @@ export default function CreateWishList() {
     },
   ];
 
+  async function handleNextStep() {
+    if (!title.trim()) {
+      toast.error("请输入愿望标题");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await createWish({
+        title: title.trim(),
+        description: text.trim(),
+        cover: selectedImage || "",
+        targetDate: date.toISOString().slice(0, 10),
+        locationName: selectedLocation ? selectedLocation.name : "",
+        latitude: selectedLocation ? selectedLocation.latitude : null,
+        longitude: selectedLocation ? selectedLocation.longitude : null,
+        budgetAmount: budget ? Number(budget) : null,
+      });
+      toast.success("愿望创建成功");
+      router.replace("/home/wish-list");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "创建愿望失败";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.page}>
       <NavBar
@@ -66,7 +98,8 @@ export default function CreateWishList() {
         rightContent={
           <TouchableOpacity
             style={styles.nextButton}
-            onPress={() => router.push("/home/wish-list/invite")}
+            onPress={() => void handleNextStep()}
+            disabled={submitting}
           >
             <Text style={styles.nextButtonText}>下一步</Text>
           </TouchableOpacity>
@@ -80,6 +113,8 @@ export default function CreateWishList() {
         <TextInput
           placeholder="输入愿望标题"
           style={[styles.wishInput, styles.titleInput]}
+          value={title}
+          onChangeText={setTitle}
         />
       </Column>
 

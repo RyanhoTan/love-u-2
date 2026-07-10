@@ -11,6 +11,7 @@ import {
   Heart,
   MessageCircleMore,
 } from "lucide-react-native";
+import type { ImageSourcePropType } from "react-native";
 // 引入 Dimensions 用来获取手机屏幕的宽度
 import {
   Image,
@@ -28,6 +29,7 @@ import {
   ImagesAvatarMalePng,
 } from "@/assets";
 import { router, useLocalSearchParams } from "expo-router";
+import { getWishById, type WishItem } from "@/app/features/wish-list/api";
 
 // 获取当前设备的屏幕宽度
 const { width: screenWidth } = Dimensions.get("window");
@@ -38,35 +40,79 @@ export default function WishListDetail() {
   // 状态：动态存储计算后的图片高度
   const { openViewer, Viewer } = useImageViewer();
   const [imageHeight, setImageHeight] = useState(150); // 给个默认高度防止闪烁
+  const [wish, setWish] = useState<WishItem | null>(null);
 
   useEffect(() => {
-    // 功能：获取本地图片的原始宽高，并根据屏幕宽度等比例缩放高度
+    const parsedWishId = Number(wishId);
+
+    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+      toast.error("愿望不存在");
+      return;
+    }
+
+    const loadWish = async () => {
+      try {
+        const response = await getWishById(parsedWishId);
+        setWish(response.wish);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "加载愿望详情失败";
+        toast.error(message);
+      }
+    };
+
+    void loadWish();
+  }, [wishId]);
+
+  useEffect(() => {
+    // 功能：获取图片的原始宽高，并根据屏幕宽度等比例缩放高度
+    if (wish?.cover) {
+      Image.getSize(
+        wish.cover,
+        (width, height) => {
+          const calculatedHeight = screenWidth * (height / width);
+          setImageHeight(calculatedHeight);
+        },
+        () => {
+          const asset = Image.resolveAssetSource(ImagesCoverPng);
+          if (asset && asset.width && asset.height) {
+            const calculatedHeight = screenWidth * (asset.height / asset.width);
+            setImageHeight(calculatedHeight);
+          }
+        },
+      );
+      return;
+    }
+
     const asset = Image.resolveAssetSource(ImagesCoverPng);
     if (asset && asset.width && asset.height) {
-      // 核心公式：实际高度 = 屏幕宽度 * (原图高 / 原图宽)
       const calculatedHeight = screenWidth * (asset.height / asset.width);
       setImageHeight(calculatedHeight);
     }
-  }, []);
+  }, [wish?.cover]);
+
+  const coverSource: ImageSourcePropType = wish?.cover
+    ? { uri: wish.cover }
+    : ImagesCoverPng;
 
   const detailList = [
     {
       id: "Clock",
       Icon: Clock,
       label: "想完成时间",
-      value: "2024-12-31",
+      value: wish?.targetDate || "targetDate",
     },
     {
       id: "MapPin",
       Icon: MapPin,
       label: "地点",
-      value: "这是地点",
+      value: wish?.locationName || "locationName",
     },
     {
       id: "Wallet",
       Icon: Wallet,
       label: "预算",
-      value: "这是预算",
+      value: wish?.budgetAmount ? `¥${wish.budgetAmount}` : "budgetAmount",
     },
     {
       id: "User",
@@ -78,7 +124,7 @@ export default function WishListDetail() {
             source={ImagesAvatarFemalePng}
             style={{ width: 24, height: 24, borderRadius: 20 }}
           />
-          <Text>这是创建人</Text>
+          
         </Row>
       ),
     },
@@ -103,7 +149,7 @@ export default function WishListDetail() {
   ];
 
   //   TODO: 这个状态应该根据实际数据来动态设置，目前是为了展示效果先写死了
-  const status: WishTagStatus = "planning";
+  const status: WishTagStatus = wish?.status || "planning";
 
   return (
     <SafeAreaView style={styles.container}>
@@ -117,9 +163,9 @@ export default function WishListDetail() {
       />
       <ScrollView>
         {/* 愿望封面图：宽度占满屏幕，高度等比例缩放 */}
-        <TouchableOpacity onPress={() => openViewer(ImagesCoverPng)}>
+        <TouchableOpacity onPress={() => openViewer(coverSource)}>
           <Image
-            source={ImagesCoverPng}
+            source={coverSource}
             style={{
               width: screenWidth,
               height: imageHeight,
@@ -134,12 +180,13 @@ export default function WishListDetail() {
           <Column gap={8}>
             <Row gap={8} items="center">
               <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-                这是愿望标题
+                {wish?.title || "title"}
               </Text>
               <Tag status={status} />
             </Row>
             <Text style={{ color: "#666" }}>
-              这是愿望的描述和计划，这是愿望的描述和计划，这是愿望的描述和计划，这是愿望的描述和计划。
+              {wish?.description ||
+                "description"}
             </Text>
           </Column>
           <Row style={styles.divider} />

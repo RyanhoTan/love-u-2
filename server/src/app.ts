@@ -6,6 +6,7 @@ import coupleRouter from "./router/couple.js";
 import { isHttpError } from "./errors.js";
 import userRouter from "./router/user.js";
 import userinfoRouter from "./router/userinfo.js";
+import wishRouter from "./router/wish.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/anniversaries", anniversaryRouter);
 app.use("/couple-space", coupleRouter);
 app.use("/user", userRouter);
 app.use("/userinfo", userinfoRouter);
+app.use("/wishes", wishRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "route not found" });
