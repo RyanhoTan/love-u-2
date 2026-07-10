@@ -1,4 +1,4 @@
-import { request } from "@/app/shared/api-client";
+import { requestWithAuth } from "@/app/shared/api-client";
 
 export interface CouplePartner {
   id: number;
@@ -51,55 +51,34 @@ export interface UpdateCoupleSpacePayload {
   anniversaryDate: string | null;
 }
 
-export async function getCoupleSpace(token: string) {
-  return request<CoupleSpaceResponse>("/couple-space", {
+export async function getCoupleSpace() {
+  return requestWithAuth<CoupleSpaceResponse>("/couple-space", {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 }
 
-export async function createCoupleInvite(token: string) {
-  return request<CoupleInviteResponse>("/couple-space/invite", {
+export async function createCoupleInvite() {
+  return requestWithAuth<CoupleInviteResponse>("/couple-space/invite", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 }
 
-export async function bindCoupleSpace(
-  token: string,
-  payload: BindCouplePayload,
-) {
-  return request<CoupleSpaceResponse>("/couple-space/bind", {
+export async function bindCoupleSpace(payload: BindCouplePayload) {
+  return requestWithAuth<CoupleSpaceResponse>("/couple-space/bind", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(payload),
   });
 }
 
-export async function updateCoupleSpace(
-  token: string,
-  payload: UpdateCoupleSpacePayload,
-) {
-  return request<CoupleSpaceResponse>("/couple-space", {
+export async function updateCoupleSpace(payload: UpdateCoupleSpacePayload) {
+  return requestWithAuth<CoupleSpaceResponse>("/couple-space", {
     method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(payload),
   });
 }
 
-export async function unbindCoupleSpace(token: string) {
-  return request<{ message: string }>("/couple-space/bind", {
+export async function unbindCoupleSpace() {
+  return requestWithAuth<{ message: string }>("/couple-space/bind", {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 }

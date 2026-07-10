@@ -150,7 +150,7 @@ export default function AnniversaryCreateScreen() {
 
     try {
       setIsSubmitting(true);
-      await createAnniversary(token, {
+      await createAnniversary({
         title: trimmedTitle,
         type: selectedCategory,
         originalDate: formatApiDate(selectedDate),

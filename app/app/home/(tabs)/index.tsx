@@ -37,8 +37,8 @@ export default function HomeScreen() {
 
     try {
       const [coupleSpaceResponse, anniversariesResponse] = await Promise.all([
-        getCoupleSpace(token),
-        getAnniversaries(token),
+        getCoupleSpace(),
+        getAnniversaries(),
       ]);
       setCoupleSpace(coupleSpaceResponse.coupleSpace);
       setAnniversaries(anniversariesResponse.anniversaries);

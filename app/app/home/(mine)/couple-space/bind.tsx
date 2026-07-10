@@ -44,7 +44,7 @@ export default function CoupleSpaceBindScreen() {
       setIsInviteLoading(true);
 
       try {
-        const coupleSpaceResponse = await getCoupleSpace(token);
+        const coupleSpaceResponse = await getCoupleSpace();
         const existingCode = coupleSpaceResponse.coupleSpace.activeInvite?.code ?? "";
 
         if (existingCode) {
@@ -57,7 +57,7 @@ export default function CoupleSpaceBindScreen() {
           return;
         }
 
-        const inviteResponse = await createCoupleInvite(token);
+        const inviteResponse = await createCoupleInvite();
         if (!isMounted) {
           return;
         }

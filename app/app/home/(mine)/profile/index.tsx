@@ -128,7 +128,7 @@ export default function ProfileScreen() {
     try {
       setIsSubmitting(true);
 
-      const response = await updateUserProfile(token, {
+      const response = await updateUserProfile({
         nickname: trimmedNickname,
         avatar: avatarUri,
         signature: trimmedSignature,

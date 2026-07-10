@@ -1,4 +1,4 @@
-import { request } from "@/app/shared/api-client";
+import { requestWithAuth } from "@/app/shared/api-client";
 
 export type AnniversaryType = "love" | "birthday" | "holiday" | "custom";
 export type AnniversaryRepeatType = "none" | "yearly";
@@ -38,24 +38,15 @@ export interface CreateAnniversaryPayload {
   reminderDaysBefore: number;
 }
 
-export async function getAnniversaries(token: string) {
-  return request<GetAnniversariesResponse>("/anniversaries", {
+export async function getAnniversaries() {
+  return requestWithAuth<GetAnniversariesResponse>("/anniversaries", {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 }
 
-export async function createAnniversary(
-  token: string,
-  payload: CreateAnniversaryPayload
-) {
-  return request<CreateAnniversaryResponse>("/anniversaries", {
+export async function createAnniversary(payload: CreateAnniversaryPayload) {
+  return requestWithAuth<CreateAnniversaryResponse>("/anniversaries", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(payload),
   });
 }

@@ -1,6 +1,8 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
 const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
+const AUTH_STORAGE_KEY = "love-u-auth-session";
 
 export const API_BASE_URL =
   envApiUrl ||
@@ -32,4 +34,41 @@ export async function request<T>(path: string, init?: RequestInit) {
   }
 
   return data as T;
+}
+
+async function getStoredToken() {
+  const storedSession = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
+
+  if (!storedSession) {
+    return null;
+  }
+
+  try {
+    const session = JSON.parse(storedSession) as { token?: unknown };
+    return typeof session.token === "string" && session.token
+      ? session.token
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function requestWithAuth<T>(
+  path: string,
+  init?: RequestInit,
+  tokenOverride?: string,
+) {
+  const token = tokenOverride ?? (await getStoredToken());
+
+  if (!token) {
+    throw new Error("login required");
+  }
+
+  return request<T>(path, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...init?.headers,
+    },
+  });
 }

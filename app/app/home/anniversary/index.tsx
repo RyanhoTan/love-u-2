@@ -56,7 +56,7 @@ export default function AnniversaryScreen() {
 
     try {
       setIsLoading(true);
-      const response = await getAnniversaries(token);
+      const response = await getAnniversaries();
       setAnniversaries(response.anniversaries);
     } catch (error) {
       setAnniversaries([]);

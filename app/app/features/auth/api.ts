@@ -1,4 +1,4 @@
-import { request } from "@/app/shared/api-client";
+import { request, requestWithAuth } from "@/app/shared/api-client";
 
 export interface AuthUser {
   id: number;
@@ -56,24 +56,18 @@ export async function login(username: string, password: string) {
   });
 }
 
-export async function getUserInfo(token: string) {
-  return request<UserInfoResponse>("/userinfo", {
+export async function getUserInfo(token?: string) {
+  return requestWithAuth<UserInfoResponse>("/userinfo", {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  }, token);
 }
 
 export async function updateUserProfile(
-  token: string,
   payload: UpdateUserProfilePayload,
+  token?: string,
 ) {
-  return request<UpdateUserProfileResponse>("/userinfo", {
+  return requestWithAuth<UpdateUserProfileResponse>("/userinfo", {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(payload),
-  });
+  }, token);
 }
