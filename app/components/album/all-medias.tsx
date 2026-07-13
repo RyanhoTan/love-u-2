@@ -1,18 +1,19 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
-import { useRouter } from "expo-router";
-// 能够在自身滑动时自动且完美地锁住外层容器（如 TabView）的手势。
+import { useFocusEffect, useRouter } from "expo-router";
 import { ScrollView } from "react-native-gesture-handler";
-import { Column, Row } from "../layout";
 import { ChevronRight, ChevronsUpDown, Grid2x2 } from "lucide-react-native";
 import { ImagesCoverPng } from "@/assets";
-import { STORIES } from "@/data/mock-stories";
-import { MOCK_WISH_CATEGORIES } from "@/data/mock-media";
-import { TimeLine } from "./time-line";
+import { toast } from "@/components/common";
+import { getWishes, type WishItem } from "@/app/features/wish-list/api";
 import { useImageViewer } from "@/hooks/use-image-viewer";
+import { STORIES } from "@/data/mock-stories";
+import { Column, Row } from "../layout";
+import { TimeLine } from "./time-line";
 
 const COLUMNS = 3;
 const IMAGE_GAP = 8;
+const DEFAULT_WISH_COVER = "https://picsum.photos/seed/love-u/600/800";
 
 export function AllMedias() {
   const router = useRouter();
@@ -20,7 +21,9 @@ export function AllMedias() {
   const [timelineHeights, setTimelineHeights] = useState<
     Record<number, number>
   >({});
+  const [wishes, setWishes] = useState<WishItem[]>([]);
   const { openViewer, Viewer } = useImageViewer();
+
   const imageSize = useMemo(() => {
     if (!gridWidth) return 0;
 
@@ -28,13 +31,34 @@ export function AllMedias() {
   }, [gridWidth]);
 
   const memoryAlbums = STORIES.slice(0, 4);
+  const completedWishes = useMemo(
+    () => wishes.filter((wish) => wish.status === "done"),
+    [wishes],
+  );
+
+  const refreshWishes = useCallback(async () => {
+    try {
+      const response = await getWishes();
+      setWishes(response.wishes);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "加载愿望清单失败";
+      toast.error(message);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshWishes();
+    }, [refreshWishes]),
+  );
 
   const allMedias = [
-    { id: 1, time: "2023年8月", source: [ImagesCoverPng, ImagesCoverPng] },
-    { id: 2, time: "2023年7月", source: [ImagesCoverPng] },
+    { id: 1, time: "2023年1月", source: [ImagesCoverPng, ImagesCoverPng] },
+    { id: 2, time: "2023年2月", source: [ImagesCoverPng] },
     {
       id: 3,
-      time: "2023年6月",
+      time: "2023年3月",
       source: [
         ImagesCoverPng,
         ImagesCoverPng,
@@ -56,13 +80,12 @@ export function AllMedias() {
         ImagesCoverPng,
       ],
     },
-    { id: 4, time: "2023年8月", source: [ImagesCoverPng] },
-    { id: 5, time: "2023年7月", source: [ImagesCoverPng, ImagesCoverPng] },
+    { id: 4, time: "2023年4月", source: [ImagesCoverPng] },
+    { id: 5, time: "2023年5月", source: [ImagesCoverPng, ImagesCoverPng] },
   ];
 
   return (
     <ScrollView contentContainerStyle={{ gap: 16 }}>
-      {/* 愿望达成 */}
       <Column>
         <Row items="center" content="space-between">
           <Text style={{ fontWeight: "bold" }}>愿望达成</Text>
@@ -80,7 +103,7 @@ export function AllMedias() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 12, paddingVertical: 12 }}
         >
-          {MOCK_WISH_CATEGORIES[2].wishList.map((wish) => (
+          {completedWishes.map((wish) => (
             <TouchableOpacity
               key={wish.id}
               style={{ borderRadius: 12, overflow: "hidden" }}
@@ -88,13 +111,13 @@ export function AllMedias() {
             >
               <Column>
                 <Image
-                  source={{ uri: wish.cover }}
+                  source={{ uri: wish.cover || DEFAULT_WISH_COVER }}
                   style={{ width: 120, height: 120 }}
                 />
                 <Column bg="#ffffff80" style={{ width: 120, padding: 6 }}>
                   <Text numberOfLines={1}>{wish.title}</Text>
                   <Text style={{ color: "#aaa", fontSize: 12 }}>
-                    {wish.time}
+                    {wish.targetDate}
                   </Text>
                 </Column>
               </Column>
@@ -102,7 +125,7 @@ export function AllMedias() {
           ))}
         </ScrollView>
       </Column>
-      {/* 时光故事 */}
+
       <Column>
         <Row items="center" content="space-between">
           <Text style={{ fontWeight: "bold" }}>时光故事</Text>
@@ -141,7 +164,6 @@ export function AllMedias() {
         </ScrollView>
       </Column>
 
-      {/* 全部照片 */}
       <Column gap={12}>
         <Row content="space-between" items="center">
           <Row gap={32}>
