@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { Image } from "expo-image";
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -202,9 +202,9 @@ export default function CreateStory() {
                     />
                   ) : (
                     <View style={[styles.mediaPreview, styles.videoPreview]}>
-                      {media.thumbnailUri && (
+                      {media.thumbnailSource && (
                         <Image
-                          source={{ uri: media.thumbnailUri }}
+                          source={media.thumbnailSource}
                           style={StyleSheet.absoluteFill}
                         />
                       )}

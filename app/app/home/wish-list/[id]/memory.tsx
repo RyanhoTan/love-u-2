@@ -1,112 +1,192 @@
-import { NavBar, toast } from "@/components/common";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useEffect, useState } from "react";
-import { useImageViewer } from "@/hooks/use-image-viewer";
+import { useCallback, useEffect, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import type { ImageSourcePropType } from "react-native";
 import {
-  Image,
   Dimensions,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
-  View,
   TouchableOpacity,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ellipsis, Play, Share } from "lucide-react-native";
+import { ImagesCoverPng } from "@/assets";
 import {
-  ImagesCoverPng,
-  ImagesAvatarMalePng,
-  ImagesAvatarFemalePng,
-} from "@/assets";
+  getWishRecords,
+  type WishItem,
+  type WishRecordItem,
+} from "@/app/features/wish-list/api";
+import { NavBar, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import { Tag, VerticalDashedLine } from "@/components/wish-list";
-import { Ellipsis, Share } from "lucide-react-native";
+import { useImageViewer } from "@/hooks/use-image-viewer";
+import { useVideoViewer } from "@/hooks/use-video-viewer";
 
 const { width: screenWidth } = Dimensions.get("window");
 
+const VIDEO_EXTENSIONS = new Set([
+  "mp4",
+  "mov",
+  "m4v",
+  "webm",
+  "avi",
+  "mkv",
+  "3gp",
+  "hevc",
+]);
+
+function formatMonthDay(dateText: string) {
+  const parts = dateText.split("-");
+  if (parts.length !== 3) {
+    return dateText;
+  }
+
+  return `${parts[1]}/${parts[2]}`;
+}
+
+function formatDisplayDate(dateText: string) {
+  const parts = dateText.split("-");
+  if (parts.length !== 3) {
+    return dateText;
+  }
+
+  return `${parts[0]}.${parts[1]}.${parts[2]}`;
+}
+
+function isVideoUrl(url: string) {
+  const cleanUrl = url.split("?")[0]?.split("#")[0] ?? "";
+  const extension = cleanUrl.split(".").pop()?.toLowerCase();
+  return extension ? VIDEO_EXTENSIONS.has(extension) : false;
+}
+
 export default function Memory() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const [imageHeight, setImageHeight] = useState(150);
+  const [wish, setWish] = useState<WishItem | null>(null);
+  const [records, setRecords] = useState<WishRecordItem[]>([]);
   const { openViewer, Viewer } = useImageViewer();
+  const { openViewer: openVideoViewer, Viewer: VideoViewer } = useVideoViewer();
+
+  const loadData = useCallback(async () => {
+    const parsedWishId = Number(id);
+
+    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+      toast.error("愿望不存在");
+      router.back();
+      return;
+    }
+
+    try {
+      const response = await getWishRecords(parsedWishId);
+      setWish(response.wish);
+      setRecords(response.records);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "加载回忆失败";
+      toast.error(message);
+    }
+  }, [id]);
 
   useEffect(() => {
-    const asset = Image.resolveAssetSource(ImagesCoverPng);
+    if (wish?.cover) {
+      Image.getSize(
+        wish.cover,
+        (width, height) => {
+          const calculatedHeight = screenWidth * (height / width);
+          setImageHeight(calculatedHeight);
+        },
+        () => {
+          const asset = Image.resolveAssetSource(ImagesCoverPng);
+          if (asset?.width && asset?.height) {
+            setImageHeight(screenWidth * (asset.height / asset.width));
+          }
+        },
+      );
+      return;
+    }
 
-    if (asset && asset.width && asset.height) {
+    const asset = Image.resolveAssetSource(ImagesCoverPng);
+    if (asset?.width && asset?.height) {
       const calculatedHeight = screenWidth * (asset.height / asset.width);
       setImageHeight(calculatedHeight);
     }
-  }, []);
+  }, [wish?.cover]);
 
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadData();
+    }, [loadData]),
+  );
+
+  const coverSource: ImageSourcePropType = wish?.cover
+    ? { uri: wish.cover }
+    : ImagesCoverPng;
+
+  const photoCount = records.reduce(
+    (count, record) =>
+      count + record.mediaUrls.filter((url) => !isVideoUrl(url)).length,
+    0,
+  );
+  const videoCount = records.reduce(
+    (count, record) =>
+      count + record.mediaUrls.filter((url) => isVideoUrl(url)).length,
+    0,
+  );
   const summaryStats = [
-    { label: "照片", value: "32" },
-    { label: "视频", value: "2" },
-    { label: "记录", value: "12" },
+    { label: "照片", value: String(photoCount) },
+    { label: "视频", value: String(videoCount) },
+    { label: "记录", value: String(records.length) },
   ];
 
-  const recordData = [
-    {
-      id: "1",
-      date: "05/01",
-      title:
-        "出发啦！\n今天内容特别多，哪怕换行撑高了页面，左边的线也不会断。我们先坐飞机去三亚，晚上可以去吃海鲜大餐。",
-      images: [
-        ImagesCoverPng,
-        ImagesAvatarMalePng,
-        ImagesAvatarFemalePng,
-        ImagesCoverPng,
-        ImagesAvatarMalePng,
-        ImagesAvatarFemalePng,
-        ImagesCoverPng,
-      ],
-    },
-    {
-      id: "2",
-      date: "05/02",
-      title: "到达三亚，天气很好。",
-      images: [ImagesAvatarMalePng, ImagesAvatarFemalePng],
-    },
-    { id: "3", date: "05/03", title: "蜈支洲岛一日游", images: [] },
-  ];
+  const latestRecordDate =
+    records[records.length - 1]?.recordDate ||
+    wish?.updatedAt.slice(0, 10) ||
+    "";
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={styles.page}>
       <NavBar
         rightContent={
           <Row gap={12} items="center">
-            <TouchableOpacity
-              onPress={() => toast.info("分享功能开发中，敬请期待！")}
-            >
+            <TouchableOpacity onPress={() => toast.info("敬请期待")}>
               <Share size={22} color="#222" />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => toast.info("更多功能开发中，敬请期待！")}
-            >
+            <TouchableOpacity onPress={() => toast.info("敬请期待")}>
               <Ellipsis size={22} color="#222" />
             </TouchableOpacity>
           </Row>
         }
       />
       <ScrollView showsVerticalScrollIndicator={false}>
-        <TouchableOpacity onPress={() => openViewer(ImagesCoverPng)}>
+        <TouchableOpacity onPress={() => openViewer(coverSource)}>
           <Image
-            source={ImagesCoverPng}
-            style={{
-              width: screenWidth,
-              height: imageHeight,
-              resizeMode: "contain",
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-            }}
+            source={coverSource}
+            style={[styles.coverImage, { height: imageHeight }]}
           />
         </TouchableOpacity>
+
         <Column gap={24} style={styles.container}>
           <Column gap={12}>
             <Row gap={12} items="center">
-              <Text style={styles.title}>一起看海</Text>
+              <Text style={styles.title}>{wish?.title || "回忆相册"}</Text>
               <Tag status="done" />
             </Row>
             <Column gap={16} style={styles.summaryCard}>
               <Column gap={4}>
-                <Text style={styles.summaryDate}>2025.05.01</Text>
-                <Text style={styles.summaryDuration}>完成于第521天</Text>
+                <Text style={styles.summaryDate}>
+                  {wish?.targetDate ? formatDisplayDate(wish.targetDate) : "--"}
+                </Text>
+                <Text style={styles.summaryDuration}>
+                  {latestRecordDate
+                    ? `最近一次记录：${formatDisplayDate(latestRecordDate)}`
+                    : "还没有回忆记录"}
+                </Text>
               </Column>
               <Row content="space-between">
                 {summaryStats.map((item) => (
@@ -124,33 +204,69 @@ export default function Memory() {
             </Column>
           </Column>
 
-          <Text style={{ fontWeight: "bold" }}>我们的旅程</Text>
+          <Text style={styles.sectionTitle}>我们的旅程</Text>
           <Row style={styles.divider} />
 
-          {!!recordData.length ? (
-            recordData.map((item, index) => {
-              const isLastItem = index === recordData.length - 1;
+          {!!records.length ? (
+            records.map((item, index) => {
+              const isLastItem = index === records.length - 1;
 
               return (
                 <Row key={item.id}>
                   <View style={styles.axisContainer}>
-                    <Text style={styles.dateText}>{item.date}</Text>
+                    <Text style={styles.dateText}>
+                      {formatMonthDay(item.recordDate)}
+                    </Text>
                     {!isLastItem && <VerticalDashedLine />}
                   </View>
 
                   <View style={styles.contentContainer}>
-                    <Text style={styles.contentTitle}>{item.title}</Text>
+                    <Text style={styles.contentTitle}>
+                      {item.content || ""}
+                    </Text>
 
-                    {item.images.length > 0 && (
+                    {item.mediaUrls.length > 0 && (
                       <Row style={styles.imageGrid}>
-                        {item.images.map((img, idx) => (
-                          <TouchableOpacity
-                            key={idx}
-                            onPress={() => openViewer(img)}
-                          >
-                            <Image source={img} style={styles.gridImage} />
-                          </TouchableOpacity>
-                        ))}
+                        {item.mediaUrls.map((mediaUrl, idx) => {
+                          if (isVideoUrl(mediaUrl)) {
+                            return (
+                              <TouchableOpacity
+                                key={`${item.id}-${idx}`}
+                                activeOpacity={0.9}
+                                onPress={() =>
+                                  openVideoViewer(
+                                    { uri: mediaUrl },
+                                    wish?.title || "回忆视频",
+                                    formatDisplayDate(item.recordDate),
+                                  )
+                                }
+                              >
+                                {/* TODO: 后端拿到视频生成缩略图 */}
+                                <View style={[styles.gridImage, styles.videoCard]}>
+                                  <View style={styles.videoOverlay} />
+                                  <Play
+                                    color="#fff"
+                                    size={24}
+                                    fill="#fff"
+                                    style={styles.playIcon}
+                                  />
+                                </View>
+                              </TouchableOpacity>
+                            );
+                          }
+
+                          return (
+                            <TouchableOpacity
+                              key={`${item.id}-${idx}`}
+                              onPress={() => openViewer({ uri: mediaUrl })}
+                            >
+                              <Image
+                                source={{ uri: mediaUrl }}
+                                style={styles.gridImage}
+                              />
+                            </TouchableOpacity>
+                          );
+                        })}
                       </Row>
                     )}
                   </View>
@@ -163,13 +279,24 @@ export default function Memory() {
         </Column>
       </ScrollView>
       {Viewer}
+      {VideoViewer}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   container: {
     padding: 16,
+  },
+  coverImage: {
+    width: screenWidth,
+    resizeMode: "contain",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   title: {
     fontSize: 18,
@@ -195,6 +322,9 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     color: "#666",
+  },
+  sectionTitle: {
+    fontWeight: "bold",
   },
   divider: {
     height: 1,
@@ -231,7 +361,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     resizeMode: "cover",
   },
+  videoCard: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#222",
+  },
+  videoOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0,0,0,0.24)",
+    borderRadius: 8,
+  },
+  playIcon: {
+    zIndex: 1,
+  },
   emptyText: {
     color: "#666",
+    textAlign: "center",
   },
 });

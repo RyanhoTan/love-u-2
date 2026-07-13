@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Play } from "lucide-react-native";
 import { ImagesCoverPng } from "@/assets";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
@@ -21,8 +22,20 @@ import {
   type WishRecordItem,
 } from "@/app/features/wish-list/api";
 import { useImageViewer } from "@/hooks/use-image-viewer";
+import { useVideoViewer } from "@/hooks/use-video-viewer";
 
 const { width: screenWidth } = Dimensions.get("window");
+
+const VIDEO_EXTENSIONS = new Set([
+  "mp4",
+  "mov",
+  "m4v",
+  "webm",
+  "avi",
+  "mkv",
+  "3gp",
+  "hevc",
+]);
 
 function formatMonthDay(dateText: string) {
   const parts = dateText.split("-");
@@ -33,12 +46,28 @@ function formatMonthDay(dateText: string) {
   return `${parts[1]}/${parts[2]}`;
 }
 
+function formatDisplayDate(dateText: string) {
+  const parts = dateText.split("-");
+  if (parts.length !== 3) {
+    return dateText;
+  }
+
+  return `${parts[0]}.${parts[1]}.${parts[2]}`;
+}
+
+function isVideoUrl(url: string) {
+  const cleanUrl = url.split("?")[0]?.split("#")[0] ?? "";
+  const extension = cleanUrl.split(".").pop()?.toLowerCase();
+  return extension ? VIDEO_EXTENSIONS.has(extension) : false;
+}
+
 export default function Doing() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [imageHeight, setImageHeight] = useState(150);
   const [wish, setWish] = useState<WishItem | null>(null);
   const [records, setRecords] = useState<WishRecordItem[]>([]);
   const { openViewer, Viewer } = useImageViewer();
+  const { openViewer: openVideoViewer, Viewer: VideoViewer } = useVideoViewer();
 
   const loadData = useCallback(async () => {
     const parsedWishId = Number(id);
@@ -145,22 +174,51 @@ export default function Doing() {
 
                   <View style={styles.contentContainer}>
                     <Text style={styles.contentTitle}>
-                      {item.content || "这一天还没有补充内容"}
+                      {item.content || ""}
                     </Text>
 
                     {item.mediaUrls.length > 0 && (
                       <Row style={styles.imageGrid}>
-                        {item.mediaUrls.map((img, idx) => (
-                          <TouchableOpacity
-                            key={`${item.id}-${idx}`}
-                            onPress={() => openViewer({ uri: img })}
-                          >
-                            <Image
-                              source={{ uri: img }}
-                              style={styles.gridImage}
-                            />
-                          </TouchableOpacity>
-                        ))}
+                        {item.mediaUrls.map((mediaUrl, idx) => {
+                          if (isVideoUrl(mediaUrl)) {
+                            return (
+                              <TouchableOpacity
+                                key={`${item.id}-${idx}`}
+                                activeOpacity={0.9}
+                                onPress={() =>
+                                  openVideoViewer(
+                                    { uri: mediaUrl },
+                                    wish?.title || "回忆视频",
+                                    formatDisplayDate(item.recordDate),
+                                  )
+                                }
+                              >
+                                {/* TODO: 后端拿到视频生成缩略图 */}
+                                <View style={[styles.gridImage, styles.videoCard]}>
+                                  <View style={styles.videoOverlay} />
+                                  <Play
+                                    color="#fff"
+                                    size={24}
+                                    fill="#fff"
+                                    style={styles.playIcon}
+                                  />
+                                </View>
+                              </TouchableOpacity>
+                            );
+                          }
+
+                          return (
+                            <TouchableOpacity
+                              key={`${item.id}-${idx}`}
+                              onPress={() => openViewer({ uri: mediaUrl })}
+                            >
+                              <Image
+                                source={{ uri: mediaUrl }}
+                                style={styles.gridImage}
+                              />
+                            </TouchableOpacity>
+                          );
+                        })}
                       </Row>
                     )}
                   </View>
@@ -180,6 +238,7 @@ export default function Doing() {
         />
       </View>
       {Viewer}
+      {VideoViewer}
     </SafeAreaView>
   );
 }
@@ -229,6 +288,19 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 8,
     resizeMode: "cover",
+  },
+  videoCard: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#222",
+  },
+  videoOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0,0,0,0.24)",
+    borderRadius: 8,
+  },
+  playIcon: {
+    zIndex: 1,
   },
   emptyText: {
     color: "#666",

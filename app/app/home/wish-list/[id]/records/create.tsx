@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Image } from "expo-image";
 import {
   Camera,
   CalendarDays,
@@ -14,7 +15,6 @@ import {
 } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -45,6 +45,7 @@ import {
   type WishItem,
 } from "@/app/features/wish-list/api";
 import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
+import { useVideoViewer } from "@/hooks/use-video-viewer";
 import { type PickedMediaItem, useMediaPicker } from "@/hooks/use-media-picker";
 
 type SelectedLocation = {
@@ -66,6 +67,7 @@ const MAX_MEDIA_COUNT = 99;
 export default function CreateRecord() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { showStyledActionSheet } = useStyledActionSheet();
+  const { Viewer: videoViewer, openViewer: openVideoViewer } = useVideoViewer();
   const [wish, setWish] = useState<WishItem | null>(null);
   const [loadingWish, setLoadingWish] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -190,8 +192,7 @@ export default function CreateRecord() {
       toast.success("记录保存成功");
       router.back();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "保存记录失败";
+      const message = error instanceof Error ? error.message : "保存记录失败";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -206,7 +207,11 @@ export default function CreateRecord() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <Row style={styles.wishCard}>
-          <Image source={wishCoverSource} style={styles.wishCover} />
+          <Image
+            contentFit="cover"
+            source={wishCoverSource}
+            style={styles.wishCover}
+          />
 
           <Column flex={1} style={styles.wishInfo} gap={12}>
             <Row items="center" gap={8}>
@@ -227,7 +232,9 @@ export default function CreateRecord() {
           </Column>
         </Row>
 
-        {loadingWish && <Text style={styles.loadingText}>正在加载愿望信息...</Text>}
+        {loadingWish && (
+          <Text style={styles.loadingText}>正在加载愿望信息...</Text>
+        )}
 
         <TouchableOpacity
           onPress={() => setOpenDatePicker(true)}
@@ -288,31 +295,43 @@ export default function CreateRecord() {
             <View key={media.id} style={styles.mediaCard}>
               {media.type === "image" ? (
                 <Image
+                  contentFit="cover"
                   source={{ uri: media.uri }}
                   style={styles.mediaPreview}
                 />
               ) : (
-                <View style={[styles.mediaPreview, styles.videoPreview]}>
-                  {media.thumbnailUri && (
-                    <Image
-                      source={{ uri: media.thumbnailUri }}
-                      style={StyleSheet.absoluteFill}
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() =>
+                    openVideoViewer(
+                      { uri: media.uri },
+                      wish?.title || "Wish record video",
+                      date.toLocaleDateString(),
+                    )
+                  }
+                >
+                  <View style={[styles.mediaPreview, styles.videoPreview]}>
+                    {media.thumbnailSource && (
+                      <Image
+                        source={media.thumbnailSource}
+                        style={StyleSheet.absoluteFill}
+                      />
+                    )}
+                    <View
+                      style={{
+                        ...StyleSheet.absoluteFill,
+                        backgroundColor: "rgba(0,0,0,0.2)",
+                      }}
                     />
-                  )}
-                  <View
-                    style={{
-                      ...StyleSheet.absoluteFillObject,
-                      backgroundColor: "rgba(0,0,0,0.2)",
-                    }}
-                  />
 
-                  <Play
-                    color="#fff"
-                    size={24}
-                    fill="#fff"
-                    style={{ zIndex: 1 }}
-                  />
-                </View>
+                    <Play
+                      color="#fff"
+                      size={24}
+                      fill="#fff"
+                      style={{ zIndex: 1 }}
+                    />
+                  </View>
+                </TouchableOpacity>
               )}
 
               <TouchableOpacity
@@ -402,6 +421,7 @@ export default function CreateRecord() {
         onClose={() => setOpenBudgetPicker(false)}
         onChangeValue={setBudget}
       />
+      {videoViewer}
     </SafeAreaView>
   );
 }
@@ -424,7 +444,6 @@ const styles = StyleSheet.create({
   wishCover: {
     width: 120,
     height: 120,
-    resizeMode: "cover",
   },
   wishInfo: {
     paddingHorizontal: 16,

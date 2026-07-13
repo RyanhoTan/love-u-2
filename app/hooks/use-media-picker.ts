@@ -1,11 +1,12 @@
 import { useCallback } from "react";
 import { Alert } from "react-native";
+import type { ImageProps } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import * as VideoThumbnails from "expo-video-thumbnails";
+import { createVideoPlayer } from "expo-video";
 
 /**
- * @file 媒体选择自定义 Hook
- * @description 属于应用通用组件/工具库部分，用于处理图片和视频的单选、多选、拍照及封面提取
+ * @file Media picker hook
+ * @description Handles image/video picking, capture, and video cover extraction.
  */
 
 export type MediaPickerType = "image" | "video" | "mixed";
@@ -15,7 +16,7 @@ export type PickedMediaItem = {
   id: string;
   uri: string;
   type: "image" | "video";
-  thumbnailUri?: string;
+  thumbnailSource?: ImageProps["source"];
   width: number;
   height: number;
   duration?: number | null;
@@ -44,17 +45,19 @@ async function normalizePickedAssets(
 ): Promise<PickedMediaItem[]> {
   return Promise.all(
     assets.map(async (asset, index) => {
-      let thumbnailUri = undefined;
+      let thumbnailSource: ImageProps["source"] | undefined;
 
-      // 如果选中了视频，提取视频的封面帧
+      // Generate a still preview for selected videos.
       if (asset.type === "video") {
+        const player = createVideoPlayer(asset.uri);
+
         try {
-          const { uri } = await VideoThumbnails.getThumbnailAsync(asset.uri, {
-            time: 10, // 获取0.01秒处的画面，可以自行调节
-          });
-          thumbnailUri = uri;
+          const [thumbnail] = await player.generateThumbnailsAsync(0.01);
+          thumbnailSource = thumbnail;
         } catch (e) {
-          console.warn("生成视频封面失败: ", e);
+          console.warn("Failed to generate video thumbnail:", e);
+        } finally {
+          player.release();
         }
       }
 
@@ -62,7 +65,7 @@ async function normalizePickedAssets(
         id: asset.assetId ?? asset.fileName ?? `${asset.uri}-${index}`,
         uri: asset.uri,
         type: asset.type === "video" ? "video" : "image",
-        thumbnailUri,
+        thumbnailSource,
         width: asset.width,
         height: asset.height,
         duration: asset.duration,
