@@ -69,7 +69,7 @@ export default function Finish() {
         </Column>
         <PinkButton
           text="查看回忆"
-          onPress={() => router.push(`/home/wish-list/${id}/memory`)}
+          onPress={() => router.replace(`/home/wish-list/${id}/memory`)}
           style={styles.footerButton}
         />
       </SafeAreaView>

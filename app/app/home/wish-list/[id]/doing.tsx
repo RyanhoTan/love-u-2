@@ -18,6 +18,7 @@ import { Column, Row } from "@/components/layout";
 import { Tag, VerticalDashedLine } from "@/components/wish-list";
 import {
   getWishRecords,
+  updateWish,
   type WishItem,
   type WishRecordItem,
 } from "@/app/features/wish-list/api";
@@ -66,6 +67,7 @@ export default function Doing() {
   const [imageHeight, setImageHeight] = useState(150);
   const [wish, setWish] = useState<WishItem | null>(null);
   const [records, setRecords] = useState<WishRecordItem[]>([]);
+  const [isEndingWish, setIsEndingWish] = useState(false);
   const { openViewer, Viewer } = useImageViewer();
   const { openViewer: openVideoViewer, Viewer: VideoViewer } = useVideoViewer();
 
@@ -127,12 +129,38 @@ export default function Doing() {
     ? { uri: wish.cover }
     : ImagesCoverPng;
 
+  const handleFinishWish = async () => {
+    const parsedWishId = Number(id);
+
+    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+      toast.error("愿望不存在");
+      return;
+    }
+
+    if (isEndingWish) {
+      return;
+    }
+
+    try {
+      setIsEndingWish(true);
+      const response = await updateWish(parsedWishId, { status: "done" });
+      setWish(response.wish);
+      router.replace(`/home/wish-list/${parsedWishId}/finish`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "结束愿望失败";
+      toast.error(message);
+    } finally {
+      setIsEndingWish(false);
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <NavBar
         rightContent={
           <TouchableOpacity
-            onPress={() => router.push(`/home/wish-list/${id}/finish`)}
+            onPress={() => void handleFinishWish()}
           >
             <Text>结束愿望</Text>
           </TouchableOpacity>
