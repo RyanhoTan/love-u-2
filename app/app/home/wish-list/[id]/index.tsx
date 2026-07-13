@@ -29,7 +29,11 @@ import {
   ImagesAvatarMalePng,
 } from "@/assets";
 import { router, useLocalSearchParams } from "expo-router";
-import { getWishById, type WishItem } from "@/app/features/wish-list/api";
+import {
+  getWishById,
+  updateWish,
+  type WishItem,
+} from "@/app/features/wish-list/api";
 
 // 获取当前设备的屏幕宽度
 const { width: screenWidth } = Dimensions.get("window");
@@ -41,6 +45,7 @@ export default function WishListDetail() {
   const { openViewer, Viewer } = useImageViewer();
   const [imageHeight, setImageHeight] = useState(150); // 给个默认高度防止闪烁
   const [wish, setWish] = useState<WishItem | null>(null);
+  const [isStartingPlan, setIsStartingPlan] = useState(false);
 
   useEffect(() => {
     const parsedWishId = Number(id);
@@ -151,6 +156,32 @@ export default function WishListDetail() {
   //   TODO: 这个状态应该根据实际数据来动态设置，目前是为了展示效果先写死了
   const status: WishTagStatus = wish?.status || "planning";
 
+  const handleStartPlan = async () => {
+    const parsedWishId = Number(id);
+
+    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+      toast.error("愿望不存在");
+      return;
+    }
+
+    if (isStartingPlan) {
+      return;
+    }
+
+    try {
+      setIsStartingPlan(true);
+      const response = await updateWish(parsedWishId, { status: "doing" });
+      setWish(response.wish);
+      router.replace(`/home/wish-list/${parsedWishId}/doing`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "开始计划失败";
+      toast.error(message);
+    } finally {
+      setIsStartingPlan(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* 顶部导航栏部分 */}
@@ -239,7 +270,7 @@ export default function WishListDetail() {
         <Row style={styles.submitButtonWrapper}>
           <PinkButton
             text="开始计划"
-            onPress={() => router.push(`/home/wish-list/${id}/doing`)}
+            onPress={() => void handleStartPlan()}
             style={{ flex: 1 }}
           />
         </Row>

@@ -6,6 +6,7 @@ import { HttpError } from "../errors.js";
 import {
   createWishRecordSchema,
   createWishSchema,
+  updateWishSchema,
   type WishStatus,
 } from "../schema/wish.js";
 import { parseRequestBody } from "../validation.js";
@@ -410,6 +411,95 @@ export async function createWish(req: Request, res: Response) {
 
   res.status(201).json({
     message: "create wish success",
+    wish: serializeWish(wish),
+  });
+}
+
+export async function updateWish(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  const wishId = Number(req.params.id);
+
+  if (!Number.isInteger(wishId) || wishId <= 0) {
+    throw new HttpError(400, "wish id is invalid");
+  }
+
+  const payload = parseRequestBody(updateWishSchema, req.body);
+  const scope = await buildWishScope(userId);
+  const [existingRows] = await db.query<WishRow[]>(
+    `
+      SELECT
+        id,
+        relationship_id,
+        created_by_user_id,
+        title,
+        description,
+        cover,
+        target_date,
+        location_name,
+        latitude,
+        longitude,
+        budget_amount,
+        status,
+        is_seed,
+        created_at,
+        updated_at
+      FROM wishes
+      WHERE id = ?
+        AND ${scope.sql}
+      LIMIT 1
+    `,
+    [wishId, ...scope.values]
+  );
+
+  const existingWish = existingRows[0];
+  if (!existingWish) {
+    throw new HttpError(404, "wish not found");
+  }
+
+  await db.query<ResultSetHeader>(
+    `
+      UPDATE wishes
+      SET
+        status = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+      LIMIT 1
+    `,
+    [payload.status, wishId]
+  );
+
+  const [rows] = await db.query<WishRow[]>(
+    `
+      SELECT
+        id,
+        relationship_id,
+        created_by_user_id,
+        title,
+        description,
+        cover,
+        target_date,
+        location_name,
+        latitude,
+        longitude,
+        budget_amount,
+        status,
+        is_seed,
+        created_at,
+        updated_at
+      FROM wishes
+      WHERE id = ?
+      LIMIT 1
+    `,
+    [existingWish.id]
+  );
+
+  const wish = rows[0];
+  if (!wish) {
+    throw new HttpError(500, "failed to update wish");
+  }
+
+  res.status(200).json({
+    message: "update wish success",
     wish: serializeWish(wish),
   });
 }

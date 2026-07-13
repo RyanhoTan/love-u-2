@@ -51,6 +51,11 @@ interface CreateWishResponse {
   wish: WishItem;
 }
 
+interface UpdateWishResponse {
+  message: string;
+  wish: WishItem;
+}
+
 interface CreateWishRecordResponse {
   message: string;
   wish: WishItem;
@@ -72,6 +77,10 @@ export interface CreateWishPayload {
   latitude: number | null;
   longitude: number | null;
   budgetAmount: number | null;
+}
+
+export interface UpdateWishPayload {
+  status: WishStatus;
 }
 
 export interface CreateWishRecordPayload {
@@ -100,6 +109,13 @@ export async function getWishById(id: number) {
 export async function createWish(payload: CreateWishPayload) {
   return requestWithAuth<CreateWishResponse>("/wishes", {
     method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateWish(id: number, payload: UpdateWishPayload) {
+  return requestWithAuth<UpdateWishResponse>(`/wishes/${id}`, {
+    method: "PATCH",
     body: JSON.stringify(payload),
   });
 }

@@ -35,6 +35,10 @@ export const createWishSchema = z.object({
   budgetAmount: z.number().int().min(0).nullable().optional().default(null),
 });
 
+export const updateWishSchema = z.object({
+  status: wishStatusSchema,
+});
+
 export const createWishRecordSchema = z.object({
   content: z
     .string()
@@ -69,4 +73,5 @@ export const createWishRecordSchema = z.object({
 
 export type WishStatus = z.infer<typeof wishStatusSchema>;
 export type CreateWishInput = z.infer<typeof createWishSchema>;
+export type UpdateWishInput = z.infer<typeof updateWishSchema>;
 export type CreateWishRecordInput = z.infer<typeof createWishRecordSchema>;
