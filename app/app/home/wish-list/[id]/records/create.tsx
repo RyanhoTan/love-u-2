@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image } from "expo-image";
 import {
   Camera,
@@ -15,6 +15,8 @@ import {
 } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -33,8 +35,9 @@ import {
 } from "@/assets";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
+import { colors } from "@/styles/colors";
 import {
-  BudgetPickerModal,
+  // BudgetPickerModal,
   DatePickerModal,
   MapPickerModal,
   Tag,
@@ -65,6 +68,7 @@ const STATUS_ICONS = [
 const MAX_MEDIA_COUNT = 99;
 
 export default function CreateRecord() {
+  const scrollRef = useRef<ScrollView>(null);
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { showStyledActionSheet } = useStyledActionSheet();
   const { Viewer: videoViewer, openViewer: openVideoViewer } = useVideoViewer();
@@ -79,7 +83,7 @@ export default function CreateRecord() {
   const [date, setDate] = useState(new Date());
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const [budget, setBudget] = useState("");
-  const [openBudgetPicker, setOpenBudgetPicker] = useState(false);
+  // const [openBudgetPicker, setOpenBudgetPicker] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<PickedMediaItem[]>([]);
 
   const { pickFromLibrary, takePhoto } = useMediaPicker({
@@ -199,13 +203,30 @@ export default function CreateRecord() {
     }
   };
 
+  const scrollBudgetIntoView = () => {
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 120);
+  };
+
   const wishCoverSource = wish?.cover ? { uri: wish.cover } : ImagesCoverPng;
 
   return (
     <SafeAreaView style={styles.page}>
+      <KeyboardAvoidingView
+        style={styles.page}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        
+        keyboardVerticalOffset={12}
+      >
       <NavBar title="进行中" rightContent={<Ellipsis />} />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <Row style={styles.wishCard}>
           <Image
             contentFit="cover"
@@ -378,16 +399,22 @@ export default function CreateRecord() {
 
           <Row items="center" gap={16}>
             <Text>花费</Text>
-            <TouchableOpacity
-              onPress={() => setOpenBudgetPicker(true)}
-              style={styles.locationButton}
-            >
+            <View style={styles.locationButton}>
               <Row items="center" gap={8}>
-                <JapaneseYen color="#aaa" size={16} />
-                <Text style={styles.fieldValue}>{budget || "输入金额"}</Text>
+                <JapaneseYen color={colors.theme.primary} size={16} />
+                <TextInput
+                  value={budget}
+                  onChangeText={(text) => setBudget(text.replace(/[^0-9]/g, ""))}
+                  onFocus={scrollBudgetIntoView}
+                  keyboardType="numeric"
+                  placeholder="输入金额"
+                  placeholderTextColor={colors.semantic.textMuted}
+                  maxLength={8}
+                  style={styles.budgetInput}
+                />
               </Row>
-              <Text style={styles.fieldValue}>元</Text>
-            </TouchableOpacity>
+              <Text style={styles.budgetSuffix}>元</Text>
+            </View>
           </Row>
         </Column>
       </ScrollView>
@@ -398,6 +425,7 @@ export default function CreateRecord() {
           onPress={() => void handleSave()}
         />
       </View>
+      </KeyboardAvoidingView>
 
       <DatePickerModal
         visible={openDatePicker}
@@ -415,12 +443,14 @@ export default function CreateRecord() {
         }}
       />
 
+      {/*
       <BudgetPickerModal
         visible={openBudgetPicker}
         value={budget}
         onClose={() => setOpenBudgetPicker(false)}
         onChangeValue={setBudget}
       />
+      */}
       {videoViewer}
     </SafeAreaView>
   );
@@ -432,7 +462,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   content: {
-    padding: 16,
+    padding: 12,
     gap: 12,
   },
   wishCard: {
@@ -583,6 +613,18 @@ const styles = StyleSheet.create({
   },
   fieldValue: {
     color: "#aaa",
+  },
+  budgetInput: {
+    minWidth: 92,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.semantic.textPrimary,
+  },
+  budgetSuffix: {
+    color: colors.theme.primary,
+    fontWeight: "bold",
   },
   footer: {
     paddingHorizontal: 16,

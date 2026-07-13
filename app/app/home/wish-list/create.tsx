@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ChevronRight } from "lucide-react-native";
 import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -11,7 +14,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { NavBar, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import { colors } from "@/styles/colors";
-import { BudgetPickerModal } from "@/components/wish-list/budget-picker-modal";
 import {
   CoverPicker,
   DatePickerModal,
@@ -27,6 +29,7 @@ type SelectedLocation = {
 };
 
 export default function CreateWishList() {
+  const scrollRef = useRef<ScrollView>(null);
   const [selectedLocation, setSelectedLocation] =
     useState<SelectedLocation | null>(null);
   const [openMapPicker, setOpenMapPicker] = useState(false);
@@ -41,7 +44,6 @@ export default function CreateWishList() {
   const [openDatePicker, setOpenDatePicker] = useState(false);
 
   const [budget, setBudget] = useState("");
-  const [openBudgetPicker, setOpenBudgetPicker] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const menus = [
@@ -58,7 +60,7 @@ export default function CreateWishList() {
     {
       label: "预算",
       value: budget ? `¥${budget}` : "选择预算",
-      onPress: () => setOpenBudgetPicker(true),
+      onPress: () => undefined,
     },
   ];
 
@@ -91,8 +93,19 @@ export default function CreateWishList() {
     }
   }
 
+  const scrollBudgetIntoView = () => {
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 120);
+  };
+
   return (
     <SafeAreaView style={styles.page}>
+      <KeyboardAvoidingView
+        style={styles.page}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={6}
+      >
       <NavBar
         title="创建愿望"
         rightContent={
@@ -106,6 +119,12 @@ export default function CreateWishList() {
         }
       />
 
+      <ScrollView
+        ref={scrollRef}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.pageContent}
+        showsVerticalScrollIndicator={false}
+      >
       <CoverPicker value={selectedImage} onChange={setSelectedImage} />
 
       <Column gap={8}>
@@ -136,16 +155,39 @@ export default function CreateWishList() {
       </Column>
 
       {menus.map((item) => (
-        <TouchableOpacity key={item.label} onPress={item.onPress}>
+        <TouchableOpacity
+          key={item.label}
+          onPress={item.onPress}
+          disabled={item.label === "预算"}
+        >
           <Row items="center" content="space-between">
             <Text style={styles.menuTitle}>{item.label}</Text>
-            <Row items="center" gap={8}>
-              <Text style={styles.menuValue}>{item.value}</Text>
-              <ChevronRight color="#999999" />
-            </Row>
+            {item.label === "预算" ? (
+              <View style={styles.budgetInputShell}>
+                <Text style={styles.budgetCurrency}>¥</Text>
+                <TextInput
+                  value={budget}
+                  onChangeText={(text) => setBudget(text.replace(/[^0-9]/g, ""))}
+                  onFocus={scrollBudgetIntoView}
+                  keyboardType="numeric"
+                  placeholder="输入预算"
+                  placeholderTextColor={colors.semantic.textMuted}
+                  maxLength={8}
+                  style={styles.budgetInput}
+                />
+              </View>
+            ) : (
+              <Row items="center" gap={8}>
+                <Text style={styles.menuValue}>{item.value}</Text>
+                <ChevronRight color="#999999" />
+              </Row>
+            )}
           </Row>
         </TouchableOpacity>
       ))}
+
+      </ScrollView>
+      </KeyboardAvoidingView>
 
       <DatePickerModal
         visible={openDatePicker}
@@ -163,12 +205,14 @@ export default function CreateWishList() {
         }}
       />
 
+      {/*
       <BudgetPickerModal
         visible={openBudgetPicker}
         value={budget}
         onClose={() => setOpenBudgetPicker(false)}
         onChangeValue={setBudget}
       />
+      */}
     </SafeAreaView>
   );
 }
@@ -176,7 +220,10 @@ export default function CreateWishList() {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    padding: 16,
+    padding: 12,
+    gap: 24,
+  },
+  pageContent: {
     gap: 24,
   },
   nextButton: {
@@ -223,5 +270,26 @@ const styles = StyleSheet.create({
   },
   menuValue: {
     color: colors.semantic.textMuted,
+  },
+  budgetInputShell: {
+    // minWidth: 180,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 10,
+    paddingRight: 6 ,
+  },
+  budgetCurrency: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: colors.theme.primary,
+  },
+  budgetInput: {
+    // minWidth: 88,
+    padding: 0,
+    textAlign: "right",
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.semantic.textPrimary,
   },
 });
