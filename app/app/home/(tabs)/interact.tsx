@@ -1,7 +1,22 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { useEffect, useRef } from "react";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import { Ellipsis } from "lucide-react-native";
 import { ImagesAvatarFemalePng, ImagesAvatarMalePng } from "@/assets";
-import { ChatListItem } from "@/components/interact";
+import {
+  ChatInput,
+  ChatListItem,
+  useChatInputKeyboardOffset,
+} from "@/components/interact";
 import { Column, Row } from "@/components/layout";
 
 const chatList = [
@@ -77,7 +92,43 @@ const chatList = [
   },
 ];
 
+const BOTTOM_THRESHOLD = 20;
+
 export default function Interact() {
+  const keyboardVerticalOffset = useChatInputKeyboardOffset();
+  const scrollRef = useRef<ScrollView>(null);
+  const isAtBottomRef = useRef(true);
+
+  const scrollToBottom = () => {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+  };
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const distanceFromBottom =
+      contentSize.height - layoutMeasurement.height - contentOffset.y;
+    const nextIsAtBottom = distanceFromBottom <= BOTTOM_THRESHOLD;
+
+    isAtBottomRef.current = nextIsAtBottom;
+  };
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const subscription = Keyboard.addListener(showEvent, () => {
+      if (isAtBottomRef.current) {
+        scrollToBottom();
+        setTimeout(scrollToBottom, 120);
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
   return (
     <Column flex={1} style={styles.page}>
       <Row content="space-between" items="center">
@@ -86,20 +137,39 @@ export default function Interact() {
         </TouchableOpacity>
         <Ellipsis />
       </Row>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.list}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={
+          Platform.OS === "ios" ? 0 : keyboardVerticalOffset
+        }
+        style={styles.keyboardAvoidingView}
       >
-        {chatList.map((item) => (
-          <ChatListItem
-            key={item.id}
-            avatar={item.avatar}
-            message={item.message}
-            time={item.time}
-            isSelf={item.isSelf}
-          />
-        ))}
-      </ScrollView>
+        <ScrollView
+          ref={scrollRef}
+          style={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          onContentSizeChange={() => {
+            if (isAtBottomRef.current) {
+              scrollToBottom();
+            }
+          }}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={styles.list}
+        >
+          {chatList.map((item) => (
+            <ChatListItem
+              key={item.id}
+              avatar={item.avatar}
+              message={item.message}
+              time={item.time}
+              isSelf={item.isSelf}
+            />
+          ))}
+        </ScrollView>
+        <ChatInput />
+      </KeyboardAvoidingView>
     </Column>
   );
 }
@@ -113,9 +183,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
+  keyboardAvoidingView: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
+  scroll: {
+    flex: 1,
+  },
   list: {
     paddingTop: 20,
-    paddingBottom: 24,
+    paddingBottom: 16,
     gap: 16,
   },
 });
