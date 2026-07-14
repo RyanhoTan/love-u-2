@@ -1,5 +1,13 @@
+import { createServer } from "node:http";
 import { app } from "./app.js";
 import { config } from "./config.js";
-app.listen(config.port, () => {
+import { setupPartnerChat } from "./ws/partnerChat.js";
+
+const server = createServer(app);
+
+setupPartnerChat(server);
+
+server.listen(config.port, () => {
   console.log(`Server running at http://localhost:${config.port}`);
+  console.log(`Partner chat websocket ready at ws://localhost:${config.port}/partner-chat`);
 });

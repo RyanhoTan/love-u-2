@@ -26,6 +26,14 @@ function getBearerToken(req: Request) {
 export function getAuthTokenPayload(req: Request): AuthTokenPayload {
   const token = getBearerToken(req);
 
+  return verifyAuthToken(token);
+}
+
+export function verifyAuthToken(token: string): AuthTokenPayload {
+  if (!token) {
+    throw new HttpError(401, "invalid or expired token");
+  }
+
   try {
     const payload = jwt.verify(token, config.jwtSecret);
     if (
