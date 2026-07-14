@@ -24,10 +24,14 @@ const printDeleteFailure = ({ relativePath, error }) => {
 
   if (
     isWindows &&
-    (error.code === "EPERM" || error.code === "EBUSY" || error.code === "ENOTEMPTY")
+    (error.code === "EPERM" ||
+      error.code === "EBUSY" ||
+      error.code === "ENOTEMPTY")
   ) {
     console.error("The directory appears to be in use by another process.");
-    console.error("Common causes: Expo/Metro, pnpm dev, node.exe, VS Code TypeScript/ESLint.");
+    console.error(
+      "Common causes: Expo/Metro, pnpm dev, node.exe, VS Code TypeScript/ESLint.",
+    );
     console.error("Try closing related terminals or run:");
     console.error(
       "Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -match 'love-u-2|expo|pnpm' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }",

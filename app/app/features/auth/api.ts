@@ -57,17 +57,25 @@ export async function login(username: string, password: string) {
 }
 
 export async function getUserInfo(token?: string) {
-  return requestWithAuth<UserInfoResponse>("/userinfo", {
-    method: "GET",
-  }, token);
+  return requestWithAuth<UserInfoResponse>(
+    "/userinfo",
+    {
+      method: "GET",
+    },
+    token,
+  );
 }
 
 export async function updateUserProfile(
   payload: UpdateUserProfilePayload,
   token?: string,
 ) {
-  return requestWithAuth<UpdateUserProfileResponse>("/userinfo", {
-    method: "PUT",
-    body: JSON.stringify(payload),
-  }, token);
+  return requestWithAuth<UpdateUserProfileResponse>(
+    "/userinfo",
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
 }

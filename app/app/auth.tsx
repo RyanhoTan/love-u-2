@@ -10,7 +10,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { login, register } from "@/app/features/auth/api";
 import { useAuth } from "@/app/features/auth/auth-context";
-import { IconsAuthHeartSvg, IconsAuthWechatSvg, ImagesAuthBackgroundPng } from "@/assets";
+import {
+  IconsAuthHeartSvg,
+  IconsAuthWechatSvg,
+  ImagesAuthBackgroundPng,
+} from "@/assets";
 import { toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 
@@ -47,7 +51,8 @@ export default function Auth() {
       toast.success("登录成功");
       router.replace("/home");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "登录失败，请稍后重试";
+      const message =
+        error instanceof Error ? error.message : "登录失败，请稍后重试";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -79,7 +84,8 @@ export default function Auth() {
       setShowConfirmPassword(false);
       setConfirmPassword("");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "注册失败，请稍后重试";
+      const message =
+        error instanceof Error ? error.message : "注册失败，请稍后重试";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -139,7 +145,9 @@ export default function Auth() {
             style={[styles.loginButton, isSubmitting && styles.disabledButton]}
             onPress={() => void handleLogin()}
           >
-            <Text style={{ color: "#fff" }}>{isSubmitting ? "登录中..." : "登录"}</Text>
+            <Text style={{ color: "#fff" }}>
+              {isSubmitting ? "登录中..." : "登录"}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             disabled={isSubmitting}

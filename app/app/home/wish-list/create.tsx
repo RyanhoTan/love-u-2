@@ -85,8 +85,7 @@ export default function CreateWishList() {
       toast.success("愿望创建成功");
       router.replace("/home/wish-list");
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "创建愿望失败";
+      const message = error instanceof Error ? error.message : "创建愿望失败";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -106,87 +105,88 @@ export default function CreateWishList() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={6}
       >
-      <NavBar
-        title="创建愿望"
-        rightContent={
-          <TouchableOpacity
-            style={styles.nextButton}
-            onPress={() => void handleNextStep()}
-            disabled={submitting}
-          >
-            <Text style={styles.nextButtonText}>下一步</Text>
-          </TouchableOpacity>
-        }
-      />
-
-      <ScrollView
-        ref={scrollRef}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.pageContent}
-        showsVerticalScrollIndicator={false}
-      >
-      <CoverPicker value={selectedImage} onChange={setSelectedImage} />
-
-      <Column gap={8}>
-        <Text style={styles.fieldLabel}>愿望标题</Text>
-        <TextInput
-          placeholder="输入愿望标题"
-          style={[styles.wishInput, styles.titleInput]}
-          value={title}
-          onChangeText={setTitle}
+        <NavBar
+          title="创建愿望"
+          rightContent={
+            <TouchableOpacity
+              style={styles.nextButton}
+              onPress={() => void handleNextStep()}
+              disabled={submitting}
+            >
+              <Text style={styles.nextButtonText}>下一步</Text>
+            </TouchableOpacity>
+          }
         />
-      </Column>
 
-      <Column gap={8}>
-        <Text style={styles.fieldLabel}>愿望描述</Text>
-        <View style={styles.descriptionContainer}>
-          <TextInput
-            placeholder="输入愿望描述"
-            style={[styles.wishInput, styles.descriptionInput]}
-            multiline
-            maxLength={maxLength}
-            onChangeText={setText}
-            value={text}
-          />
-          <Text style={styles.counterText}>
-            {text.length}/{maxLength}
-          </Text>
-        </View>
-      </Column>
-
-      {menus.map((item) => (
-        <TouchableOpacity
-          key={item.label}
-          onPress={item.onPress}
-          disabled={item.label === "预算"}
+        <ScrollView
+          ref={scrollRef}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.pageContent}
+          showsVerticalScrollIndicator={false}
         >
-          <Row items="center" content="space-between">
-            <Text style={styles.menuTitle}>{item.label}</Text>
-            {item.label === "预算" ? (
-              <View style={styles.budgetInputShell}>
-                <Text style={styles.budgetCurrency}>¥</Text>
-                <TextInput
-                  value={budget}
-                  onChangeText={(text) => setBudget(text.replace(/[^0-9]/g, ""))}
-                  onFocus={scrollBudgetIntoView}
-                  keyboardType="numeric"
-                  placeholder="输入预算"
-                  placeholderTextColor={colors.semantic.textMuted}
-                  maxLength={8}
-                  style={styles.budgetInput}
-                />
-              </View>
-            ) : (
-              <Row items="center" gap={8}>
-                <Text style={styles.menuValue}>{item.value}</Text>
-                <ChevronRight color="#999999" />
-              </Row>
-            )}
-          </Row>
-        </TouchableOpacity>
-      ))}
+          <CoverPicker value={selectedImage} onChange={setSelectedImage} />
 
-      </ScrollView>
+          <Column gap={8}>
+            <Text style={styles.fieldLabel}>愿望标题</Text>
+            <TextInput
+              placeholder="输入愿望标题"
+              style={[styles.wishInput, styles.titleInput]}
+              value={title}
+              onChangeText={setTitle}
+            />
+          </Column>
+
+          <Column gap={8}>
+            <Text style={styles.fieldLabel}>愿望描述</Text>
+            <View style={styles.descriptionContainer}>
+              <TextInput
+                placeholder="输入愿望描述"
+                style={[styles.wishInput, styles.descriptionInput]}
+                multiline
+                maxLength={maxLength}
+                onChangeText={setText}
+                value={text}
+              />
+              <Text style={styles.counterText}>
+                {text.length}/{maxLength}
+              </Text>
+            </View>
+          </Column>
+
+          {menus.map((item) => (
+            <TouchableOpacity
+              key={item.label}
+              onPress={item.onPress}
+              disabled={item.label === "预算"}
+            >
+              <Row items="center" content="space-between">
+                <Text style={styles.menuTitle}>{item.label}</Text>
+                {item.label === "预算" ? (
+                  <View style={styles.budgetInputShell}>
+                    <Text style={styles.budgetCurrency}>¥</Text>
+                    <TextInput
+                      value={budget}
+                      onChangeText={(text) =>
+                        setBudget(text.replace(/[^0-9]/g, ""))
+                      }
+                      onFocus={scrollBudgetIntoView}
+                      keyboardType="numeric"
+                      placeholder="输入预算"
+                      placeholderTextColor={colors.semantic.textMuted}
+                      maxLength={8}
+                      style={styles.budgetInput}
+                    />
+                  </View>
+                ) : (
+                  <Row items="center" gap={8}>
+                    <Text style={styles.menuValue}>{item.value}</Text>
+                    <ChevronRight color="#999999" />
+                  </Row>
+                )}
+              </Row>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </KeyboardAvoidingView>
 
       <DatePickerModal
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-end",
     gap: 10,
-    paddingRight: 6 ,
+    paddingRight: 6,
   },
   budgetCurrency: {
     fontSize: 16,

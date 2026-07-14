@@ -70,7 +70,7 @@ export default function AnniversaryScreen() {
   useFocusEffect(
     useCallback(() => {
       void loadAnniversaries();
-    }, [loadAnniversaries])
+    }, [loadAnniversaries]),
   );
 
   const isEmpty = anniversaries.length === 0;
@@ -133,13 +133,19 @@ export default function AnniversaryScreen() {
                     <Text style={styles.cardDate}>
                       {formatDisplayDate(item.nextOccurrenceDate)}
                       {repeatLabel ? (
-                        <Text style={styles.cardDateHint}>（{repeatLabel}）</Text>
+                        <Text style={styles.cardDateHint}>
+                          （{repeatLabel}）
+                        </Text>
                       ) : null}
                     </Text>
                   </View>
 
                   <Text style={styles.remainingText}>
-                    还有 <Text style={styles.remainingNumber}>{item.remainingDays}</Text> 天
+                    还有{" "}
+                    <Text style={styles.remainingNumber}>
+                      {item.remainingDays}
+                    </Text>{" "}
+                    天
                   </Text>
                 </TouchableOpacity>
                 <Row style={styles.divider} />

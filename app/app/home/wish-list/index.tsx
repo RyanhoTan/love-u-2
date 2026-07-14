@@ -10,7 +10,10 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ImagesAuthBackgroundPng } from "@/assets";
+import {
+  ImagesAuthBackgroundPng,
+  ImagesWishDefaultWishCoverPng,
+} from "@/assets";
 import { MapPin, Plus } from "lucide-react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { SceneMap, TabBar, TabView } from "react-native-tab-view";
@@ -70,9 +73,9 @@ function WishListScene({ category }: { category: WishCategory }) {
         >
           <Row gap={12}>
             <Image
-              source={{
-                uri: wish.cover || "https://picsum.photos/seed/love-u/600/800",
-              }}
+              source={
+                wish.cover ? { uri: wish.cover } : ImagesWishDefaultWishCoverPng
+              }
               style={{ width: 100, height: 100, borderRadius: 8 }}
             />
             <Column content="space-between">

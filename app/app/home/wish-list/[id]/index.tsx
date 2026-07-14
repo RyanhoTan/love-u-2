@@ -129,7 +129,6 @@ export default function WishListDetail() {
             source={ImagesAvatarFemalePng}
             style={{ width: 24, height: 24, borderRadius: 20 }}
           />
-          
         </Row>
       ),
     },
@@ -174,8 +173,7 @@ export default function WishListDetail() {
       setWish(response.wish);
       router.replace(`/home/wish-list/${parsedWishId}/doing`);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "开始计划失败";
+      const message = error instanceof Error ? error.message : "开始计划失败";
       toast.error(message);
     } finally {
       setIsStartingPlan(false);
@@ -216,8 +214,7 @@ export default function WishListDetail() {
               <Tag status={status} />
             </Row>
             <Text style={{ color: "#666" }}>
-              {wish?.description ||
-                "description"}
+              {wish?.description || "description"}
             </Text>
           </Column>
           <Row style={styles.divider} />

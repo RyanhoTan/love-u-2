@@ -3,7 +3,7 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ScrollView } from "react-native-gesture-handler";
 import { ChevronRight, ChevronsUpDown, Grid2x2 } from "lucide-react-native";
-import { ImagesCoverPng } from "@/assets";
+import { ImagesCoverPng, ImagesWishDefaultWishCoverPng } from "@/assets";
 import { toast } from "@/components/common";
 import { getWishes, type WishItem } from "@/app/features/wish-list/api";
 import { useImageViewer } from "@/hooks/use-image-viewer";
@@ -13,7 +13,6 @@ import { TimeLine } from "./time-line";
 
 const COLUMNS = 3;
 const IMAGE_GAP = 8;
-const DEFAULT_WISH_COVER = "https://picsum.photos/seed/love-u/600/800";
 
 export function AllMedias() {
   const router = useRouter();
@@ -111,7 +110,11 @@ export function AllMedias() {
             >
               <Column>
                 <Image
-                  source={{ uri: wish.cover || DEFAULT_WISH_COVER }}
+                  source={
+                    wish.cover
+                      ? { uri: wish.cover }
+                      : ImagesWishDefaultWishCoverPng
+                  }
                   style={{ width: 120, height: 120 }}
                 />
                 <Column bg="#ffffff80" style={{ width: 120, padding: 6 }}>

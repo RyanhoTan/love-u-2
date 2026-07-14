@@ -28,6 +28,7 @@ export const ImagesHome2PersonPng = require("./images/home-2-person.png");
 export const ImagesIconPng = require("./images/icon.png");
 export const ImagesSplashPng = require("./images/splash.png");
 export const ImagesStatusPinkBearPng = require("./images/status/pink-bear.png");
+export const ImagesWishDefaultWishCoverPng = require("./images/wish/default_wish_cover.png");
 export const ImagesWishFinishPng = require("./images/wish/finish.png");
 export const ImagesWishHugHeartPng = require("./images/wish/hug-heart.png");
 export const TestMp4 = require("./test/test.mp4");

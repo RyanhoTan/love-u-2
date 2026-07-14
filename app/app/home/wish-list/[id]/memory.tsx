@@ -83,8 +83,7 @@ export default function Memory() {
       setWish(response.wish);
       setRecords(response.records);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "加载回忆失败";
+      const message = error instanceof Error ? error.message : "加载回忆失败";
       toast.error(message);
     }
   }, [id]);
@@ -242,7 +241,9 @@ export default function Memory() {
                                 }
                               >
                                 {/* TODO: 后端拿到视频生成缩略图 */}
-                                <View style={[styles.gridImage, styles.videoCard]}>
+                                <View
+                                  style={[styles.gridImage, styles.videoCard]}
+                                >
                                   <View style={styles.videoOverlay} />
                                   <Play
                                     color="#fff"

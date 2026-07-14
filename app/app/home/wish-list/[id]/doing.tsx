@@ -147,8 +147,7 @@ export default function Doing() {
       setWish(response.wish);
       router.replace(`/home/wish-list/${parsedWishId}/finish`);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "结束愿望失败";
+      const message = error instanceof Error ? error.message : "结束愿望失败";
       toast.error(message);
     } finally {
       setIsEndingWish(false);
@@ -159,9 +158,7 @@ export default function Doing() {
     <SafeAreaView style={{ flex: 1 }}>
       <NavBar
         rightContent={
-          <TouchableOpacity
-            onPress={() => void handleFinishWish()}
-          >
+          <TouchableOpacity onPress={() => void handleFinishWish()}>
             <Text>结束愿望</Text>
           </TouchableOpacity>
         }
@@ -222,7 +219,9 @@ export default function Doing() {
                                 }
                               >
                                 {/* TODO: 后端拿到视频生成缩略图 */}
-                                <View style={[styles.gridImage, styles.videoCard]}>
+                                <View
+                                  style={[styles.gridImage, styles.videoCard]}
+                                >
                                   <View style={styles.videoOverlay} />
                                   <Play
                                     color="#fff"

@@ -14,7 +14,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ImagesWishHugHeartPng } from "@/assets";
 import { useAuth } from "@/app/features/auth/auth-context";
-import { createCoupleInvite, getCoupleSpace } from "@/app/features/couple-space/api";
+import {
+  createCoupleInvite,
+  getCoupleSpace,
+} from "@/app/features/couple-space/api";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 
@@ -45,7 +48,8 @@ export default function CoupleSpaceBindScreen() {
 
       try {
         const coupleSpaceResponse = await getCoupleSpace();
-        const existingCode = coupleSpaceResponse.coupleSpace.activeInvite?.code ?? "";
+        const existingCode =
+          coupleSpaceResponse.coupleSpace.activeInvite?.code ?? "";
 
         if (existingCode) {
           if (!isMounted) {
@@ -73,7 +77,7 @@ export default function CoupleSpaceBindScreen() {
         setMyInviteCode("");
         setIsInviteReady(false);
         toast.error(
-          error instanceof Error ? error.message : "邀请码获取失败，请稍后重试"
+          error instanceof Error ? error.message : "邀请码获取失败，请稍后重试",
         );
       } finally {
         if (isMounted) {

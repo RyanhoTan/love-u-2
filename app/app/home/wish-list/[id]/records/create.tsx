@@ -216,215 +216,218 @@ export default function CreateRecord() {
       <KeyboardAvoidingView
         style={styles.page}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        
         keyboardVerticalOffset={12}
       >
-      <NavBar title="进行中" rightContent={<Ellipsis />} />
+        <NavBar title="进行中" rightContent={<Ellipsis />} />
 
-      <ScrollView
-        ref={scrollRef}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <Row style={styles.wishCard}>
-          <Image
-            contentFit="cover"
-            source={wishCoverSource}
-            style={styles.wishCover}
-          />
-
-          <Column flex={1} style={styles.wishInfo} gap={12}>
-            <Row items="center" gap={8}>
-              <Text style={styles.wishTitle}>{wish?.title || "愿望记录"}</Text>
-              <Tag status={wish?.status || "planning"} />
-            </Row>
-
-            <Text numberOfLines={1} style={styles.wishDescription}>
-              {wish?.description || "记录这次愿望旅程里值得记住的瞬间"}
-            </Text>
-
-            <Row items="center" gap={4}>
-              <MapPin size={15} color="#666" />
-              <Text style={styles.wishMeta}>
-                {wish?.locationName || "还没有设置地点"}
-              </Text>
-            </Row>
-          </Column>
-        </Row>
-
-        {loadingWish && (
-          <Text style={styles.loadingText}>正在加载愿望信息...</Text>
-        )}
-
-        <TouchableOpacity
-          onPress={() => setOpenDatePicker(true)}
-          style={styles.dateButton}
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <CalendarDays size={16} />
-          <Text>{date.toLocaleDateString()}</Text>
-          <ChevronDown size={16} />
-        </TouchableOpacity>
+          <Row style={styles.wishCard}>
+            <Image
+              contentFit="cover"
+              source={wishCoverSource}
+              style={styles.wishCover}
+            />
 
-        <View style={styles.descriptionContainer}>
-          <TextInput
-            placeholder="今天发生了什么..."
-            style={styles.descriptionInput}
-            multiline
-            maxLength={300}
-            onChangeText={setText}
-            value={text}
-          />
-          <Text style={styles.counterText}>{text.length}/300</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>心情</Text>
-
-        <Row>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.moodList}
-          >
-            {STATUS_ICONS.map(({ id: statusId, name, Icon }) => (
-              <Column key={statusId} center>
-                <TouchableOpacity
-                  style={styles.moodButton}
-                  onPress={() => {
-                    setSelectedStatus(statusId);
-                    toast.info(name);
-                  }}
-                >
-                  <View
-                    style={[
-                      styles.moodIconWrapper,
-                      selectedStatus === statusId &&
-                        styles.moodIconWrapperActive,
-                    ]}
-                  >
-                    <Icon width={36} height={36} />
-                  </View>
-                  <Text style={styles.moodLabel}>{name}</Text>
-                </TouchableOpacity>
-              </Column>
-            ))}
-          </ScrollView>
-        </Row>
-
-        <Row style={styles.mediaGrid}>
-          {selectedMedia.map((media) => (
-            <View key={media.id} style={styles.mediaCard}>
-              {media.type === "image" ? (
-                <Image
-                  contentFit="cover"
-                  source={{ uri: media.uri }}
-                  style={styles.mediaPreview}
-                />
-              ) : (
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={() =>
-                    openVideoViewer(
-                      { uri: media.uri },
-                      wish?.title || "Wish record video",
-                      date.toLocaleDateString(),
-                    )
-                  }
-                >
-                  <View style={[styles.mediaPreview, styles.videoPreview]}>
-                    {media.thumbnailSource && (
-                      <Image
-                        source={media.thumbnailSource}
-                        style={StyleSheet.absoluteFill}
-                      />
-                    )}
-                    <View
-                      style={{
-                        ...StyleSheet.absoluteFill,
-                        backgroundColor: "rgba(0,0,0,0.2)",
-                      }}
-                    />
-
-                    <Play
-                      color="#fff"
-                      size={24}
-                      fill="#fff"
-                      style={{ zIndex: 1 }}
-                    />
-                  </View>
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity
-                onPress={() => removeMedia(media.id)}
-                style={styles.removeMediaButton}
-              >
-                <X color="#fff" size={12} />
-              </TouchableOpacity>
-            </View>
-          ))}
-
-          {selectedMedia.length < MAX_MEDIA_COUNT && (
-            <TouchableOpacity
-              style={styles.addMediaButton}
-              onPress={openMediaActions}
-            >
-              <Column center gap={8}>
-                <Plus color="#FF6B8B" />
-                <Text style={styles.addMediaText}>添加照片/视频</Text>
-              </Column>
-            </TouchableOpacity>
-          )}
-        </Row>
-        <Text style={styles.mediaCount}>
-          {`${selectedMedia.length} / ${MAX_MEDIA_COUNT}`}
-        </Text>
-
-        <Column gap={12}>
-          <Row items="center" gap={16}>
-            <Text>地点</Text>
-            <TouchableOpacity
-              onPress={() => setOpenMapPicker(true)}
-              style={styles.locationButton}
-            >
+            <Column flex={1} style={styles.wishInfo} gap={12}>
               <Row items="center" gap={8}>
-                <MapPin size={16} color="#aaa" />
-                <Text style={styles.fieldValue}>
-                  {selectedLocation?.name ?? "点击选择地点"}
+                <Text style={styles.wishTitle}>
+                  {wish?.title || "愿望记录"}
+                </Text>
+                <Tag status={wish?.status || "planning"} />
+              </Row>
+
+              <Text numberOfLines={1} style={styles.wishDescription}>
+                {wish?.description || "记录这次愿望旅程里值得记住的瞬间"}
+              </Text>
+
+              <Row items="center" gap={4}>
+                <MapPin size={15} color="#666" />
+                <Text style={styles.wishMeta}>
+                  {wish?.locationName || "还没有设置地点"}
                 </Text>
               </Row>
-              <ChevronRight size={16} color="#aaa" />
-            </TouchableOpacity>
+            </Column>
           </Row>
 
-          <Row items="center" gap={16}>
-            <Text>花费</Text>
-            <View style={styles.locationButton}>
-              <Row items="center" gap={8}>
-                <JapaneseYen color={colors.theme.primary} size={16} />
-                <TextInput
-                  value={budget}
-                  onChangeText={(text) => setBudget(text.replace(/[^0-9]/g, ""))}
-                  onFocus={scrollBudgetIntoView}
-                  keyboardType="numeric"
-                  placeholder="输入金额"
-                  placeholderTextColor={colors.semantic.textMuted}
-                  maxLength={8}
-                  style={styles.budgetInput}
-                />
-              </Row>
-              <Text style={styles.budgetSuffix}>元</Text>
-            </View>
-          </Row>
-        </Column>
-      </ScrollView>
+          {loadingWish && (
+            <Text style={styles.loadingText}>正在加载愿望信息...</Text>
+          )}
 
-      <View style={styles.footer}>
-        <PinkButton
-          text={submitting ? "保存中..." : "保存"}
-          onPress={() => void handleSave()}
-        />
-      </View>
+          <TouchableOpacity
+            onPress={() => setOpenDatePicker(true)}
+            style={styles.dateButton}
+          >
+            <CalendarDays size={16} />
+            <Text>{date.toLocaleDateString()}</Text>
+            <ChevronDown size={16} />
+          </TouchableOpacity>
+
+          <View style={styles.descriptionContainer}>
+            <TextInput
+              placeholder="今天发生了什么..."
+              style={styles.descriptionInput}
+              multiline
+              maxLength={300}
+              onChangeText={setText}
+              value={text}
+            />
+            <Text style={styles.counterText}>{text.length}/300</Text>
+          </View>
+
+          <Text style={styles.sectionTitle}>心情</Text>
+
+          <Row>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.moodList}
+            >
+              {STATUS_ICONS.map(({ id: statusId, name, Icon }) => (
+                <Column key={statusId} center>
+                  <TouchableOpacity
+                    style={styles.moodButton}
+                    onPress={() => {
+                      setSelectedStatus(statusId);
+                      toast.info(name);
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.moodIconWrapper,
+                        selectedStatus === statusId &&
+                          styles.moodIconWrapperActive,
+                      ]}
+                    >
+                      <Icon width={36} height={36} />
+                    </View>
+                    <Text style={styles.moodLabel}>{name}</Text>
+                  </TouchableOpacity>
+                </Column>
+              ))}
+            </ScrollView>
+          </Row>
+
+          <Row style={styles.mediaGrid}>
+            {selectedMedia.map((media) => (
+              <View key={media.id} style={styles.mediaCard}>
+                {media.type === "image" ? (
+                  <Image
+                    contentFit="cover"
+                    source={{ uri: media.uri }}
+                    style={styles.mediaPreview}
+                  />
+                ) : (
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={() =>
+                      openVideoViewer(
+                        { uri: media.uri },
+                        wish?.title || "Wish record video",
+                        date.toLocaleDateString(),
+                      )
+                    }
+                  >
+                    <View style={[styles.mediaPreview, styles.videoPreview]}>
+                      {media.thumbnailSource && (
+                        <Image
+                          source={media.thumbnailSource}
+                          style={StyleSheet.absoluteFill}
+                        />
+                      )}
+                      <View
+                        style={{
+                          ...StyleSheet.absoluteFill,
+                          backgroundColor: "rgba(0,0,0,0.2)",
+                        }}
+                      />
+
+                      <Play
+                        color="#fff"
+                        size={24}
+                        fill="#fff"
+                        style={{ zIndex: 1 }}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                  onPress={() => removeMedia(media.id)}
+                  style={styles.removeMediaButton}
+                >
+                  <X color="#fff" size={12} />
+                </TouchableOpacity>
+              </View>
+            ))}
+
+            {selectedMedia.length < MAX_MEDIA_COUNT && (
+              <TouchableOpacity
+                style={styles.addMediaButton}
+                onPress={openMediaActions}
+              >
+                <Column center gap={8}>
+                  <Plus color="#FF6B8B" />
+                  <Text style={styles.addMediaText}>添加照片/视频</Text>
+                </Column>
+              </TouchableOpacity>
+            )}
+          </Row>
+          <Text style={styles.mediaCount}>
+            {`${selectedMedia.length} / ${MAX_MEDIA_COUNT}`}
+          </Text>
+
+          <Column gap={12}>
+            <Row items="center" gap={16}>
+              <Text>地点</Text>
+              <TouchableOpacity
+                onPress={() => setOpenMapPicker(true)}
+                style={styles.locationButton}
+              >
+                <Row items="center" gap={8}>
+                  <MapPin size={16} color="#aaa" />
+                  <Text style={styles.fieldValue}>
+                    {selectedLocation?.name ?? "点击选择地点"}
+                  </Text>
+                </Row>
+                <ChevronRight size={16} color="#aaa" />
+              </TouchableOpacity>
+            </Row>
+
+            <Row items="center" gap={16}>
+              <Text>花费</Text>
+              <View style={styles.locationButton}>
+                <Row items="center" gap={8}>
+                  <JapaneseYen color={colors.theme.primary} size={16} />
+                  <TextInput
+                    value={budget}
+                    onChangeText={(text) =>
+                      setBudget(text.replace(/[^0-9]/g, ""))
+                    }
+                    onFocus={scrollBudgetIntoView}
+                    keyboardType="numeric"
+                    placeholder="输入金额"
+                    placeholderTextColor={colors.semantic.textMuted}
+                    maxLength={8}
+                    style={styles.budgetInput}
+                  />
+                </Row>
+                <Text style={styles.budgetSuffix}>元</Text>
+              </View>
+            </Row>
+          </Column>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <PinkButton
+            text={submitting ? "保存中..." : "保存"}
+            onPress={() => void handleSave()}
+          />
+        </View>
       </KeyboardAvoidingView>
 
       <DatePickerModal

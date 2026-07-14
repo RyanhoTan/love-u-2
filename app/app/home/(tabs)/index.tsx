@@ -1,5 +1,10 @@
 import { useCallback, useState } from "react";
-import { Image, Text, TouchableOpacity, type ImageSourcePropType } from "react-native";
+import {
+  Image,
+  Text,
+  TouchableOpacity,
+  type ImageSourcePropType,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "@/app/features/auth/auth-context";
@@ -7,7 +12,10 @@ import {
   getAnniversaries,
   type AnniversaryItem,
 } from "@/app/features/anniversary/api";
-import { getCoupleSpace, type CoupleSpace } from "@/app/features/couple-space/api";
+import {
+  getCoupleSpace,
+  type CoupleSpace,
+} from "@/app/features/couple-space/api";
 import { Column, Row } from "@/components/layout";
 import {
   ImagesAnniversaryCalendarPng,
@@ -51,7 +59,7 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       void loadHomeData();
-    }, [loadHomeData])
+    }, [loadHomeData]),
   );
 
   const nextAnniversary = anniversaries[0];

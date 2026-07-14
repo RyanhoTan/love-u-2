@@ -62,7 +62,11 @@ function formatApiDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function getReminderDaysBefore(remind7: boolean, remind3: boolean, remindDay: boolean) {
+function getReminderDaysBefore(
+  remind7: boolean,
+  remind3: boolean,
+  remindDay: boolean,
+) {
   if (remind7) {
     return 7;
   }
@@ -82,7 +86,8 @@ export default function AnniversaryCreateScreen() {
   const router = useRouter();
   const { showStyledActionSheet } = useStyledActionSheet();
   const [title, setTitle] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<AnniversaryType>("love");
+  const [selectedCategory, setSelectedCategory] =
+    useState<AnniversaryType>("love");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const [repeatType, setRepeatType] = useState<AnniversaryRepeatType>("yearly");
@@ -127,7 +132,7 @@ export default function AnniversaryCreateScreen() {
         if (selectedIndex === 1) {
           setRepeatType("none");
         }
-      }
+      },
     );
   };
 
@@ -165,8 +170,13 @@ export default function AnniversaryCreateScreen() {
       <NavBar
         title="新增纪念日"
         rightContent={
-          <TouchableOpacity activeOpacity={0.85} onPress={() => void handleSave()}>
-            <Text style={styles.saveText}>{isSubmitting ? "保存中..." : "保存"}</Text>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => void handleSave()}
+          >
+            <Text style={styles.saveText}>
+              {isSubmitting ? "保存中..." : "保存"}
+            </Text>
           </TouchableOpacity>
         }
       />
