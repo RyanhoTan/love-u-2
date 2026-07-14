@@ -12,6 +12,7 @@ import {
   type ImageSourcePropType,
 } from "react-native";
 import { Ellipsis } from "lucide-react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { ImagesAvatarFemalePng, ImagesAvatarMalePng } from "@/assets";
 import { useAuth } from "@/app/features/auth/auth-context";
 import {
@@ -40,6 +41,10 @@ function formatMessageTime(value: string) {
 }
 
 function getStatusText(status: string) {
+  if (status === "read") {
+    return "已读";
+  }
+
   if (status === "sending") {
     return "发送中";
   }
@@ -57,6 +62,7 @@ function getStatusText(status: string) {
 
 export default function Interact() {
   const keyboardVerticalOffset = useChatInputKeyboardOffset();
+  const isFocused = useIsFocused();
   const { token, user } = useAuth();
   const scrollRef = useRef<ScrollView>(null);
   const isAtBottomRef = useRef(true);
@@ -64,7 +70,7 @@ export default function Interact() {
   const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
   const [isLoadingCoupleSpace, setIsLoadingCoupleSpace] = useState(false);
   const { messages, status, errorMessage, isConnected, sendMessage } =
-    usePartnerChat(token);
+    usePartnerChat(token, { isVisible: isFocused });
 
   const isBound = Boolean(coupleSpace?.isBound && coupleSpace.partner);
   const canSendMessage = isBound && isConnected;
