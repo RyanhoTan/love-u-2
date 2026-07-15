@@ -8,15 +8,16 @@ import {
   View,
   TouchableOpacity,
   useWindowDimensions,
+  BackHandler,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ImagesAuthBackgroundPng,
   ImagesWishDefaultWishCoverPng,
 } from "@/assets";
-import { MapPin, Plus } from "lucide-react-native";
+import { Check, MapPin, Plus, Trash2 } from "lucide-react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { SceneMap, TabBar, TabView } from "react-native-tab-view";
+import { TabBar, TabView } from "react-native-tab-view";
 import { MapOverviewModal, Tag, type MapMarker } from "@/components/wish-list";
 import { Column, Row } from "@/components/layout";
 import { colors } from "@/styles/colors";
@@ -57,40 +58,88 @@ function getWishDetailRoute(wishId: number, status: WishStatus) {
   return `/home/wish-list/${wishId}` as const;
 }
 
-function WishListScene({ category }: { category: WishCategory }) {
+function WishListScene({
+  category,
+  editing,
+  selectedIds,
+  onWishPress,
+  onWishLongPress,
+}: {
+  category: WishCategory;
+  editing: boolean;
+  selectedIds: number[];
+  onWishPress: (wish: WishCategory["wishList"][number]) => void;
+  onWishLongPress: (wish: WishCategory["wishList"][number]) => void;
+}) {
   return (
     <ScrollView
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
     >
-      {category.wishList.map((wish) => (
-        <TouchableOpacity
-          key={wish.id}
-          style={styles.wishItem}
-          onPress={() =>
-            router.push(getWishDetailRoute(wish.id, category.type))
-          }
-        >
-          <Row gap={12}>
-            <Image
-              source={
-                wish.cover ? { uri: wish.cover } : ImagesWishDefaultWishCoverPng
-              }
-              style={{ width: 100, height: 100, borderRadius: 8 }}
-            />
-            <Column content="space-between">
-              <Text style={{ fontSize: 16, fontWeight: "bold" }}>
-                {wish.title}
-              </Text>
+      {category.wishList.map((wish) => {
+        const selected = selectedIds.includes(wish.id);
 
-              <Tag status={category.type} />
-              <Text style={{ color: colors.semantic.textSecondary }}>
-                {`预计时间：${wish.time}`}
-              </Text>
-            </Column>
-          </Row>
-        </TouchableOpacity>
-      ))}
+        return (
+          <TouchableOpacity
+            key={wish.id}
+            activeOpacity={0.82}
+            style={[styles.wishItem, selected && styles.wishItemEditing]}
+            onPress={() => onWishPress(wish)}
+            onLongPress={() => onWishLongPress(wish)}
+          >
+            <Row content="space-between" items="center" gap={12}>
+              <Row gap={12} style={styles.wishInfo}>
+                <Image
+                  source={
+                    wish.cover
+                      ? { uri: wish.cover }
+                      : ImagesWishDefaultWishCoverPng
+                  }
+                  style={[
+                    styles.wishCover,
+                    editing && styles.wishCoverEditing,
+                  ]}
+                />
+                <Column content="space-between" style={styles.wishText}>
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.wishTitle,
+                      editing && styles.wishTitleEditing,
+                    ]}
+                  >
+                    {wish.title}
+                  </Text>
+
+                  <Tag status={category.type} />
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.wishTime,
+                      editing && styles.wishTimeEditing,
+                    ]}
+                  >
+                    {`预计时间：${wish.time}`}
+                  </Text>
+                </Column>
+              </Row>
+
+              {editing ? (
+                <View
+                  style={[
+                    styles.checkbox,
+                    selected && styles.checkboxSelected,
+                  ]}
+                >
+                  {selected ? (
+                    <Check color="#fff" height={14} width={14} />
+                  ) : null}
+                </View>
+              ) : null}
+            </Row>
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 }
@@ -101,6 +150,8 @@ export default function WishList() {
   const [index, setIndex] = useState(params.tab === "done" ? 2 : 0);
   const [mapVisible, setMapVisible] = useState(false);
   const [wishes, setWishes] = useState<WishItem[]>([]);
+  const [editing, setEditing] = useState(false);
+  const [selectedWishIds, setSelectedWishIds] = useState<number[]>([]);
 
   const refreshWishes = useCallback(async () => {
     try {
@@ -191,21 +242,91 @@ export default function WishList() {
     [wishes],
   );
 
-  const TodoRoute = () => <WishListScene category={categories[0]} />;
-  const DoingRoute = () => <WishListScene category={categories[1]} />;
-  const DoneRoute = () => <WishListScene category={categories[2]} />;
+  const toggleWishSelection = useCallback((wishId: number) => {
+    setSelectedWishIds((current) =>
+      current.includes(wishId)
+        ? current.filter((id) => id !== wishId)
+        : [...current, wishId],
+    );
+  }, []);
 
-  const renderScene = SceneMap({
-    todo: TodoRoute,
-    doing: DoingRoute,
-    done: DoneRoute,
-  });
+  const handleWishPress = useCallback(
+    (wish: WishCategory["wishList"][number]) => {
+      if (editing) {
+        toggleWishSelection(wish.id);
+        return;
+      }
+
+      router.push(getWishDetailRoute(wish.id, wish.status));
+    },
+    [editing, toggleWishSelection],
+  );
+
+  const handleWishLongPress = useCallback(
+    (wish: WishCategory["wishList"][number]) => {
+      setEditing(true);
+      setSelectedWishIds((current) =>
+        current.includes(wish.id) ? current : [...current, wish.id],
+      );
+    },
+    [],
+  );
+
+  const cancelEditing = useCallback(() => {
+    setEditing(false);
+    setSelectedWishIds([]);
+  }, []);
+
+  const renderScene = useCallback(
+    ({ route }: { route: WishRoute }) => {
+      const category = categories.find((item) => item.type === route.key);
+
+      if (!category) {
+        return null;
+      }
+
+      return (
+        <WishListScene
+          category={category}
+          editing={editing}
+          selectedIds={selectedWishIds}
+          onWishPress={handleWishPress}
+          onWishLongPress={handleWishLongPress}
+        />
+      );
+    },
+    [
+      categories,
+      editing,
+      handleWishLongPress,
+      handleWishPress,
+      selectedWishIds,
+    ],
+  );
 
   useEffect(() => {
     if (params.tab === "done") {
       setIndex(2);
     }
   }, [params.tab]);
+
+  useEffect(() => {
+    if (!editing) {
+      return;
+    }
+
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        cancelEditing();
+        return true;
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [cancelEditing, editing]);
 
   return (
     <View style={styles.page}>
@@ -214,6 +335,23 @@ export default function WishList() {
           <Row content="space-between" items="center">
             <Text style={styles.title}>愿望清单</Text>
             <Row gap={8} items="center">
+              {editing ? (
+                <>
+                  <TouchableOpacity
+                    style={styles.cancelEditButton}
+                    onPress={cancelEditing}
+                  >
+                    <Text style={styles.cancelEditText}>取消</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.iconButton}>
+                    <Trash2
+                      color={colors.theme.primary}
+                      height={22}
+                      width={22}
+                    />
+                  </TouchableOpacity>
+                </>
+              ) : null}
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => setMapVisible(true)}
@@ -290,6 +428,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  cancelEditButton: {
+    height: 40,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.88)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelEditText: {
+    color: colors.theme.primary,
+    fontSize: 14,
+    fontWeight: "bold",
+  },
   tabView: {
     flex: 1,
     marginTop: 20,
@@ -326,5 +477,50 @@ const styles = StyleSheet.create({
     backgroundColor: colors.semantic.page,
     borderRadius: 12,
     padding: 16,
+  },
+  wishItemEditing: {
+    alignSelf: "flex-start",
+    width: "80%",
+    padding: 13,
+  },
+  wishInfo: {
+    flex: 1,
+  },
+  wishCover: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  wishCoverEditing: {
+    width: 80,
+    height: 80,
+  },
+  wishText: {
+    flex: 1,
+  },
+  wishTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  wishTitleEditing: {
+    fontSize: 14,
+  },
+  wishTime: {
+    color: colors.semantic.textSecondary,
+  },
+  wishTimeEditing: {
+    fontSize: 12,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: colors.theme.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxSelected: {
+    backgroundColor: colors.theme.primary,
   },
 });
