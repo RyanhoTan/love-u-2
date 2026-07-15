@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
+import albumRouter from "./router/album.js";
 import anniversaryRouter from "./router/anniversary.js";
 import coupleRouter from "./router/couple.js";
 import { isHttpError } from "./errors.js";
@@ -28,6 +29,7 @@ app.use(cors());
 app.use(express.json());
 
 // 路由
+app.use("/album", albumRouter);
 app.use("/anniversaries", anniversaryRouter);
 app.use("/couple-space", coupleRouter);
 app.use("/user", userRouter);

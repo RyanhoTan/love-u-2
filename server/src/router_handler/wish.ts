@@ -19,6 +19,10 @@ interface TableNameRow extends RowDataPacket {
   TABLE_NAME: string;
 }
 
+interface ColumnNameRow extends RowDataPacket {
+  COLUMN_NAME: string;
+}
+
 interface WishRow extends RowDataPacket {
   id: number;
   relationship_id: number | null;
@@ -51,6 +55,11 @@ interface WishRecordRow extends RowDataPacket {
   media_urls: string[] | string | null;
   created_at: Date | string;
   updated_at: Date | string;
+}
+
+interface WishRecordMediaRow extends RowDataPacket {
+  source_id: number;
+  url: string;
 }
 
 function formatDateOnly(value: Date | string) {
@@ -92,25 +101,35 @@ function serializeWish(row: WishRow) {
   };
 }
 
-function serializeWishRecord(row: WishRecordRow) {
-  let mediaUrls: string[] = [];
+function parseLegacyMediaUrls(row: WishRecordRow) {
+  if (!row.media_urls) {
+    return [];
+  }
 
-  if (row.media_urls) {
-    if (Array.isArray(row.media_urls)) {
-      mediaUrls = row.media_urls.filter(
-        (item): item is string => typeof item === "string"
-      );
-    } else {
-      try {
-        const parsed = JSON.parse(row.media_urls) as unknown;
-        if (Array.isArray(parsed)) {
-          mediaUrls = parsed.filter(
-            (item): item is string => typeof item === "string"
-          );
-        }
-      } catch {
-        mediaUrls = [];
-      }
+  if (Array.isArray(row.media_urls)) {
+    return row.media_urls.filter(
+      (item): item is string => typeof item === "string"
+    );
+  }
+
+  try {
+    const parsed = JSON.parse(row.media_urls) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.filter((item): item is string => typeof item === "string");
+    }
+  } catch {
+    return [];
+  }
+
+  return [];
+}
+
+function serializeWishRecord(row: WishRecordRow, mediaUrls: string[] = []) {
+  const mergedMediaUrls = [...mediaUrls];
+
+  for (const url of parseLegacyMediaUrls(row)) {
+    if (!mergedMediaUrls.includes(url)) {
+      mergedMediaUrls.push(url);
     }
   }
 
@@ -125,7 +144,7 @@ function serializeWishRecord(row: WishRecordRow) {
     latitude: row.latitude === null ? null : Number(row.latitude),
     longitude: row.longitude === null ? null : Number(row.longitude),
     budgetAmount: row.budget_amount,
-    mediaUrls,
+    mediaUrls: mergedMediaUrls,
     createdAt: formatDateTime(row.created_at),
     updatedAt: formatDateTime(row.updated_at),
   };
@@ -159,6 +178,95 @@ async function hasTable(tableName: string) {
   );
 
   return rows.length > 0;
+}
+
+async function hasColumn(tableName: string, columnName: string) {
+  const [rows] = await db.query<ColumnNameRow[]>(
+    `
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+      LIMIT 1
+    `,
+    [tableName, columnName]
+  );
+
+  return rows.length > 0;
+}
+
+function inferMediaType(url: string) {
+  return /\.(mp4|mov|m4v|webm|avi|mkv)$/i.test(url) ? "video" : "image";
+}
+
+async function getWishRecordMedia(recordIds: number[]) {
+  if (!recordIds.length || !(await hasTable("album_media"))) {
+    return new Map<number, string[]>();
+  }
+
+  const [rows] = await db.query<WishRecordMediaRow[]>(
+    `
+      SELECT source_id, url
+      FROM album_media
+      WHERE source_type = 'wish_record'
+        AND source_id IN (?)
+      ORDER BY id ASC
+    `,
+    [recordIds]
+  );
+
+  const mediaByRecord = new Map<number, string[]>();
+  for (const row of rows) {
+    const media = mediaByRecord.get(row.source_id) ?? [];
+    media.push(row.url);
+    mediaByRecord.set(row.source_id, media);
+  }
+
+  return mediaByRecord;
+}
+
+async function createWishRecordMedia(
+  wish: WishRow,
+  recordId: number,
+  userId: number,
+  mediaUrls: string[]
+) {
+  if (!mediaUrls.length || !(await hasTable("album_media"))) {
+    return;
+  }
+
+  const values = mediaUrls.map((url) => [
+    wish.relationship_id,
+    userId,
+    inferMediaType(url),
+    "wish_record",
+    recordId,
+    url,
+    formatDateOnly(wish.target_date),
+    wish.location_name,
+    wish.latitude,
+    wish.longitude,
+  ]);
+
+  await db.query<ResultSetHeader>(
+    `
+      INSERT INTO album_media (
+        relationship_id,
+        created_by_user_id,
+        media_type,
+        source_type,
+        source_id,
+        url,
+        taken_at,
+        location_name,
+        latitude,
+        longitude
+      )
+      VALUES ?
+    `,
+    [values]
+  );
 }
 
 async function buildWishScope(userId: number) {
@@ -312,6 +420,8 @@ export async function getWishRecords(req: Request, res: Response) {
     return;
   }
 
+  const hasLegacyMediaUrls = await hasColumn("wish_records", "media_urls");
+  const legacyMediaSelect = hasLegacyMediaUrls ? "media_urls," : "NULL AS media_urls,";
   const [rows] = await db.query<WishRecordRow[]>(
     `
       SELECT
@@ -325,7 +435,7 @@ export async function getWishRecords(req: Request, res: Response) {
         latitude,
         longitude,
         budget_amount,
-        media_urls,
+        ${legacyMediaSelect}
         created_at,
         updated_at
       FROM wish_records
@@ -334,11 +444,12 @@ export async function getWishRecords(req: Request, res: Response) {
     `,
     [wishId]
   );
+  const mediaByRecord = await getWishRecordMedia(rows.map((row) => row.id));
 
   res.status(200).json({
     message: "get wish records success",
     wish: serializeWish(wish),
-    records: rows.map(serializeWishRecord),
+    records: rows.map((row) => serializeWishRecord(row, mediaByRecord.get(row.id))),
   });
 }
 
@@ -549,6 +660,25 @@ export async function createWishRecord(req: Request, res: Response) {
     throw new HttpError(500, "wish records table not found");
   }
 
+  const hasLegacyMediaUrls = await hasColumn("wish_records", "media_urls");
+  const mediaColumnSql = hasLegacyMediaUrls ? ", media_urls" : "";
+  const mediaValueSql = hasLegacyMediaUrls ? ", ?" : "";
+  const insertValues = [
+    wishId,
+    userId,
+    payload.content || null,
+    payload.recordDate,
+    payload.mood || null,
+    payload.locationName || null,
+    payload.latitude,
+    payload.longitude,
+    payload.budgetAmount,
+  ];
+
+  if (hasLegacyMediaUrls) {
+    insertValues.push(JSON.stringify(payload.mediaUrls));
+  }
+
   const [result] = await db.query<ResultSetHeader>(
     `
       INSERT INTO wish_records (
@@ -560,25 +690,16 @@ export async function createWishRecord(req: Request, res: Response) {
         location_name,
         latitude,
         longitude,
-        budget_amount,
-        media_urls
+        budget_amount
+        ${mediaColumnSql}
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?${mediaValueSql})
     `,
-    [
-      wishId,
-      userId,
-      payload.content || null,
-      payload.recordDate,
-      payload.mood || null,
-      payload.locationName || null,
-      payload.latitude,
-      payload.longitude,
-      payload.budgetAmount,
-      JSON.stringify(payload.mediaUrls),
-    ]
+    insertValues
   );
+  await createWishRecordMedia(wish, result.insertId, userId, payload.mediaUrls);
 
+  const legacyMediaSelect = hasLegacyMediaUrls ? "media_urls," : "NULL AS media_urls,";
   const [recordRows] = await db.query<WishRecordRow[]>(
     `
       SELECT
@@ -592,7 +713,7 @@ export async function createWishRecord(req: Request, res: Response) {
         latitude,
         longitude,
         budget_amount,
-        media_urls,
+        ${legacyMediaSelect}
         created_at,
         updated_at
       FROM wish_records
@@ -610,6 +731,6 @@ export async function createWishRecord(req: Request, res: Response) {
   res.status(201).json({
     message: "create wish record success",
     wish: serializeWish(wish),
-    record: serializeWishRecord(record),
+    record: serializeWishRecord(record, payload.mediaUrls),
   });
 }
