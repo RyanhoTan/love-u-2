@@ -2,13 +2,14 @@ import { useCallback, useMemo, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ScrollView } from "react-native-gesture-handler";
-import { ChevronRight, ChevronsUpDown, Grid2x2 } from "lucide-react-native";
+import { ChevronRight, ChevronsUpDown, Grid2x2, Play } from "lucide-react-native";
 import { ImagesWishDefaultWishCoverPng } from "@/assets";
 import { getAlbumMedia, type AlbumMediaItem } from "@/app/features/album/api";
 import { getWishes, type WishItem } from "@/app/features/wish-list/api";
 import { toast } from "@/components/common";
 import { STORIES } from "@/data/mock-stories";
 import { useImageViewer } from "@/hooks/use-image-viewer";
+import { useVideoViewer } from "@/hooks/use-video-viewer";
 import { Column, Row } from "../layout";
 import { TimeLine } from "./time-line";
 
@@ -54,7 +55,8 @@ export function AllMedias() {
   >({});
   const [wishes, setWishes] = useState<WishItem[]>([]);
   const [media, setMedia] = useState<AlbumMediaItem[]>([]);
-  const { openViewer, Viewer } = useImageViewer();
+  const { openViewer: openImageViewer, Viewer: ImageViewer } = useImageViewer();
+  const { openViewer: openVideoViewer, Viewer: VideoViewer } = useVideoViewer();
 
   const imageSize = useMemo(() => {
     if (!gridWidth) return 0;
@@ -250,20 +252,57 @@ export function AllMedias() {
                       {imageSize > 0 &&
                         group.items.map((item) => {
                           const uri = item.thumbnailUrl || item.url;
+                          const isVideo = item.mediaType === "video";
 
                           return (
                             <TouchableOpacity
                               key={item.id}
-                              onPress={() => openViewer({ uri })}
+                              activeOpacity={0.85}
+                              onPress={() => {
+                                if (isVideo) {
+                                  openVideoViewer(
+                                    { uri: item.url },
+                                    "",
+                                    item.takenAt || item.uploadedAt,
+                                  );
+                                  return;
+                                }
+
+                                openImageViewer({ uri });
+                              }}
+                              style={{
+                                width: imageSize,
+                                height: imageSize,
+                                borderRadius: 8,
+                                overflow: "hidden",
+                              }}
                             >
                               <Image
                                 source={{ uri }}
                                 style={{
                                   width: imageSize,
                                   height: imageSize,
-                                  borderRadius: 8,
                                 }}
                               />
+                              {isVideo ? (
+                                <View
+                                  style={{
+                                    position: "absolute",
+                                    left: "50%",
+                                    top: "50%",
+                                    width: 34,
+                                    height: 34,
+                                    marginLeft: -17,
+                                    marginTop: -17,
+                                    borderRadius: 17,
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    backgroundColor: "#00000060",
+                                  }}
+                                >
+                                  <Play color="#fff" fill="#fff" size={16} />
+                                </View>
+                              ) : null}
                             </TouchableOpacity>
                           );
                         })}
@@ -275,7 +314,8 @@ export function AllMedias() {
           </Row>
         )}
       </Column>
-      {Viewer}
+      {ImageViewer}
+      {VideoViewer}
     </ScrollView>
   );
 }
