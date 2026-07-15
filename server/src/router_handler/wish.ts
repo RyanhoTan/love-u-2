@@ -32,7 +32,6 @@ interface WishRow extends RowDataPacket {
   longitude: number | string | null;
   budget_amount: number | null;
   status: WishStatus;
-  is_seed: number;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -90,7 +89,6 @@ function serializeWish(row: WishRow) {
     longitude: row.longitude === null ? null : Number(row.longitude),
     budgetAmount: row.budget_amount,
     status: row.status,
-    isSeed: Boolean(row.is_seed),
     createdAt: formatDateTime(row.created_at),
     updatedAt: formatDateTime(row.updated_at),
   };
@@ -226,14 +224,14 @@ async function buildWishScope(userId: number) {
 
   if (relationship) {
     return {
-      sql: "(relationship_id = ? OR is_seed = 1)",
+      sql: "(relationship_id = ?)",
       values: [relationship.id],
       relationshipId: relationship.id,
     };
   }
 
   return {
-    sql: "(created_by_user_id = ? OR is_seed = 1)",
+    sql: "(created_by_user_id = ?)",
     values: [userId],
     relationshipId: null,
   };
@@ -258,7 +256,6 @@ export async function getWishes(req: Request, res: Response) {
         longitude,
         budget_amount,
         status,
-        is_seed,
         created_at,
         updated_at
       FROM wishes
@@ -301,7 +298,6 @@ export async function getWishById(req: Request, res: Response) {
         longitude,
         budget_amount,
         status,
-        is_seed,
         created_at,
         updated_at
       FROM wishes
@@ -347,7 +343,6 @@ export async function getWishRecords(req: Request, res: Response) {
         longitude,
         budget_amount,
         status,
-        is_seed,
         created_at,
         updated_at
       FROM wishes
@@ -422,10 +417,9 @@ export async function createWish(req: Request, res: Response) {
         latitude,
         longitude,
         budget_amount,
-        status,
-        is_seed
+        status
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'todo', 0)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'todo')
     `,
     [
       relationship?.id ?? null,
@@ -456,7 +450,6 @@ export async function createWish(req: Request, res: Response) {
         longitude,
         budget_amount,
         status,
-        is_seed,
         created_at,
         updated_at
       FROM wishes
@@ -502,7 +495,6 @@ export async function updateWish(req: Request, res: Response) {
         longitude,
         budget_amount,
         status,
-        is_seed,
         created_at,
         updated_at
       FROM wishes
@@ -545,7 +537,6 @@ export async function updateWish(req: Request, res: Response) {
         longitude,
         budget_amount,
         status,
-        is_seed,
         created_at,
         updated_at
       FROM wishes
@@ -591,7 +582,6 @@ export async function createWishRecord(req: Request, res: Response) {
         longitude,
         budget_amount,
         status,
-        is_seed,
         created_at,
         updated_at
       FROM wishes

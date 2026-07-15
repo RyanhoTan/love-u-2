@@ -15,7 +15,6 @@ export interface WishItem {
   longitude: number | null;
   budgetAmount: number | null;
   status: WishStatus;
-  isSeed: boolean;
   createdAt: string;
   updatedAt: string;
 }
