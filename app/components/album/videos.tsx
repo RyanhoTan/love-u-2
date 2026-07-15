@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Image,
   SectionList,
@@ -7,107 +7,101 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import type { VideoSource } from "expo-video";
+import { useFocusEffect } from "expo-router";
 import { Play } from "lucide-react-native";
-import { ImagesCoverPng, TestMp4 } from "@/assets";
-import { Column, Row } from "../layout";
+import { getAlbumMedia, type AlbumMediaItem } from "@/app/features/album/api";
+import { ImagesCoverPng } from "@/assets";
+import { toast } from "@/components/common";
 import { useVideoViewer } from "@/hooks/use-video-viewer";
+import { Column, Row } from "../layout";
 
-type VideoItem = {
-  id: number;
-  title: string;
-  date: string;
-  duration: string;
-  source: VideoSource;
-  /** 服务端预生成的缩略图 URL；未就绪时展示暗色占位 */
-  thumbnailUrl?: string;
-};
-
-type VideoGroup = {
-  time: string;
-  list: VideoItem[];
-};
-
-const mockVideoGroups: VideoGroup[] = (() => {
-  const months = [
-    "2024年12月",
-    "2024年11月",
-    "2024年10月",
-    "2024年9月",
-    "2024年8月",
-    "2024年7月",
-    "2024年6月",
-    "2024年5月",
-    "2024年4月",
-    "2024年3月",
-  ];
-
-  const titleTemplates = [
-    "周末散步记录",
-    "咖啡店慢镜头",
-    "城市夜景片段",
-    "午后阳光日常",
-    "旅行路上的风景",
-    "晚餐前的小确幸",
-    "公园慢跑随拍",
-    "朋友聚会花絮",
-    "海边清晨剪影",
-    "居家生活片段",
-  ];
-
-  const durations = [
-    "00:32",
-    "00:45",
-    "00:58",
-    "01:06",
-    "01:14",
-    "01:22",
-    "01:31",
-    "01:39",
-    "01:48",
-    "02:05",
-  ];
-
-  return months.map((time, groupIndex) => ({
-    time,
-    list: Array.from({ length: 5 }, (_, itemIndex) => {
-      const id = groupIndex * 5 + itemIndex + 1;
-      const month = String(12 - groupIndex).padStart(2, "0");
-      const day = String(itemIndex * 4 + 3).padStart(2, "0");
-
-      return {
-        id,
-        title: `${titleTemplates[(groupIndex + itemIndex) % titleTemplates.length]} ${id}`,
-        date: `2024-${month}-${day}`,
-        duration: durations[(groupIndex + itemIndex) % durations.length],
-        source: TestMp4,
-      };
-    }),
-  }));
-})();
+type VideoItem = AlbumMediaItem;
 
 type Section = {
+  key: string;
   time: string;
   data: VideoItem[];
 };
 
-export function Videos() {
-  const { openViewer, Viewer } = useVideoViewer();
+interface VideosProps {
+  refreshKey?: number;
+}
 
-  // 后端就绪前，用本地素材作缩略图占位，保证 mock 展示不空
-  // TODO: 真正接入后端后，这段逻辑可以删除
-  const mockThumbnail = useMemo(
+function formatMonth(value: string) {
+  if (!value) {
+    return "未记录时间";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value.slice(0, 7);
+  }
+
+  return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+}
+
+function formatDate(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value.slice(0, 10);
+  }
+
+  return date.toISOString().slice(0, 10);
+}
+
+function groupVideosByMonth(media: AlbumMediaItem[]) {
+  return media.reduce<Section[]>((groups, item) => {
+    const time = formatMonth(item.takenAt || item.uploadedAt || item.createdAt);
+    const group = groups.find((current) => current.time === time);
+
+    if (group) {
+      group.data.push(item);
+    } else {
+      groups.push({ key: time, time, data: [item] });
+    }
+
+    return groups;
+  }, []);
+}
+
+export function Videos({ refreshKey = 0 }: VideosProps) {
+  const { openViewer, Viewer } = useVideoViewer();
+  const [sections, setSections] = useState<Section[]>([]);
+
+  // TODO: 这里缩略图改成上传视频就绪后，前端展示的缩略图也上传到后端，这里加载就用这个缩略图
+  const fallbackThumbnail = useMemo(
     () => Image.resolveAssetSource(ImagesCoverPng).uri,
     [],
   );
 
-  const sections: Section[] = useMemo(
-    () =>
-      mockVideoGroups.map((group) => ({
-        time: group.time,
-        data: group.list,
-      })),
-    [],
+  const refreshVideos = useCallback(async () => {
+    try {
+      const response = await getAlbumMedia();
+      const videoMedia = response.media.filter(
+        (item) => item.mediaType === "video",
+      );
+
+      setSections(groupVideosByMonth(videoMedia));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "加载视频失败";
+      toast.error(message);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (refreshKey > 0) {
+      void refreshVideos();
+    }
+  }, [refreshKey, refreshVideos]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshVideos();
+    }, [refreshVideos]),
   );
 
   const renderSectionHeader = useCallback(
@@ -121,32 +115,37 @@ export function Videos() {
   );
 
   const renderItem = useCallback(
-    ({ item: video }: { item: VideoItem }) => (
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => openViewer(video.source, video.title, video.date)}
-        style={styles.videoRow}
-      >
-        <View style={styles.videoCover}>
-          <Image
-            source={{ uri: video.thumbnailUrl ?? mockThumbnail }}
-            resizeMode="cover"
-            style={styles.videoPoster}
-          />
-          <View style={styles.playButton}>
-            <Play color="#fff" fill="#fff" size={16} />
+    ({ item: video }: { item: VideoItem }) => {
+      const videoDate = formatDate(
+        video.takenAt || video.uploadedAt || video.createdAt,
+      );
+
+      return (
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => openViewer({ uri: video.url }, "", videoDate)}
+          style={styles.videoRow}
+        >
+          <View style={styles.videoCover}>
+            <Image
+              source={{ uri: video.thumbnailUrl || fallbackThumbnail }}
+              resizeMode="cover"
+              style={styles.videoPoster}
+            />
+            <View style={styles.playButton}>
+              <Play color="#fff" fill="#fff" size={16} />
+            </View>
           </View>
-          <Text style={styles.videoDuration}>{video.duration}</Text>
-        </View>
-        <Column flex={1} content="space-around" style={styles.videoInfo}>
-          <Text numberOfLines={2} style={styles.videoTitle}>
-            {video.title}
-          </Text>
-          <Text style={styles.videoDate}>{video.date}</Text>
-        </Column>
-      </TouchableOpacity>
-    ),
-    [mockThumbnail, openViewer],
+          <Column flex={1} content="space-around" style={styles.videoInfo}>
+            <Text numberOfLines={2} style={styles.videoTitle}>
+              {video.locationName || "视频"}
+            </Text>
+            <Text style={styles.videoDate}>{videoDate}</Text>
+          </Column>
+        </TouchableOpacity>
+      );
+    },
+    [fallbackThumbnail, openViewer],
   );
 
   const itemSeparator = useCallback(() => <View style={{ height: 12 }} />, []);
@@ -162,6 +161,7 @@ export function Videos() {
         renderItem={renderItem}
         ItemSeparatorComponent={itemSeparator}
         renderSectionFooter={sectionFooter}
+        ListEmptyComponent={<Text style={{ color: "#aaa" }}>还没有视频</Text>}
         stickySectionHeadersEnabled={false}
         removeClippedSubviews
         maxToRenderPerBatch={8}
@@ -232,17 +232,5 @@ const styles = StyleSheet.create({
   videoDate: {
     color: "#999",
     fontSize: 13,
-  },
-  videoDuration: {
-    position: "absolute",
-    right: 6,
-    top: 6,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 4,
-    overflow: "hidden",
-    color: "#fff",
-    fontSize: 10,
-    backgroundColor: "#00000070",
   },
 });

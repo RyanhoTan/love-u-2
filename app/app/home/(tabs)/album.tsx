@@ -26,8 +26,6 @@ import type { PickedMediaItem } from "@/hooks";
 import { useMediaPicker, useStyledActionSheet } from "@/hooks";
 import { colors } from "@/styles/colors";
 
-const PhotosRoute = () => <Photos />;
-const VideosRoute = () => <Videos />;
 const FavoritesRoute = () => <Favorites />;
 
 function getThumbnailUri(asset: PickedMediaItem) {
@@ -145,9 +143,9 @@ export default function Album() {
       case "all":
         return <AllMedias refreshKey={albumRefreshKey} />;
       case "photos":
-        return <PhotosRoute />;
+        return <Photos refreshKey={albumRefreshKey} />;
       case "videos":
-        return <VideosRoute />;
+        return <Videos refreshKey={albumRefreshKey} />;
       case "favorites":
         return <FavoritesRoute />;
       default:

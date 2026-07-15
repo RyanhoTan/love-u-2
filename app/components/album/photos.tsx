@@ -1,55 +1,100 @@
-import { useMemo, useState } from "react";
-import { ScrollView, Text, View, Image, TouchableOpacity } from "react-native";
-import { Column, Row } from "../layout";
-import { ImagesCoverPng } from "@/assets";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useFocusEffect } from "expo-router";
+import { getAlbumMedia, type AlbumMediaItem } from "@/app/features/album/api";
+import { toast } from "@/components/common";
 import { useImageViewer } from "@/hooks/use-image-viewer";
+import { Column, Row } from "../layout";
 
-const COLUMNS = 3; // 每行精确显示 3 列
-const IMAGE_GAP = 8; // 照片与照片之间的缝隙大小
+const COLUMNS = 3;
+const IMAGE_GAP = 8;
 
-export function Photos() {
+type PhotoGroup = {
+  key: string;
+  time: string;
+  source: AlbumMediaItem[];
+};
+
+interface PhotosProps {
+  refreshKey?: number;
+}
+
+function formatMonth(value: string) {
+  if (!value) {
+    return "未记录时间";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value.slice(0, 7);
+  }
+
+  return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+}
+
+function groupPhotosByMonth(media: AlbumMediaItem[]) {
+  return media.reduce<PhotoGroup[]>((groups, item) => {
+    const time = formatMonth(item.takenAt || item.uploadedAt || item.createdAt);
+    const group = groups.find((current) => current.time === time);
+
+    if (group) {
+      group.source.push(item);
+    } else {
+      groups.push({ key: time, time, source: [item] });
+    }
+
+    return groups;
+  }, []);
+}
+
+export function Photos({ refreshKey = 0 }: PhotosProps) {
   const [gridWidth, setGridWidth] = useState(0);
+  const [photos, setPhotos] = useState<PhotoGroup[]>([]);
   const { openViewer, Viewer } = useImageViewer();
+
   const imageSize = useMemo(() => {
     if (!gridWidth) return 0;
 
     return Math.floor((gridWidth - IMAGE_GAP * (COLUMNS - 1)) / COLUMNS);
   }, [gridWidth]);
 
-  const photos = [
-    {
-      id: 1,
-      time: "2023年8月",
-      source: [
-        ImagesCoverPng,
-        ImagesCoverPng,
-        ImagesCoverPng,
-        ImagesCoverPng,
-        ImagesCoverPng,
-        ImagesCoverPng,
-        ImagesCoverPng,
-        ImagesCoverPng,
-        ImagesCoverPng,
-        ImagesCoverPng,
-        ImagesCoverPng,
-        ImagesCoverPng,
-      ],
-    },
-    { id: 2, time: "2023年7月", source: [ImagesCoverPng] },
-    {
-      id: 3,
-      time: "2023年6月",
-      source: [ImagesCoverPng, ImagesCoverPng, ImagesCoverPng],
-    },
-  ];
+  const refreshPhotos = useCallback(async () => {
+    try {
+      const response = await getAlbumMedia();
+      const imageMedia = response.media.filter(
+        (item) => item.mediaType === "image",
+      );
+
+      setPhotos(groupPhotosByMonth(imageMedia));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "加载照片失败";
+      toast.error(message);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (refreshKey > 0) {
+      void refreshPhotos();
+    }
+  }, [refreshPhotos, refreshKey]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshPhotos();
+    }, [refreshPhotos]),
+  );
+
   return (
     <ScrollView
       contentContainerStyle={{
         paddingVertical: 16,
       }}
     >
+      {photos.length === 0 ? (
+        <Text style={{ color: "#aaa" }}>还没有照片</Text>
+      ) : null}
       {photos.map((photo) => (
-        <Column key={photo.id}>
+        <Column key={photo.key}>
           <Row
             items="center"
             content="space-between"
@@ -73,15 +118,15 @@ export function Photos() {
             }}
           >
             {imageSize > 0 &&
-              photo.source.map((src, index) => (
+              photo.source.map((src) => (
                 <TouchableOpacity
-                  key={index}
+                  key={src.id}
                   onPress={() => {
-                    openViewer(src);
+                    openViewer({ uri: src.url });
                   }}
                 >
                   <Image
-                    source={src}
+                    source={{ uri: src.thumbnailUrl || src.url }}
                     style={{
                       width: imageSize,
                       height: imageSize,
