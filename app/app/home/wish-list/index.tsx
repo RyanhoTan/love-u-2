@@ -15,7 +15,7 @@ import {
   ImagesAuthBackgroundPng,
   ImagesWishDefaultWishCoverPng,
 } from "@/assets";
-import { Check, MapPin, Plus, Trash2 } from "lucide-react-native";
+import { Check, MapPin, Plus, Trash2, Undo2 } from "lucide-react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { TabBar, TabView } from "react-native-tab-view";
 import { MapOverviewModal, Tag, type MapMarker } from "@/components/wish-list";
@@ -352,6 +352,12 @@ export default function WishList() {
                   </TouchableOpacity>
                 </>
               ) : null}
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => router.push("/home/wish-list/recycle")}
+              >
+                <Undo2 color={colors.theme.primary} height={22} width={22} />
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => setMapVisible(true)}
