@@ -113,10 +113,6 @@ export default function Memory() {
     }
   }, [wish?.cover]);
 
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
-
   useFocusEffect(
     useCallback(() => {
       void loadData();
@@ -175,6 +171,8 @@ export default function Memory() {
             <Row gap={12} items="center">
               <Text style={styles.title}>{wish?.title || "回忆相册"}</Text>
               <Tag status="done" />
+              {/* TODO: 调试用，后续需要移除 */}
+              <Text>{wish?.id}</Text>
             </Row>
             <Column gap={16} style={styles.summaryCard}>
               <Column gap={4}>

@@ -19,10 +19,6 @@ interface TableNameRow extends RowDataPacket {
   TABLE_NAME: string;
 }
 
-interface ColumnNameRow extends RowDataPacket {
-  COLUMN_NAME: string;
-}
-
 interface WishRow extends RowDataPacket {
   id: number;
   relationship_id: number | null;
@@ -52,7 +48,6 @@ interface WishRecordRow extends RowDataPacket {
   latitude: number | string | null;
   longitude: number | string | null;
   budget_amount: number | null;
-  media_urls: string[] | string | null;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -101,38 +96,7 @@ function serializeWish(row: WishRow) {
   };
 }
 
-function parseLegacyMediaUrls(row: WishRecordRow) {
-  if (!row.media_urls) {
-    return [];
-  }
-
-  if (Array.isArray(row.media_urls)) {
-    return row.media_urls.filter(
-      (item): item is string => typeof item === "string"
-    );
-  }
-
-  try {
-    const parsed = JSON.parse(row.media_urls) as unknown;
-    if (Array.isArray(parsed)) {
-      return parsed.filter((item): item is string => typeof item === "string");
-    }
-  } catch {
-    return [];
-  }
-
-  return [];
-}
-
 function serializeWishRecord(row: WishRecordRow, mediaUrls: string[] = []) {
-  const mergedMediaUrls = [...mediaUrls];
-
-  for (const url of parseLegacyMediaUrls(row)) {
-    if (!mergedMediaUrls.includes(url)) {
-      mergedMediaUrls.push(url);
-    }
-  }
-
   return {
     id: row.id,
     wishId: row.wish_id,
@@ -144,7 +108,7 @@ function serializeWishRecord(row: WishRecordRow, mediaUrls: string[] = []) {
     latitude: row.latitude === null ? null : Number(row.latitude),
     longitude: row.longitude === null ? null : Number(row.longitude),
     budgetAmount: row.budget_amount,
-    mediaUrls: mergedMediaUrls,
+    mediaUrls,
     createdAt: formatDateTime(row.created_at),
     updatedAt: formatDateTime(row.updated_at),
   };
@@ -175,22 +139,6 @@ async function hasTable(tableName: string) {
       LIMIT 1
     `,
     [tableName]
-  );
-
-  return rows.length > 0;
-}
-
-async function hasColumn(tableName: string, columnName: string) {
-  const [rows] = await db.query<ColumnNameRow[]>(
-    `
-      SELECT COLUMN_NAME
-      FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-        AND TABLE_NAME = ?
-        AND COLUMN_NAME = ?
-      LIMIT 1
-    `,
-    [tableName, columnName]
   );
 
   return rows.length > 0;
@@ -232,8 +180,12 @@ async function createWishRecordMedia(
   userId: number,
   mediaUrls: string[]
 ) {
-  if (!mediaUrls.length || !(await hasTable("album_media"))) {
+  if (!mediaUrls.length) {
     return;
+  }
+
+  if (!(await hasTable("album_media"))) {
+    throw new HttpError(500, "album media table not found");
   }
 
   const values = mediaUrls.map((url) => [
@@ -420,8 +372,6 @@ export async function getWishRecords(req: Request, res: Response) {
     return;
   }
 
-  const hasLegacyMediaUrls = await hasColumn("wish_records", "media_urls");
-  const legacyMediaSelect = hasLegacyMediaUrls ? "media_urls," : "NULL AS media_urls,";
   const [rows] = await db.query<WishRecordRow[]>(
     `
       SELECT
@@ -435,7 +385,6 @@ export async function getWishRecords(req: Request, res: Response) {
         latitude,
         longitude,
         budget_amount,
-        ${legacyMediaSelect}
         created_at,
         updated_at
       FROM wish_records
@@ -449,7 +398,9 @@ export async function getWishRecords(req: Request, res: Response) {
   res.status(200).json({
     message: "get wish records success",
     wish: serializeWish(wish),
-    records: rows.map((row) => serializeWishRecord(row, mediaByRecord.get(row.id))),
+    records: rows.map((row) =>
+      serializeWishRecord(row, mediaByRecord.get(row.id))
+    ),
   });
 }
 
@@ -660,9 +611,6 @@ export async function createWishRecord(req: Request, res: Response) {
     throw new HttpError(500, "wish records table not found");
   }
 
-  const hasLegacyMediaUrls = await hasColumn("wish_records", "media_urls");
-  const mediaColumnSql = hasLegacyMediaUrls ? ", media_urls" : "";
-  const mediaValueSql = hasLegacyMediaUrls ? ", ?" : "";
   const insertValues = [
     wishId,
     userId,
@@ -674,10 +622,6 @@ export async function createWishRecord(req: Request, res: Response) {
     payload.longitude,
     payload.budgetAmount,
   ];
-
-  if (hasLegacyMediaUrls) {
-    insertValues.push(JSON.stringify(payload.mediaUrls));
-  }
 
   const [result] = await db.query<ResultSetHeader>(
     `
@@ -691,15 +635,13 @@ export async function createWishRecord(req: Request, res: Response) {
         latitude,
         longitude,
         budget_amount
-        ${mediaColumnSql}
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?${mediaValueSql})
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     insertValues
   );
   await createWishRecordMedia(wish, result.insertId, userId, payload.mediaUrls);
 
-  const legacyMediaSelect = hasLegacyMediaUrls ? "media_urls," : "NULL AS media_urls,";
   const [recordRows] = await db.query<WishRecordRow[]>(
     `
       SELECT
@@ -713,7 +655,6 @@ export async function createWishRecord(req: Request, res: Response) {
         latitude,
         longitude,
         budget_amount,
-        ${legacyMediaSelect}
         created_at,
         updated_at
       FROM wish_records

@@ -115,10 +115,6 @@ export default function Doing() {
     }
   }, [wish?.cover]);
 
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
-
   useFocusEffect(
     useCallback(() => {
       void loadData();
