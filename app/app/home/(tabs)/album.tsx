@@ -16,25 +16,29 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import { TabBar, SceneMap, TabView } from "react-native-tab-view";
+import { TabBar, TabView } from "react-native-tab-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { createAlbumMedia } from "@/app/features/album/api";
 import { toast } from "@/components/common";
 import { AllMedias, Favorites, Photos, Videos } from "@/components/album";
 import { Row } from "@/components/layout";
+import type { PickedMediaItem } from "@/hooks";
 import { useMediaPicker, useStyledActionSheet } from "@/hooks";
 import { colors } from "@/styles/colors";
 
-const AllRoute = () => <AllMedias />;
 const PhotosRoute = () => <Photos />;
 const VideosRoute = () => <Videos />;
 const FavoritesRoute = () => <Favorites />;
 
-const renderScene = SceneMap({
-  all: AllRoute,
-  photos: PhotosRoute,
-  videos: VideosRoute,
-  favorites: FavoritesRoute,
-});
+function getThumbnailUri(asset: PickedMediaItem) {
+  const source = asset.thumbnailSource;
+
+  if (source && typeof source === "object" && "uri" in source) {
+    return typeof source.uri === "string" ? source.uri : "";
+  }
+
+  return "";
+}
 
 export default function Album() {
   const insets = useSafeAreaInsets();
@@ -43,6 +47,8 @@ export default function Album() {
     mediaTypes: "mixed",
     mode: "multiple",
   });
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [albumRefreshKey, setAlbumRefreshKey] = useState(0);
 
   const headerMenus = [
     { name: "搜索", icon: Search, onPress: () => toast.info("搜索") },
@@ -70,6 +76,10 @@ export default function Album() {
   }, [index, indicatorPos]);
 
   const handlePickMedia = async () => {
+    if (isUploadingMedia) {
+      return;
+    }
+
     const assets = await pickFromLibrary();
 
     if (!assets.length) {
@@ -77,7 +87,30 @@ export default function Album() {
     }
 
     toast.success(`已选择 ${assets.length} 个照片/视频`);
-    router.push("/home/album/upload/select-location");
+    try {
+      setIsUploadingMedia(true);
+
+      await Promise.all(
+        assets.map((asset) =>
+          createAlbumMedia({
+            mediaType: asset.type,
+            url: asset.uri,
+            thumbnailUrl: getThumbnailUri(asset),
+            latitude: null,
+            longitude: null,
+          }),
+        ),
+      );
+
+      toast.success(`已上传 ${assets.length} 个照片/视频`);
+      setAlbumRefreshKey((currentKey) => currentKey + 1);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "上传照片/视频失败";
+      toast.error(message);
+    } finally {
+      setIsUploadingMedia(false);
+    }
   };
 
   const openCreateMenu = () => {
@@ -105,6 +138,21 @@ export default function Album() {
         }
       },
     );
+  };
+
+  const renderScene = ({ route }: { route: { key: string } }) => {
+    switch (route.key) {
+      case "all":
+        return <AllMedias refreshKey={albumRefreshKey} />;
+      case "photos":
+        return <PhotosRoute />;
+      case "videos":
+        return <VideosRoute />;
+      case "favorites":
+        return <FavoritesRoute />;
+      default:
+        return null;
+    }
   };
 
   return (

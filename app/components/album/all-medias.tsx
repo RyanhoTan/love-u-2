@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ScrollView } from "react-native-gesture-handler";
@@ -47,7 +47,11 @@ function groupMediaByMonth(media: AlbumMediaItem[]) {
   );
 }
 
-export function AllMedias() {
+interface AllMediasProps {
+  refreshKey?: number;
+}
+
+export function AllMedias({ refreshKey = 0 }: AllMediasProps) {
   const router = useRouter();
   const [gridWidth, setGridWidth] = useState(0);
   const [timelineHeights, setTimelineHeights] = useState<
@@ -91,6 +95,12 @@ export function AllMedias() {
       void refreshAlbum();
     }, [refreshAlbum]),
   );
+
+  useEffect(() => {
+    if (refreshKey > 0) {
+      void refreshAlbum();
+    }
+  }, [refreshAlbum, refreshKey]);
 
   return (
     <ScrollView contentContainerStyle={{ gap: 20, paddingBottom: 24 }}>

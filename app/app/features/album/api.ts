@@ -25,8 +25,30 @@ interface GetAlbumMediaResponse {
   media: AlbumMediaItem[];
 }
 
+export interface CreateAlbumMediaPayload {
+  mediaType: AlbumMediaType;
+  url: string;
+  thumbnailUrl?: string;
+  takenAt?: string;
+  locationName?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+interface CreateAlbumMediaResponse {
+  message: string;
+  media: AlbumMediaItem;
+}
+
 export async function getAlbumMedia() {
   return requestWithAuth<GetAlbumMediaResponse>("/album/media", {
     method: "GET",
+  });
+}
+
+export async function createAlbumMedia(payload: CreateAlbumMediaPayload) {
+  return requestWithAuth<CreateAlbumMediaResponse>("/album/media", {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 }
