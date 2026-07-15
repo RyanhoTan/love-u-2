@@ -1,5 +1,18 @@
-import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
-import { CirclePlus, Mic, Send, Smile } from "lucide-react-native";
+import { useState } from "react";
+import {
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
+import {
+  CirclePlus,
+  Keyboard as KeyboardIcon,
+  Mic,
+  Send,
+  Smile,
+} from "lucide-react-native";
 import { Row } from "@/components/layout";
 
 interface ChatInputProps {
@@ -15,27 +28,49 @@ export function ChatInput({
   onChangeText,
   onSend,
 }: ChatInputProps) {
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
   const canSend = value.trim().length > 0 && !disabled;
+  const toggleVoiceMode = () => {
+    Keyboard.dismiss();
+    setIsVoiceMode((current) => !current);
+  };
 
   return (
     <Row items="center" gap={10} style={styles.chatInputBar}>
-      <TouchableOpacity onPress={() => {}}>
-        <Mic size={24} color="#333" />
+      <TouchableOpacity onPress={toggleVoiceMode}>
+        {isVoiceMode ? (
+          <KeyboardIcon size={24} color="#333" />
+        ) : (
+          <Mic size={24} color="#333" />
+        )}
       </TouchableOpacity>
-      <TextInput
-        placeholder="输入消息..."
-        placeholderTextColor="#9b9b9b"
-        style={styles.chatInput}
-        value={value}
-        editable={!disabled}
-        returnKeyType="send"
-        onChangeText={onChangeText}
-        onSubmitEditing={() => {
-          if (canSend) {
-            onSend();
-          }
-        }}
-      />
+      {isVoiceMode ? (
+        <TouchableOpacity
+          activeOpacity={0.85}
+          disabled={disabled}
+          style={[styles.voiceInput, disabled && styles.voiceInputDisabled]}
+        >
+          <Mic size={18} color={disabled ? "#b8b8b8" : "#ff5675"} />
+          <Text style={[styles.voiceText, disabled && styles.voiceTextDisabled]}>
+            按住 说话
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <TextInput
+          placeholder="输入消息..."
+          placeholderTextColor="#9b9b9b"
+          style={styles.chatInput}
+          value={value}
+          editable={!disabled}
+          returnKeyType="send"
+          onChangeText={onChangeText}
+          onSubmitEditing={() => {
+            if (canSend) {
+              onSend();
+            }
+          }}
+        />
+      )}
       <TouchableOpacity onPress={() => {}}>
         <Smile size={24} color="#333" />
       </TouchableOpacity>
@@ -72,6 +107,30 @@ const styles = StyleSheet.create({
     backgroundColor: "#f4f4f4",
     color: "#333",
     fontSize: 15,
+  },
+  voiceInput: {
+    flex: 1,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#ffd2dc",
+    backgroundColor: "#fff5f7",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 6,
+  },
+  voiceInputDisabled: {
+    borderColor: "#ececec",
+    backgroundColor: "#f4f4f4",
+  },
+  voiceText: {
+    color: "#333",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  voiceTextDisabled: {
+    color: "#b8b8b8",
   },
   // sendButton: {
   //   width: 32,

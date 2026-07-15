@@ -69,11 +69,11 @@ export default function Interact() {
   const [inputValue, setInputValue] = useState("");
   const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
   const [isLoadingCoupleSpace, setIsLoadingCoupleSpace] = useState(false);
-  const { messages, status, errorMessage, isConnected, sendMessage } =
+  const { messages, status, errorMessage, sendMessage } =
     usePartnerChat(token, { isVisible: isFocused });
 
   const isBound = Boolean(coupleSpace?.isBound && coupleSpace.partner);
-  const canSendMessage = isBound && isConnected;
+  const canSendMessage = isBound ;
 
   const selfAvatar: ImageSourcePropType = user?.avatar
     ? { uri: user.avatar }
