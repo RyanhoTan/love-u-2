@@ -1,4 +1,8 @@
-import { requestWithAuth } from "@/app/shared/api-client";
+import {
+  API_BASE_URL,
+  getAuthToken,
+  requestWithAuth,
+} from "@/app/shared/api-client";
 
 export type AlbumMediaType = "image" | "video";
 export type AlbumMediaSourceType = "wish_record" | "story" | "upload";
@@ -83,6 +87,11 @@ interface CreateAlbumStoryResponse {
   story: AlbumStory;
 }
 
+interface UploadMediaResponse {
+  key: string;
+  url: string;
+}
+
 interface UpdateAlbumStoryFavoriteResponse {
   message: string;
   story: AlbumStory;
@@ -144,6 +153,38 @@ export async function createAlbumStory(payload: CreateAlbumStoryPayload) {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export async function uploadAlbumFile(
+  uri: string,
+  fileName: string,
+  contentType: string,
+) {
+  const token = await getAuthToken();
+
+  if (!token) {
+    throw new Error("login required");
+  }
+
+  const fileResponse = await fetch(uri);
+  const fileBlob = await fileResponse.blob();
+  const response = await fetch(`${API_BASE_URL}/upload/media`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": contentType,
+      "x-file-name": fileName,
+    },
+    body: fileBlob,
+  });
+
+  const data = (await response.json()) as UploadMediaResponse;
+
+  if (!response.ok) {
+    throw new Error("upload failed");
+  }
+
+  return data;
 }
 
 export async function updateAlbumStoryFavorite(

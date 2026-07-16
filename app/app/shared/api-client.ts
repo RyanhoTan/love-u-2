@@ -53,6 +53,10 @@ async function getStoredToken() {
   }
 }
 
+export async function getAuthToken() {
+  return getStoredToken();
+}
+
 export async function requestWithAuth<T>(
   path: string,
   init?: RequestInit,

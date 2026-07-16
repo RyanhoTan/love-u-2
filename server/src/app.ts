@@ -5,6 +5,7 @@ import albumRouter from "./router/album.js";
 import anniversaryRouter from "./router/anniversary.js";
 import coupleRouter from "./router/couple.js";
 import { isHttpError } from "./errors.js";
+import uploadRouter from "./router/upload.js";
 import userRouter from "./router/user.js";
 import userinfoRouter from "./router/userinfo.js";
 import wishRouter from "./router/wish.js";
@@ -26,12 +27,14 @@ function isRequestParseError(error: unknown): error is RequestParseError {
 }
 
 app.use(cors());
+app.use("/upload", express.raw({ type: "*/*", limit: "100mb" }));
 app.use(express.json());
 
 // 路由
 app.use("/album", albumRouter);
 app.use("/anniversaries", anniversaryRouter);
 app.use("/couple-space", coupleRouter);
+app.use("/upload", uploadRouter);
 app.use("/user", userRouter);
 app.use("/userinfo", userinfoRouter);
 app.use("/wishes", wishRouter);

@@ -18,6 +18,7 @@ import {
 import {
   createAlbumStory,
   type CreateAlbumMediaPayload,
+  uploadAlbumFile,
 } from "@/app/features/album/api";
 import { Column } from "@/components/layout";
 import {
@@ -137,11 +138,21 @@ export default function CreateStory() {
     try {
       setIsCreating(true);
 
-      const media: CreateAlbumMediaPayload[] = selectedMedia.map((item) => ({
-        mediaType: item.type,
-        url: item.uri,
-        thumbnailUrl: getThumbnailUri(item),
-      }));
+      const media: CreateAlbumMediaPayload[] = [];
+
+      for (const item of selectedMedia) {
+        const upload = await uploadAlbumFile(
+          item.uri,
+          item.fileName || `${item.id}.${item.type === "image" ? "jpg" : "mp4"}`,
+          item.mimeType || (item.type === "image" ? "image/jpeg" : "video/mp4"),
+        );
+
+        media.push({
+          mediaType: item.type,
+          url: upload.url,
+          thumbnailUrl: item.type === "video" ? getThumbnailUri(item) : "",
+        });
+      }
 
       await createAlbumStory({
         title: nextTitle,
