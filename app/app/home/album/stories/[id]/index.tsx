@@ -10,9 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Play } from "lucide-react-native";
+import { Heart, Play } from "lucide-react-native";
 import {
   getAlbumStory,
+  updateAlbumStoryFavorite,
   type AlbumMediaItem,
   type AlbumStory,
 } from "@/app/features/album/api";
@@ -69,6 +70,7 @@ export default function StoryDetail() {
   const [story, setStory] = useState<AlbumStory | null>(null);
   const [media, setMedia] = useState<AlbumMediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
   const { openViewer: openImageViewer, Viewer: ImageViewer } = useImageViewer();
   const { openViewer: openVideoViewer, Viewer: VideoViewer } = useVideoViewer();
 
@@ -108,9 +110,47 @@ export default function StoryDetail() {
     void refreshStory();
   }, [refreshStory]);
 
+  const handleToggleFavorite = async () => {
+    if (!story || isUpdatingFavorite) {
+      return;
+    }
+
+    const nextIsFavorite = !story.isFavorite;
+
+    try {
+      setIsUpdatingFavorite(true);
+      const response = await updateAlbumStoryFavorite(
+        story.id,
+        nextIsFavorite,
+      );
+      setStory(response.story);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "更新收藏失败";
+      toast.error(message);
+    } finally {
+      setIsUpdatingFavorite(false);
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, paddingHorizontal: PADDING }}>
-      <NavBar title={story?.title || "故事详情"} />
+      <NavBar
+        title={story?.title || "故事详情"}
+        rightContent={
+          <TouchableOpacity
+            accessibilityLabel={story?.isFavorite ? "取消收藏" : "收藏故事"}
+            disabled={!story || isUpdatingFavorite}
+            onPress={() => void handleToggleFavorite()}
+            style={styles.favoriteButton}
+          >
+            <Heart
+              color={story?.isFavorite ? "#ff2a54" : "#666"}
+              fill={story?.isFavorite ? "#ff2a54" : "transparent"}
+              size={22}
+            />
+          </TouchableOpacity>
+        }
+      />
       {isLoading ? (
         <View style={styles.centerState}>
           <ActivityIndicator />
@@ -231,5 +271,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#00000066",
     alignItems: "center",
     justifyContent: "center",
+  },
+  favoriteButton: {
+    padding: 6,
   },
 });

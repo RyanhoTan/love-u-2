@@ -10,6 +10,7 @@ import { HttpError } from "../errors.js";
 import {
   createAlbumMediaSchema,
   createAlbumStorySchema,
+  updateAlbumStoryFavoriteSchema,
 } from "../schema/album.js";
 import { parseRequestBody } from "../validation.js";
 
@@ -80,6 +81,7 @@ interface AlbumStoryRow extends RowDataPacket {
   cover_thumbnail_url: string | null;
   photo_count: number | string;
   video_count: number | string;
+  is_favorite: number | boolean;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -95,6 +97,7 @@ interface SerializedAlbumStory {
   coverThumbnailUrl: string;
   photos: number;
   videos: number;
+  isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -153,6 +156,7 @@ function serializeAlbumStory(row: AlbumStoryRow): SerializedAlbumStory {
     coverThumbnailUrl: row.cover_thumbnail_url || "",
     photos: Number(row.photo_count),
     videos: Number(row.video_count),
+    isFavorite: Boolean(row.is_favorite),
     createdAt: formatDateTime(row.created_at),
     updatedAt: formatDateTime(row.updated_at),
   };
@@ -233,6 +237,17 @@ async function hasColumn(tableName: string, columnName: string) {
   return rows.length > 0;
 }
 
+async function ensureAlbumStoriesFavoriteColumn() {
+  if (!(await hasColumn("album_stories", "is_favorite"))) {
+    await db.query(
+      `
+        ALTER TABLE album_stories
+        ADD COLUMN is_favorite TINYINT(1) NOT NULL DEFAULT 0
+      `,
+    );
+  }
+}
+
 async function buildAlbumScope(userId: number) {
   const relationship = await findActiveRelationshipByUserId(userId);
 
@@ -264,6 +279,7 @@ function storySelectSql() {
       cover.thumbnail_url AS cover_thumbnail_url,
       COALESCE(SUM(m.media_type = 'image'), 0) AS photo_count,
       COALESCE(SUM(m.media_type = 'video'), 0) AS video_count,
+      s.is_favorite,
       s.created_at,
       s.updated_at
     FROM album_stories s
@@ -276,13 +292,17 @@ function storySelectSql() {
 
 async function getStoryRows(
   scope: Awaited<ReturnType<typeof buildAlbumScope>>,
-  storyId?: number,
+  options?: {
+    storyId?: number;
+    favoritesOnly?: boolean;
+  },
 ) {
   const [rows] = await db.query<AlbumStoryRow[]>(
     `
       ${storySelectSql()}
       WHERE ${scope.sql.replaceAll("relationship_id", "s.relationship_id").replaceAll("created_by_user_id", "s.created_by_user_id")}
-      ${storyId ? "AND s.id = ?" : ""}
+      ${options?.storyId ? "AND s.id = ?" : ""}
+      ${options?.favoritesOnly ? "AND s.is_favorite = 1" : ""}
       GROUP BY
         s.id,
         s.relationship_id,
@@ -292,11 +312,12 @@ async function getStoryRows(
         s.cover_media_id,
         cover.url,
         cover.thumbnail_url,
+        s.is_favorite,
         s.created_at,
         s.updated_at
       ORDER BY s.updated_at DESC, s.id DESC
     `,
-    storyId ? [...scope.values, storyId] : scope.values,
+    options?.storyId ? [...scope.values, options.storyId] : scope.values,
   );
 
   return rows;
@@ -315,6 +336,8 @@ async function assertAlbumStoriesTableReady() {
   if (!(await hasTable("album_stories"))) {
     throw new HttpError(500, "album stories table not found");
   }
+
+  await ensureAlbumStoriesFavoriteColumn();
 }
 
 export async function getAlbumMedia(req: Request, res: Response) {
@@ -497,6 +520,21 @@ export async function getAlbumStories(req: Request, res: Response) {
   });
 }
 
+export async function getFavoriteAlbumStories(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  await assertAlbumStoriesTableReady();
+
+  const scope = await buildAlbumScope(userId);
+  const stories = (
+    await getStoryRows(scope, { favoritesOnly: true })
+  ).map(serializeAlbumStory);
+
+  res.status(200).json({
+    message: "get favorite album stories success",
+    stories,
+  });
+}
+
 export async function getAlbumStory(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(req);
   await assertAlbumStoriesTableReady();
@@ -506,7 +544,7 @@ export async function getAlbumStory(req: Request, res: Response) {
     : req.params.id;
   const storyId = parseId(storyIdParam);
   const scope = await buildAlbumScope(userId);
-  const storyRows = await getStoryRows(scope, storyId);
+  const storyRows = await getStoryRows(scope, { storyId });
   const storyRow = storyRows[0];
 
   if (!storyRow) {
@@ -634,7 +672,7 @@ export async function createAlbumStory(req: Request, res: Response) {
     connection.release();
   }
 
-  const storyRows = await getStoryRows(scope, createdStoryId);
+  const storyRows = await getStoryRows(scope, { storyId: createdStoryId });
   const createdStory = storyRows[0];
 
   if (!createdStory) {
@@ -644,5 +682,41 @@ export async function createAlbumStory(req: Request, res: Response) {
   res.status(201).json({
     message: "create album story success",
     story: serializeAlbumStory(createdStory),
+  });
+}
+
+export async function updateAlbumStoryFavorite(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  await assertAlbumStoriesTableReady();
+
+  const payload = parseRequestBody(updateAlbumStoryFavoriteSchema, req.body);
+  const storyIdParam = Array.isArray(req.params.id)
+    ? req.params.id[0]
+    : req.params.id;
+  const storyId = parseId(storyIdParam);
+  const scope = await buildAlbumScope(userId);
+  const storyRows = await getStoryRows(scope, { storyId });
+
+  if (!storyRows[0]) {
+    throw new HttpError(404, "album story not found");
+  }
+
+  await db.query(
+    `
+      UPDATE album_stories
+      SET is_favorite = ?
+      WHERE id = ?
+    `,
+    [payload.isFavorite ? 1 : 0, storyId],
+  );
+
+  const updatedStory = (await getStoryRows(scope, { storyId }))[0];
+  if (!updatedStory) {
+    throw new HttpError(500, "failed to update album story favorite");
+  }
+
+  res.status(200).json({
+    message: "update album story favorite success",
+    story: serializeAlbumStory(updatedStory),
   });
 }

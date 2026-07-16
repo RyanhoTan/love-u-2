@@ -1,17 +1,22 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
-  Text,
-  View,
-  StyleSheet,
-  TouchableOpacity,
   SectionList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Play } from "lucide-react-native";
+import {
+  getFavoriteAlbumMedia,
+  type AlbumMediaItem,
+} from "@/app/features/album/api";
+import { toast } from "@/components/common";
 import { Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
-import { FAVORITE_VIDEOS, type FavoriteVideo } from "@/data/mock-stories";
 import { useVideoViewer } from "@/hooks/use-video-viewer";
-import { TestMp4 } from "@/assets";
 
 export function FavoritesVideosGrid({
   contentWidth,
@@ -19,27 +24,64 @@ export function FavoritesVideosGrid({
   contentWidth: number;
 }) {
   const size = contentWidth > 0 ? (contentWidth - 4 * 2) / 3 : 0;
+  const [videos, setVideos] = useState<AlbumMediaItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { openViewer, Viewer } = useVideoViewer();
-  const sections = [{ data: chunk(FAVORITE_VIDEOS, 3) }];
+  const sections = useMemo(() => [{ data: chunk(videos, 3) }], [videos]);
 
-  const renderRow = ({ item: row }: { item: FavoriteVideo[] }) => (
+  const refreshVideos = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const media = await getFavoriteAlbumMedia();
+      setVideos(media.filter((item) => item.mediaType === "video"));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "加载收藏视频失败";
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshVideos();
+  }, [refreshVideos]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.centerState}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (videos.length === 0) {
+    return (
+      <View style={styles.centerState}>
+        <Text style={styles.emptyText}>收藏故事里还没有视频</Text>
+      </View>
+    );
+  }
+
+  const renderRow = ({ item: row }: { item: AlbumMediaItem[] }) => (
     <Row gap={4} style={{ marginBottom: 4 }}>
       {row.map((video) => (
         <TouchableOpacity
           key={video.id}
-          onPress={() => openViewer(TestMp4, video.duration)}
+          onPress={() =>
+            openViewer(
+              { uri: video.url },
+              video.locationName || "故事视频",
+              video.takenAt || video.uploadedAt,
+            )
+          }
         >
           <View>
             <Image
-              source={video.source}
+              source={{ uri: video.thumbnailUrl || video.url }}
               style={{ width: size, height: size, borderRadius: 6 }}
             />
-            {/* 播放按钮 */}
             <View style={styles.playButton}>
               <Play color="#fff" fill="#fff" size={16} />
-            </View>
-            <View style={styles.durationTag}>
-              <Text style={styles.durationText}>{video.duration}</Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -62,6 +104,15 @@ export function FavoritesVideosGrid({
 }
 
 const styles = StyleSheet.create({
+  centerState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    color: "#888",
+    fontSize: 14,
+  },
   playButton: {
     position: "absolute",
     left: "50%",
@@ -74,18 +125,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#00000060",
-  },
-  durationTag: {
-    position: "absolute",
-    bottom: 4,
-    right: 4,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    borderRadius: 4,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-  },
-  durationText: {
-    color: "#fff",
-    fontSize: 11,
   },
 });

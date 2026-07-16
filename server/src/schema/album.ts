@@ -43,7 +43,14 @@ export const createAlbumStorySchema = z.object({
   media: z.array(storyMediaSchema).max(99).default([]),
 });
 
+export const updateAlbumStoryFavoriteSchema = z.object({
+  isFavorite: z.boolean(),
+});
+
 export type AlbumMediaType = z.infer<typeof albumMediaTypeSchema>;
 export type AlbumMediaSourceType = z.infer<typeof albumMediaSourceTypeSchema>;
 export type CreateAlbumMediaInput = z.infer<typeof createAlbumMediaSchema>;
 export type CreateAlbumStoryInput = z.infer<typeof createAlbumStorySchema>;
+export type UpdateAlbumStoryFavoriteInput = z.infer<
+  typeof updateAlbumStoryFavoriteSchema
+>;

@@ -31,6 +31,7 @@ export interface AlbumStory {
   coverThumbnailUrl: string;
   photos: number;
   videos: number;
+  isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -41,6 +42,11 @@ interface GetAlbumMediaResponse {
 }
 
 interface GetAlbumStoriesResponse {
+  message: string;
+  stories: AlbumStory[];
+}
+
+interface GetFavoriteAlbumStoriesResponse {
   message: string;
   stories: AlbumStory[];
 }
@@ -77,6 +83,11 @@ interface CreateAlbumStoryResponse {
   story: AlbumStory;
 }
 
+interface UpdateAlbumStoryFavoriteResponse {
+  message: string;
+  story: AlbumStory;
+}
+
 export async function getAlbumMedia() {
   return requestWithAuth<GetAlbumMediaResponse>("/album/media", {
     method: "GET",
@@ -96,6 +107,32 @@ export async function getAlbumStories() {
   });
 }
 
+export async function getFavoriteAlbumStories() {
+  return requestWithAuth<GetFavoriteAlbumStoriesResponse>(
+    "/album/stories/favorites",
+    {
+      method: "GET",
+    },
+  );
+}
+
+export async function getFavoriteAlbumMedia() {
+  const [storyResponse, mediaResponse] = await Promise.all([
+    getFavoriteAlbumStories(),
+    getAlbumMedia(),
+  ]);
+  const favoriteStoryIds = new Set(
+    storyResponse.stories.map((story) => story.id),
+  );
+
+  return mediaResponse.media.filter(
+    (media) =>
+      media.sourceType === "story" &&
+      media.sourceId !== null &&
+      favoriteStoryIds.has(media.sourceId),
+  );
+}
+
 export async function getAlbumStory(id: number) {
   return requestWithAuth<GetAlbumStoryResponse>(`/album/stories/${id}`, {
     method: "GET",
@@ -107,4 +144,17 @@ export async function createAlbumStory(payload: CreateAlbumStoryPayload) {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export async function updateAlbumStoryFavorite(
+  id: number,
+  isFavorite: boolean,
+) {
+  return requestWithAuth<UpdateAlbumStoryFavoriteResponse>(
+    `/album/stories/${id}/favorite`,
+    {
+      method: "POST",
+      body: JSON.stringify({ isFavorite }),
+    },
+  );
 }
