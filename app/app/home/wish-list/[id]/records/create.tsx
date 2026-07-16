@@ -45,6 +45,7 @@ import {
 import {
   createWishRecord,
   getWishById,
+  uploadWishFile,
   type WishItem,
 } from "@/app/features/wish-list/api";
 import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
@@ -66,6 +67,18 @@ const STATUS_ICONS = [
 ];
 
 const MAX_MEDIA_COUNT = 99;
+
+function getUploadedMediaContentType(media: PickedMediaItem) {
+  if (media.mimeType) {
+    return media.mimeType;
+  }
+
+  return media.type === "video" ? "video/mp4" : "image/jpeg";
+}
+
+function getUploadedMediaFileName(media: PickedMediaItem) {
+  return media.fileName || media.id;
+}
 
 export default function CreateRecord() {
   const scrollRef = useRef<ScrollView>(null);
@@ -164,6 +177,21 @@ export default function CreateRecord() {
     );
   };
 
+  const uploadSelectedMedia = async () => {
+    const mediaUrls: string[] = [];
+
+    for (const media of selectedMedia) {
+      const result = await uploadWishFile(
+        media.uri,
+        getUploadedMediaFileName(media),
+        getUploadedMediaContentType(media),
+      );
+      mediaUrls.push(result.url);
+    }
+
+    return mediaUrls;
+  };
+
   const handleSave = async () => {
     const parsedWishId = Number(id);
 
@@ -183,6 +211,7 @@ export default function CreateRecord() {
 
     try {
       setSubmitting(true);
+      const mediaUrls = await uploadSelectedMedia();
       await createWishRecord(parsedWishId, {
         content: text.trim(),
         recordDate: date.toISOString().slice(0, 10),
@@ -191,7 +220,7 @@ export default function CreateRecord() {
         latitude: selectedLocation?.latitude ?? null,
         longitude: selectedLocation?.longitude ?? null,
         budgetAmount: budget ? Number(budget) : null,
-        mediaUrls: selectedMedia.map((media) => media.uri),
+        mediaUrls,
       });
       toast.success("记录保存成功");
       router.back();

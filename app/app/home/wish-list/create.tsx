@@ -19,7 +19,10 @@ import {
   DatePickerModal,
   MapPickerModal,
 } from "@/components/wish-list";
-import { createWish } from "@/app/features/wish-list/api";
+import {
+  createWish,
+  uploadWishFile,
+} from "@/app/features/wish-list/api";
 import { router } from "expo-router";
 
 type SelectedLocation = {
@@ -45,6 +48,20 @@ export default function CreateWishList() {
 
   const [budget, setBudget] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const uploadCover = async (media: string | null) => {
+    if (!media) {
+      return "";
+    }
+
+    const fileName = media.split("/").pop() || "cover.jpg";
+    const contentType = fileName.toLowerCase().endsWith(".png")
+      ? "image/png"
+      : "image/jpeg";
+
+    const result = await uploadWishFile(media, fileName, contentType);
+    return result.url;
+  };
 
   const menus = [
     {
@@ -72,10 +89,11 @@ export default function CreateWishList() {
 
     try {
       setSubmitting(true);
+      const coverUrl = await uploadCover(selectedImage);
       await createWish({
         title: title.trim(),
         description: text.trim(),
-        cover: selectedImage || "",
+        cover: coverUrl,
         targetDate: date.toISOString().slice(0, 10),
         locationName: selectedLocation ? selectedLocation.name : "",
         latitude: selectedLocation ? selectedLocation.latitude : null,

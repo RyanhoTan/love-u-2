@@ -1,4 +1,8 @@
-import { requestWithAuth } from "@/app/shared/api-client";
+import {
+  API_BASE_URL,
+  getAuthToken,
+  requestWithAuth,
+} from "@/app/shared/api-client";
 
 export type WishStatus = "todo" | "doing" | "done";
 
@@ -62,6 +66,11 @@ interface CreateWishRecordResponse {
   message: string;
   wish: WishItem;
   record: WishRecordItem;
+}
+
+interface UploadMediaResponse {
+  key: string;
+  url: string;
 }
 
 interface GetWishRecordsResponse {
@@ -160,4 +169,36 @@ export async function createWishRecord(
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export async function uploadWishFile(
+  uri: string,
+  fileName: string,
+  contentType: string,
+) {
+  const token = await getAuthToken();
+
+  if (!token) {
+    throw new Error("login required");
+  }
+
+  const fileResponse = await fetch(uri);
+  const fileBlob = await fileResponse.blob();
+  const response = await fetch(`${API_BASE_URL}/upload/media`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": contentType,
+      "x-file-name": fileName,
+    },
+    body: fileBlob,
+  });
+
+  const data = (await response.json()) as UploadMediaResponse;
+
+  if (!response.ok) {
+    throw new Error("upload failed");
+  }
+
+  return data;
 }
