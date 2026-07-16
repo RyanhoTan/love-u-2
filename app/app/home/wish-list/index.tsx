@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   BackHandler,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -23,6 +24,7 @@ import { Column, Row } from "@/components/layout";
 import { colors } from "@/styles/colors";
 import { toast } from "@/components/common";
 import {
+  deleteWish,
   getWishes,
   type WishItem,
   type WishStatus,
@@ -152,6 +154,7 @@ export default function WishList() {
   const [wishes, setWishes] = useState<WishItem[]>([]);
   const [editing, setEditing] = useState(false);
   const [selectedWishIds, setSelectedWishIds] = useState<number[]>([]);
+  const [deleting, setDeleting] = useState(false);
 
   const refreshWishes = useCallback(async () => {
     try {
@@ -277,6 +280,44 @@ export default function WishList() {
     setSelectedWishIds([]);
   }, []);
 
+  const handleDeleteSelected = useCallback(() => {
+    if (!selectedWishIds.length || deleting) {
+      return;
+    }
+
+    Alert.alert(
+      "删除愿望",
+      `将 ${selectedWishIds.length} 个愿望移入回收站，30 天内可恢复。`,
+      [
+        {
+          text: "取消",
+          style: "cancel",
+        },
+        {
+          text: "删除",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                setDeleting(true);
+                await Promise.all(selectedWishIds.map((wishId) => deleteWish(wishId)));
+                toast.success("愿望已移入回收站");
+                cancelEditing();
+                await refreshWishes();
+              } catch (error) {
+                const message =
+                  error instanceof Error ? error.message : "删除愿望失败";
+                toast.error(message);
+              } finally {
+                setDeleting(false);
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }, [cancelEditing, deleting, refreshWishes, selectedWishIds]);
+
   const renderScene = useCallback(
     ({ route }: { route: WishRoute }) => {
       const category = categories.find((item) => item.type === route.key);
@@ -343,7 +384,14 @@ export default function WishList() {
                   >
                     <Text style={styles.cancelEditText}>取消</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.iconButton}>
+                  <TouchableOpacity
+                    style={[
+                      styles.iconButton,
+                      (!selectedWishIds.length || deleting) && styles.iconButtonDisabled,
+                    ]}
+                    disabled={!selectedWishIds.length || deleting}
+                    onPress={handleDeleteSelected}
+                  >
                     <Trash2
                       color={colors.theme.primary}
                       height={22}
@@ -433,6 +481,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.88)",
     alignItems: "center",
     justifyContent: "center",
+  },
+  iconButtonDisabled: {
+    opacity: 0.45,
   },
   cancelEditButton: {
     height: 40,

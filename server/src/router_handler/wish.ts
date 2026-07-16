@@ -11,12 +11,19 @@ import {
 } from "../schema/wish.js";
 import { parseRequestBody } from "../validation.js";
 
+const WISH_RETENTION_DAYS = 30;
+const WISH_CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
 interface CoupleRelationshipRow extends RowDataPacket {
   id: number;
 }
 
 interface TableNameRow extends RowDataPacket {
   TABLE_NAME: string;
+}
+
+interface ColumnNameRow extends RowDataPacket {
+  COLUMN_NAME: string;
 }
 
 interface WishRow extends RowDataPacket {
@@ -34,6 +41,8 @@ interface WishRow extends RowDataPacket {
   status: WishStatus;
   created_at: Date | string;
   updated_at: Date | string;
+  deleted_at: Date | string | null;
+  delete_expires_at: Date | string | null;
 }
 
 interface WishRecordRow extends RowDataPacket {
@@ -67,7 +76,11 @@ function formatDateOnly(value: Date | string) {
   return `${year}-${month}-${day}`;
 }
 
-function formatDateTime(value: Date | string) {
+function formatDateTime(value: Date | string | null) {
+  if (!value) {
+    return null;
+  }
+
   if (typeof value === "string") {
     return new Date(value).toISOString();
   }
@@ -91,6 +104,9 @@ function serializeWish(row: WishRow) {
     status: row.status,
     createdAt: formatDateTime(row.created_at),
     updatedAt: formatDateTime(row.updated_at),
+    deletedAt: formatDateTime(row.deleted_at),
+    deleteExpiresAt: formatDateTime(row.delete_expires_at),
+    isDeleted: row.deleted_at !== null,
   };
 }
 
@@ -140,6 +156,38 @@ async function hasTable(tableName: string) {
   );
 
   return rows.length > 0;
+}
+
+async function hasColumn(tableName: string, columnName: string) {
+  const [rows] = await db.query<ColumnNameRow[]>(
+    `
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+      LIMIT 1
+    `,
+    [tableName, columnName]
+  );
+
+  return rows.length > 0;
+}
+
+async function assertWishSoftDeleteColumnsReady() {
+  if (!(await hasTable("wishes"))) {
+    throw new HttpError(500, "wishes table not found");
+  }
+
+  const hasDeletedAt = await hasColumn("wishes", "deleted_at");
+  const hasDeleteExpiresAt = await hasColumn("wishes", "delete_expires_at");
+
+  if (!hasDeletedAt || !hasDeleteExpiresAt) {
+    throw new HttpError(
+      500,
+      "wish soft delete columns are missing: deleted_at, delete_expires_at"
+    );
+  }
 }
 
 function inferMediaType(url: string) {
@@ -237,29 +285,65 @@ async function buildWishScope(userId: number) {
   };
 }
 
+const wishSelectFields = `
+  id,
+  relationship_id,
+  created_by_user_id,
+  title,
+  description,
+  cover,
+  target_date,
+  location_name,
+  latitude,
+  longitude,
+  budget_amount,
+  status,
+  created_at,
+  updated_at,
+  deleted_at,
+  delete_expires_at
+`;
+
+async function findWishById(
+  userId: number,
+  wishId: number,
+  options?: { includeDeleted?: boolean }
+) {
+  await assertWishSoftDeleteColumnsReady();
+
+  const scope = await buildWishScope(userId);
+  const deletedClause = options?.includeDeleted
+    ? ""
+    : "AND deleted_at IS NULL";
+
+  const [rows] = await db.query<WishRow[]>(
+    `
+      SELECT
+        ${wishSelectFields}
+      FROM wishes
+      WHERE id = ?
+        AND ${scope.sql}
+        ${deletedClause}
+      LIMIT 1
+    `,
+    [wishId, ...scope.values]
+  );
+
+  return rows[0] ?? null;
+}
+
 export async function getWishes(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(req);
 
+  await assertWishSoftDeleteColumnsReady();
   const scope = await buildWishScope(userId);
   const [rows] = await db.query<WishRow[]>(
     `
       SELECT
-        id,
-        relationship_id,
-        created_by_user_id,
-        title,
-        description,
-        cover,
-        target_date,
-        location_name,
-        latitude,
-        longitude,
-        budget_amount,
-        status,
-        created_at,
-        updated_at
+        ${wishSelectFields}
       FROM wishes
       WHERE ${scope.sql}
+        AND deleted_at IS NULL
       ORDER BY
         FIELD(status, 'todo', 'doing', 'done'),
         target_date ASC,
@@ -282,33 +366,7 @@ export async function getWishById(req: Request, res: Response) {
     throw new HttpError(400, "wish id is invalid");
   }
 
-  const scope = await buildWishScope(userId);
-  const [rows] = await db.query<WishRow[]>(
-    `
-      SELECT
-        id,
-        relationship_id,
-        created_by_user_id,
-        title,
-        description,
-        cover,
-        target_date,
-        location_name,
-        latitude,
-        longitude,
-        budget_amount,
-        status,
-        created_at,
-        updated_at
-      FROM wishes
-      WHERE id = ?
-        AND ${scope.sql}
-      LIMIT 1
-    `,
-    [wishId, ...scope.values]
-  );
-
-  const wish = rows[0];
+  const wish = await findWishById(userId, wishId);
   if (!wish) {
     throw new HttpError(404, "wish not found");
   }
@@ -327,33 +385,7 @@ export async function getWishRecords(req: Request, res: Response) {
     throw new HttpError(400, "wish id is invalid");
   }
 
-  const scope = await buildWishScope(userId);
-  const [wishRows] = await db.query<WishRow[]>(
-    `
-      SELECT
-        id,
-        relationship_id,
-        created_by_user_id,
-        title,
-        description,
-        cover,
-        target_date,
-        location_name,
-        latitude,
-        longitude,
-        budget_amount,
-        status,
-        created_at,
-        updated_at
-      FROM wishes
-      WHERE id = ?
-        AND ${scope.sql}
-      LIMIT 1
-    `,
-    [wishId, ...scope.values]
-  );
-
-  const wish = wishRows[0];
+  const wish = await findWishById(userId, wishId);
   if (!wish) {
     throw new HttpError(404, "wish not found");
   }
@@ -403,6 +435,7 @@ export async function createWish(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(req);
   const payload = parseRequestBody(createWishSchema, req.body);
 
+  await assertWishSoftDeleteColumnsReady();
   const relationship = await findActiveRelationshipByUserId(userId);
   const [result] = await db.query<ResultSetHeader>(
     `
@@ -417,9 +450,11 @@ export async function createWish(req: Request, res: Response) {
         latitude,
         longitude,
         budget_amount,
-        status
+        status,
+        deleted_at,
+        delete_expires_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'todo')
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'todo', NULL, NULL)
     `,
     [
       relationship?.id ?? null,
@@ -438,20 +473,7 @@ export async function createWish(req: Request, res: Response) {
   const [rows] = await db.query<WishRow[]>(
     `
       SELECT
-        id,
-        relationship_id,
-        created_by_user_id,
-        title,
-        description,
-        cover,
-        target_date,
-        location_name,
-        latitude,
-        longitude,
-        budget_amount,
-        status,
-        created_at,
-        updated_at
+        ${wishSelectFields}
       FROM wishes
       WHERE id = ?
       LIMIT 1
@@ -479,33 +501,7 @@ export async function updateWish(req: Request, res: Response) {
   }
 
   const payload = parseRequestBody(updateWishSchema, req.body);
-  const scope = await buildWishScope(userId);
-  const [existingRows] = await db.query<WishRow[]>(
-    `
-      SELECT
-        id,
-        relationship_id,
-        created_by_user_id,
-        title,
-        description,
-        cover,
-        target_date,
-        location_name,
-        latitude,
-        longitude,
-        budget_amount,
-        status,
-        created_at,
-        updated_at
-      FROM wishes
-      WHERE id = ?
-        AND ${scope.sql}
-      LIMIT 1
-    `,
-    [wishId, ...scope.values]
-  );
-
-  const existingWish = existingRows[0];
+  const existingWish = await findWishById(userId, wishId);
   if (!existingWish) {
     throw new HttpError(404, "wish not found");
   }
@@ -525,20 +521,7 @@ export async function updateWish(req: Request, res: Response) {
   const [rows] = await db.query<WishRow[]>(
     `
       SELECT
-        id,
-        relationship_id,
-        created_by_user_id,
-        title,
-        description,
-        cover,
-        target_date,
-        location_name,
-        latitude,
-        longitude,
-        budget_amount,
-        status,
-        created_at,
-        updated_at
+        ${wishSelectFields}
       FROM wishes
       WHERE id = ?
       LIMIT 1
@@ -566,33 +549,7 @@ export async function createWishRecord(req: Request, res: Response) {
   }
 
   const payload = parseRequestBody(createWishRecordSchema, req.body);
-  const scope = await buildWishScope(userId);
-  const [wishRows] = await db.query<WishRow[]>(
-    `
-      SELECT
-        id,
-        relationship_id,
-        created_by_user_id,
-        title,
-        description,
-        cover,
-        target_date,
-        location_name,
-        latitude,
-        longitude,
-        budget_amount,
-        status,
-        created_at,
-        updated_at
-      FROM wishes
-      WHERE id = ?
-        AND ${scope.sql}
-      LIMIT 1
-    `,
-    [wishId, ...scope.values]
-  );
-
-  const wish = wishRows[0];
+  const wish = await findWishById(userId, wishId);
   if (!wish) {
     throw new HttpError(404, "wish not found");
   }
@@ -664,4 +621,168 @@ export async function createWishRecord(req: Request, res: Response) {
     wish: serializeWish(wish),
     record: serializeWishRecord(record, payload.mediaUrls),
   });
+}
+
+export async function getDeletedWishes(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+
+  await assertWishSoftDeleteColumnsReady();
+  const scope = await buildWishScope(userId);
+  const [rows] = await db.query<WishRow[]>(
+    `
+      SELECT
+        ${wishSelectFields}
+      FROM wishes
+      WHERE ${scope.sql}
+        AND deleted_at IS NOT NULL
+      ORDER BY deleted_at DESC, id DESC
+    `,
+    scope.values
+  );
+
+  res.status(200).json({
+    message: "get deleted wishes success",
+    wishes: rows.map(serializeWish),
+  });
+}
+
+export async function deleteWish(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  const wishId = Number(req.params.id);
+
+  if (!Number.isInteger(wishId) || wishId <= 0) {
+    throw new HttpError(400, "wish id is invalid");
+  }
+
+  const wish = await findWishById(userId, wishId);
+  if (!wish) {
+    throw new HttpError(404, "wish not found");
+  }
+
+  await db.query<ResultSetHeader>(
+    `
+      UPDATE wishes
+      SET
+        deleted_at = CURRENT_TIMESTAMP,
+        delete_expires_at = DATE_ADD(CURRENT_TIMESTAMP, INTERVAL ? DAY),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+        AND deleted_at IS NULL
+      LIMIT 1
+    `,
+    [WISH_RETENTION_DAYS, wishId]
+  );
+
+  const deletedWish = await findWishById(userId, wishId, { includeDeleted: true });
+  if (!deletedWish) {
+    throw new HttpError(500, "failed to delete wish");
+  }
+
+  res.status(200).json({
+    message: "delete wish success",
+    wish: serializeWish(deletedWish),
+  });
+}
+
+export async function restoreWish(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  const wishId = Number(req.params.id);
+
+  if (!Number.isInteger(wishId) || wishId <= 0) {
+    throw new HttpError(400, "wish id is invalid");
+  }
+
+  const wish = await findWishById(userId, wishId, { includeDeleted: true });
+  if (!wish || wish.deleted_at === null) {
+    throw new HttpError(404, "deleted wish not found");
+  }
+
+  await db.query<ResultSetHeader>(
+    `
+      UPDATE wishes
+      SET
+        deleted_at = NULL,
+        delete_expires_at = NULL,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+        AND deleted_at IS NOT NULL
+      LIMIT 1
+    `,
+    [wishId]
+  );
+
+  const restoredWish = await findWishById(userId, wishId);
+  if (!restoredWish) {
+    throw new HttpError(500, "failed to restore wish");
+  }
+
+  res.status(200).json({
+    message: "restore wish success",
+    wish: serializeWish(restoredWish),
+  });
+}
+
+export async function permanentlyDeleteWish(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  const wishId = Number(req.params.id);
+
+  if (!Number.isInteger(wishId) || wishId <= 0) {
+    throw new HttpError(400, "wish id is invalid");
+  }
+
+  const wish = await findWishById(userId, wishId, { includeDeleted: true });
+  if (!wish || wish.deleted_at === null) {
+    throw new HttpError(404, "deleted wish not found");
+  }
+
+  await db.query<ResultSetHeader>(
+    `
+      DELETE FROM wishes
+      WHERE id = ?
+        AND deleted_at IS NOT NULL
+      LIMIT 1
+    `,
+    [wishId]
+  );
+
+  res.status(200).json({
+    message: "permanently delete wish success",
+  });
+}
+
+export async function cleanupExpiredDeletedWishes() {
+  if (!(await hasTable("wishes"))) {
+    return;
+  }
+
+  const hasDeletedAt = await hasColumn("wishes", "deleted_at");
+  const hasDeleteExpiresAt = await hasColumn("wishes", "delete_expires_at");
+  if (!hasDeletedAt || !hasDeleteExpiresAt) {
+    return;
+  }
+
+  const [result] = await db.query<ResultSetHeader>(
+    `
+      DELETE FROM wishes
+      WHERE deleted_at IS NOT NULL
+        AND delete_expires_at IS NOT NULL
+        AND delete_expires_at <= CURRENT_TIMESTAMP
+    `
+  );
+
+  if (result.affectedRows > 0) {
+    console.log(`Cleaned up ${result.affectedRows} expired wishes`);
+  }
+}
+
+export function setupWishCleanup() {
+  void cleanupExpiredDeletedWishes().catch((error) => {
+    console.error("Initial wish cleanup failed", error);
+  });
+
+  return setInterval(() => {
+    void cleanupExpiredDeletedWishes().catch((error) => {
+      console.error("Scheduled wish cleanup failed", error);
+    });
+  }, WISH_CLEANUP_INTERVAL_MS);
 }

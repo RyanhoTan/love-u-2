@@ -17,6 +17,9 @@ export interface WishItem {
   status: WishStatus;
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;
+  deleteExpiresAt: string | null;
+  isDeleted: boolean;
 }
 
 export interface WishRecordItem {
@@ -99,6 +102,12 @@ export async function getWishes() {
   });
 }
 
+export async function getDeletedWishes() {
+  return requestWithAuth<GetWishesResponse>("/wishes/recycle", {
+    method: "GET",
+  });
+}
+
 export async function getWishById(id: number) {
   return requestWithAuth<GetWishResponse>(`/wishes/${id}`, {
     method: "GET",
@@ -116,6 +125,24 @@ export async function updateWish(id: number, payload: UpdateWishPayload) {
   return requestWithAuth<UpdateWishResponse>(`/wishes/${id}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteWish(id: number) {
+  return requestWithAuth<UpdateWishResponse>(`/wishes/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function restoreWish(id: number) {
+  return requestWithAuth<UpdateWishResponse>(`/wishes/${id}/restore`, {
+    method: "POST",
+  });
+}
+
+export async function permanentlyDeleteWish(id: number) {
+  return requestWithAuth<{ message: string }>(`/wishes/${id}/permanent`, {
+    method: "DELETE",
   });
 }
 

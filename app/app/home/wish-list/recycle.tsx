@@ -1,33 +1,135 @@
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { useCallback, useState } from "react";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "expo-router";
 import { RotateCcw, Trash2 } from "lucide-react-native";
 import { ImagesWishDefaultWishCoverPng } from "@/assets";
-import { NavBar } from "@/components/common";
+import { NavBar, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
+import {
+  getDeletedWishes,
+  permanentlyDeleteWish,
+  restoreWish,
+  type WishItem,
+} from "@/app/features/wish-list/api";
 import { colors } from "@/styles/colors";
 
-const recycledWishes = [
-  {
-    id: 1,
-    title: "一起去海边看日出",
-    deletedAt: "2026-07-10",
-    targetDate: "2026-08-18",
-  },
-  {
-    id: 2,
-    title: "周末做一顿烛光晚餐",
-    deletedAt: "2026-07-08",
-    targetDate: "2026-07-26",
-  },
-  {
-    id: 3,
-    title: "补拍一组夏天合照",
-    deletedAt: "2026-07-02",
-    targetDate: "2026-08-03",
-  },
-];
+function formatDateLabel(value: string | null) {
+  if (!value) {
+    return "--";
+  }
+
+  return value.slice(0, 10);
+}
 
 export default function WishRecycleBin() {
+  const [wishes, setWishes] = useState<WishItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [pendingWishId, setPendingWishId] = useState<number | null>(null);
+
+  const refreshWishes = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await getDeletedWishes();
+      setWishes(response.wishes);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "加载回收站失败";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshWishes();
+    }, [refreshWishes]),
+  );
+
+  const handleRestore = useCallback(
+    (wish: WishItem) => {
+      if (pendingWishId !== null) {
+        return;
+      }
+
+      Alert.alert("恢复愿望", `恢复“${wish.title}”到愿望列表？`, [
+        {
+          text: "取消",
+          style: "cancel",
+        },
+        {
+          text: "恢复",
+          onPress: () => {
+            void (async () => {
+              try {
+                setPendingWishId(wish.id);
+                await restoreWish(wish.id);
+                toast.success("愿望已恢复");
+                await refreshWishes();
+              } catch (error) {
+                const message =
+                  error instanceof Error ? error.message : "恢复愿望失败";
+                toast.error(message);
+              } finally {
+                setPendingWishId(null);
+              }
+            })();
+          },
+        },
+      ]);
+    },
+    [pendingWishId, refreshWishes],
+  );
+
+  const handlePermanentDelete = useCallback(
+    (wish: WishItem) => {
+      if (pendingWishId !== null) {
+        return;
+      }
+
+      Alert.alert(
+        "永久删除",
+        `“${wish.title}”会被彻底删除，无法恢复。`,
+        [
+          {
+            text: "取消",
+            style: "cancel",
+          },
+          {
+            text: "删除",
+            style: "destructive",
+            onPress: () => {
+              void (async () => {
+                try {
+                  setPendingWishId(wish.id);
+                  await permanentlyDeleteWish(wish.id);
+                  toast.success("愿望已永久删除");
+                  await refreshWishes();
+                } catch (error) {
+                  const message =
+                    error instanceof Error ? error.message : "永久删除失败";
+                  toast.error(message);
+                } finally {
+                  setPendingWishId(null);
+                }
+              })();
+            },
+          },
+        ],
+      );
+    },
+    [pendingWishId, refreshWishes],
+  );
+
   return (
     <SafeAreaView style={styles.page}>
       <NavBar title="回收站" />
@@ -37,47 +139,85 @@ export default function WishRecycleBin() {
         showsVerticalScrollIndicator={false}
       >
         <Column gap={8}>
-          <Text style={styles.sectionTitle}>已删除愿望</Text>
-          <Text style={styles.sectionSubTitle}>这里先展示静态数据，后续接入恢复和彻底删除。</Text>
+          <Text style={styles.sectionTitle}>最近删除</Text>
+          <Text style={styles.sectionSubTitle}>
+            删除后的愿望会保留 30 天，到期后系统会自动清理。
+          </Text>
         </Column>
 
-        {recycledWishes.map((wish) => (
-          <Row
-            key={wish.id}
-            gap={12}
-            items="center"
-            content="space-between"
-            style={styles.wishItem}
-          >
-            <Row gap={12} items="center" style={styles.wishInfo}>
-              <Image source={ImagesWishDefaultWishCoverPng} style={styles.cover} />
-              <Column gap={8} style={styles.wishText}>
-                <Text numberOfLines={1} style={styles.wishTitle}>
-                  {wish.title}
-                </Text>
-                <Text numberOfLines={1} style={styles.wishMeta}>
-                  预计时间：{wish.targetDate}
-                </Text>
-                <Text numberOfLines={1} style={styles.wishMeta}>
-                  删除时间：{wish.deletedAt}
-                </Text>
-              </Column>
-            </Row>
+        {!loading && wishes.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>回收站还是空的</Text>
+            <Text style={styles.emptyText}>删除的愿望会先来到这里。</Text>
+          </View>
+        ) : null}
 
-            <Row gap={8}>
-              <TouchableOpacity style={styles.actionButton}>
-                <RotateCcw
-                  color={colors.theme.primary}
-                  height={18}
-                  width={18}
+        {wishes.map((wish) => {
+          const isPending = pendingWishId === wish.id;
+
+          return (
+            <Row
+              key={wish.id}
+              gap={12}
+              items="center"
+              content="space-between"
+              style={styles.wishItem}
+            >
+              <Row gap={12} items="center" style={styles.wishInfo}>
+                <Image
+                  source={
+                    wish.cover
+                      ? { uri: wish.cover }
+                      : ImagesWishDefaultWishCoverPng
+                  }
+                  style={styles.cover}
                 />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <Trash2 color="#ff6b81" height={18} width={18} />
-              </TouchableOpacity>
+                <Column gap={8} style={styles.wishText}>
+                  <Text numberOfLines={1} style={styles.wishTitle}>
+                    {wish.title}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.wishMeta}>
+                    预计时间：{wish.targetDate}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.wishMeta}>
+                    删除时间：{formatDateLabel(wish.deletedAt)}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.wishMeta}>
+                    清理时间：{formatDateLabel(wish.deleteExpiresAt)}
+                  </Text>
+                </Column>
+              </Row>
+
+              <Row gap={8}>
+                <TouchableOpacity
+                  style={[
+                    styles.actionButton,
+                    isPending && styles.actionButtonDisabled,
+                  ]}
+                  disabled={isPending}
+                  onPress={() => handleRestore(wish)}
+                >
+                  <RotateCcw
+                    color={colors.theme.primary}
+                    height={18}
+                    width={18}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.actionButton,
+                    styles.dangerButton,
+                    isPending && styles.actionButtonDisabled,
+                  ]}
+                  disabled={isPending}
+                  onPress={() => handlePermanentDelete(wish)}
+                >
+                  <Trash2 color="#ff6b81" height={18} width={18} />
+                </TouchableOpacity>
+              </Row>
             </Row>
-          </Row>
-        ))}
+          );
+        })}
       </ScrollView>
     </SafeAreaView>
   );
@@ -99,6 +239,23 @@ const styles = StyleSheet.create({
     color: colors.semantic.textPrimary,
   },
   sectionSubTitle: {
+    color: colors.semantic.textSecondary,
+    lineHeight: 20,
+  },
+  emptyState: {
+    padding: 24,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: colors.semantic.border,
+    gap: 8,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: colors.semantic.textPrimary,
+  },
+  emptyText: {
     color: colors.semantic.textSecondary,
     lineHeight: 20,
   },
@@ -136,5 +293,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.theme.primarySoftBg,
     alignItems: "center",
     justifyContent: "center",
+  },
+  dangerButton: {
+    backgroundColor: "rgba(255, 107, 129, 0.14)",
+  },
+  actionButtonDisabled: {
+    opacity: 0.45,
   },
 });
