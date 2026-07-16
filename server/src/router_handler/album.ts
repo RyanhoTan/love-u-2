@@ -1,8 +1,16 @@
 import type { Request, Response } from "express";
-import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
+import type {
+  PoolConnection,
+  ResultSetHeader,
+  RowDataPacket,
+} from "mysql2/promise";
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
-import { createAlbumMediaSchema } from "../schema/album.js";
+import { HttpError } from "../errors.js";
+import {
+  createAlbumMediaSchema,
+  createAlbumStorySchema,
+} from "../schema/album.js";
 import { parseRequestBody } from "../validation.js";
 
 interface CoupleRelationshipRow extends RowDataPacket {
@@ -61,6 +69,36 @@ interface SerializedAlbumMedia {
   createdAt: string;
 }
 
+interface AlbumStoryRow extends RowDataPacket {
+  id: number;
+  relationship_id: number | null;
+  created_by_user_id: number;
+  title: string;
+  description: string | null;
+  cover_media_id: number | null;
+  cover_url: string | null;
+  cover_thumbnail_url: string | null;
+  photo_count: number | string;
+  video_count: number | string;
+  created_at: Date | string;
+  updated_at: Date | string;
+}
+
+interface SerializedAlbumStory {
+  id: number;
+  relationshipId: number | null;
+  createdByUserId: number;
+  title: string;
+  description: string;
+  coverMediaId: number | null;
+  coverUrl: string;
+  coverThumbnailUrl: string;
+  photos: number;
+  videos: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 function formatDateOnly(value: Date | string | null) {
   if (!value) {
     return "";
@@ -100,6 +138,23 @@ function serializeAlbumMedia(row: AlbumMediaRow): SerializedAlbumMedia {
     longitude: row.longitude === null ? null : Number(row.longitude),
     uploadedAt: formatDateTime(row.created_at),
     createdAt: formatDateTime(row.created_at),
+  };
+}
+
+function serializeAlbumStory(row: AlbumStoryRow): SerializedAlbumStory {
+  return {
+    id: row.id,
+    relationshipId: row.relationship_id,
+    createdByUserId: row.created_by_user_id,
+    title: row.title,
+    description: row.description || "",
+    coverMediaId: row.cover_media_id,
+    coverUrl: row.cover_url || "",
+    coverThumbnailUrl: row.cover_thumbnail_url || "",
+    photos: Number(row.photo_count),
+    videos: Number(row.video_count),
+    createdAt: formatDateTime(row.created_at),
+    updatedAt: formatDateTime(row.updated_at),
   };
 }
 
@@ -194,6 +249,72 @@ async function buildAlbumScope(userId: number) {
     values: [userId],
     relationshipId: null,
   };
+}
+
+function storySelectSql() {
+  return `
+    SELECT
+      s.id,
+      s.relationship_id,
+      s.created_by_user_id,
+      s.title,
+      s.description,
+      s.cover_media_id,
+      cover.url AS cover_url,
+      cover.thumbnail_url AS cover_thumbnail_url,
+      COALESCE(SUM(m.media_type = 'image'), 0) AS photo_count,
+      COALESCE(SUM(m.media_type = 'video'), 0) AS video_count,
+      s.created_at,
+      s.updated_at
+    FROM album_stories s
+    LEFT JOIN album_media m
+      ON m.source_type = 'story'
+      AND m.source_id = s.id
+    LEFT JOIN album_media cover ON cover.id = s.cover_media_id
+  `;
+}
+
+async function getStoryRows(
+  scope: Awaited<ReturnType<typeof buildAlbumScope>>,
+  storyId?: number,
+) {
+  const [rows] = await db.query<AlbumStoryRow[]>(
+    `
+      ${storySelectSql()}
+      WHERE ${scope.sql.replaceAll("relationship_id", "s.relationship_id").replaceAll("created_by_user_id", "s.created_by_user_id")}
+      ${storyId ? "AND s.id = ?" : ""}
+      GROUP BY
+        s.id,
+        s.relationship_id,
+        s.created_by_user_id,
+        s.title,
+        s.description,
+        s.cover_media_id,
+        cover.url,
+        cover.thumbnail_url,
+        s.created_at,
+        s.updated_at
+      ORDER BY s.updated_at DESC, s.id DESC
+    `,
+    storyId ? [...scope.values, storyId] : scope.values,
+  );
+
+  return rows;
+}
+
+function parseId(value: string) {
+  const id = Number(value);
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new HttpError(400, "invalid story id");
+  }
+
+  return id;
+}
+
+async function assertAlbumStoriesTableReady() {
+  if (!(await hasTable("album_stories"))) {
+    throw new HttpError(500, "album stories table not found");
+  }
 }
 
 export async function getAlbumMedia(req: Request, res: Response) {
@@ -360,5 +481,168 @@ export async function createAlbumMedia(req: Request, res: Response) {
   res.status(201).json({
     message: "create album media success",
     media: serializeAlbumMedia(rows[0]),
+  });
+}
+
+export async function getAlbumStories(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  await assertAlbumStoriesTableReady();
+
+  const scope = await buildAlbumScope(userId);
+  const stories = (await getStoryRows(scope)).map(serializeAlbumStory);
+
+  res.status(200).json({
+    message: "get album stories success",
+    stories,
+  });
+}
+
+export async function getAlbumStory(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  await assertAlbumStoriesTableReady();
+
+  const storyIdParam = Array.isArray(req.params.id)
+    ? req.params.id[0]
+    : req.params.id;
+  const storyId = parseId(storyIdParam);
+  const scope = await buildAlbumScope(userId);
+  const storyRows = await getStoryRows(scope, storyId);
+  const storyRow = storyRows[0];
+
+  if (!storyRow) {
+    throw new HttpError(404, "album story not found");
+  }
+
+  const [mediaRows] = await db.query<AlbumMediaRow[]>(
+    `
+      SELECT
+        id,
+        relationship_id,
+        created_by_user_id,
+        media_type,
+        source_type,
+        source_id,
+        url,
+        thumbnail_url,
+        taken_at,
+        location_name,
+        latitude,
+        longitude,
+        created_at
+      FROM album_media
+      WHERE source_type = 'story'
+        AND source_id = ?
+      ORDER BY COALESCE(taken_at, created_at) DESC, id DESC
+    `,
+    [storyId],
+  );
+
+  res.status(200).json({
+    message: "get album story success",
+    story: serializeAlbumStory(storyRow),
+    media: mediaRows.map(serializeAlbumMedia),
+  });
+}
+
+export async function createAlbumStory(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  const payload = parseRequestBody(createAlbumStorySchema, req.body);
+  await assertAlbumStoriesTableReady();
+
+  const scope = await buildAlbumScope(userId);
+  const connection: PoolConnection = await db.getConnection();
+  let createdStoryId = 0;
+
+  try {
+    await connection.beginTransaction();
+
+    const [storyResult] = await connection.query<ResultSetHeader>(
+      `
+        INSERT INTO album_stories (
+          relationship_id,
+          created_by_user_id,
+          title,
+          description,
+          cover_media_id
+        )
+        VALUES (?, ?, ?, ?, NULL)
+      `,
+      [
+        scope.relationshipId,
+        userId,
+        payload.title,
+        payload.description || null,
+      ],
+    );
+
+    const storyId = storyResult.insertId;
+    createdStoryId = storyId;
+    let coverMediaId: number | null = null;
+
+    if (payload.media.length) {
+      const values = payload.media.map((media) => [
+        scope.relationshipId,
+        userId,
+        media.mediaType,
+        "story",
+        storyId,
+        media.url,
+        media.thumbnailUrl || null,
+        media.takenAt || null,
+        media.locationName || null,
+        media.latitude,
+        media.longitude,
+      ]);
+
+      const [mediaResult] = await connection.query<ResultSetHeader>(
+        `
+          INSERT INTO album_media (
+            relationship_id,
+            created_by_user_id,
+            media_type,
+            source_type,
+            source_id,
+            url,
+            thumbnail_url,
+            taken_at,
+            location_name,
+            latitude,
+            longitude
+          )
+          VALUES ?
+        `,
+        [values],
+      );
+
+      coverMediaId = mediaResult.insertId;
+
+      await connection.query(
+        `
+          UPDATE album_stories
+          SET cover_media_id = ?
+          WHERE id = ?
+        `,
+        [coverMediaId, storyId],
+      );
+    }
+
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+
+  const storyRows = await getStoryRows(scope, createdStoryId);
+  const createdStory = storyRows[0];
+
+  if (!createdStory) {
+    throw new HttpError(500, "failed to create album story");
+  }
+
+  res.status(201).json({
+    message: "create album story success",
+    story: serializeAlbumStory(createdStory),
   });
 }

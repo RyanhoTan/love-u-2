@@ -3,11 +3,15 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ScrollView } from "react-native-gesture-handler";
 import { ChevronRight, ChevronsUpDown, Grid2x2, Play } from "lucide-react-native";
-import { ImagesWishDefaultWishCoverPng } from "@/assets";
-import { getAlbumMedia, type AlbumMediaItem } from "@/app/features/album/api";
+import { ImagesCoverPng, ImagesWishDefaultWishCoverPng } from "@/assets";
+import {
+  getAlbumMedia,
+  getAlbumStories,
+  type AlbumMediaItem,
+  type AlbumStory,
+} from "@/app/features/album/api";
 import { getWishes, type WishItem } from "@/app/features/wish-list/api";
 import { toast } from "@/components/common";
-import { STORIES } from "@/data/mock-stories";
 import { useImageViewer } from "@/hooks/use-image-viewer";
 import { useVideoViewer } from "@/hooks/use-video-viewer";
 import { Column, Row } from "../layout";
@@ -59,6 +63,7 @@ export function AllMedias({ refreshKey = 0 }: AllMediasProps) {
   >({});
   const [wishes, setWishes] = useState<WishItem[]>([]);
   const [media, setMedia] = useState<AlbumMediaItem[]>([]);
+  const [stories, setStories] = useState<AlbumStory[]>([]);
   const { openViewer: openImageViewer, Viewer: ImageViewer } = useImageViewer();
   const { openViewer: openVideoViewer, Viewer: VideoViewer } = useVideoViewer();
 
@@ -72,18 +77,20 @@ export function AllMedias({ refreshKey = 0 }: AllMediasProps) {
     () => wishes.filter((wish) => wish.status === "done"),
     [wishes],
   );
-  const memoryAlbums = STORIES.slice(0, 4);
+  const memoryAlbums = useMemo(() => stories.slice(0, 4), [stories]);
   const mediaGroups = useMemo(() => groupMediaByMonth(media), [media]);
 
   const refreshAlbum = useCallback(async () => {
     try {
-      const [wishResponse, mediaResponse] = await Promise.all([
+      const [wishResponse, mediaResponse, storyResponse] = await Promise.all([
         getWishes(),
         getAlbumMedia(),
+        getAlbumStories(),
       ]);
 
       setWishes(wishResponse.wishes);
       setMedia(mediaResponse.media);
+      setStories(storyResponse.stories);
     } catch (error) {
       const message = error instanceof Error ? error.message : "加载相册失败";
       toast.error(message);
@@ -171,13 +178,17 @@ export function AllMedias({ refreshKey = 0 }: AllMediasProps) {
             >
               <Column>
                 <Image
-                  source={album.cover}
+                  source={
+                    album.coverThumbnailUrl || album.coverUrl
+                      ? { uri: album.coverThumbnailUrl || album.coverUrl }
+                      : ImagesCoverPng
+                  }
                   style={{ width: 120, height: 120 }}
                 />
                 <Column bg="#ffffff80" style={{ width: 120, padding: 6 }}>
                   <Text numberOfLines={1}>{album.title}</Text>
                   <Text style={{ color: "#aaa", fontSize: 12 }}>
-                    32张 · 2个视频
+                    {album.photos}张 · {album.videos}个视频
                   </Text>
                 </Column>
               </Column>

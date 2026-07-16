@@ -10,7 +10,15 @@ import {
 } from "react-native";
 import { Camera, Images, Play, Plus, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { NavBar } from "@/components/common";
+import { router } from "expo-router";
+import {
+  NavBar,
+  toast,
+} from "@/components/common";
+import {
+  createAlbumStory,
+  type CreateAlbumMediaPayload,
+} from "@/app/features/album/api";
 import { Column } from "@/components/layout";
 import {
   useImageViewer,
@@ -43,6 +51,7 @@ export default function CreateStory() {
   const [description, setDescription] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<PickedMediaItem[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
 
   const { pickFromLibrary, takePhoto } = useMediaPicker({
     mediaTypes: "mixed",
@@ -104,13 +113,65 @@ export default function CreateStory() {
     );
   };
 
+  const getThumbnailUri = (asset: PickedMediaItem) => {
+    const source = asset.thumbnailSource;
+
+    if (source && typeof source === "object" && "uri" in source) {
+      return typeof source.uri === "string" ? source.uri : "";
+    }
+
+    return "";
+  };
+
+  const handleCreate = async () => {
+    if (isCreating) {
+      return;
+    }
+
+    const nextTitle = title.trim();
+    if (!nextTitle) {
+      toast.error("请输入故事标题");
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+
+      const media: CreateAlbumMediaPayload[] = selectedMedia.map((item) => ({
+        mediaType: item.type,
+        url: item.uri,
+        thumbnailUrl: getThumbnailUri(item),
+      }));
+
+      await createAlbumStory({
+        title: nextTitle,
+        description: description.trim(),
+        media,
+      });
+
+      toast.success("故事创建成功");
+      router.replace("/home/album/stories");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "创建故事失败";
+      toast.error(message);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.page}>
       <NavBar
         title="创建时光故事"
         rightContent={
-          <TouchableOpacity activeOpacity={0.8} style={styles.createButton}>
-            <Text style={styles.createButtonText}>创建</Text>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.createButton}
+            onPress={() => void handleCreate()}
+          >
+            <Text style={styles.createButtonText}>
+              {isCreating ? "创建中" : "创建"}
+            </Text>
           </TouchableOpacity>
         }
       />

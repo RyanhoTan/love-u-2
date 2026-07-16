@@ -1,33 +1,57 @@
-import { NavBar } from "@/components/common";
-import { Column, Row } from "@/components/layout";
-import {
-  Text,
-  Image,
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  SectionList,
-  ImageBackground,
-  useWindowDimensions,
-} from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ImagesAuthBackgroundPng } from "@/assets";
-import { STORIES, type Story } from "@/data/mock-stories";
+import {
+  ActivityIndicator,
+  Image,
+  ImageBackground,
+  SectionList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import {
+  getAlbumStories,
+  type AlbumStory,
+} from "@/app/features/album/api";
+import { ImagesAuthBackgroundPng, ImagesCoverPng } from "@/assets";
+import { NavBar, toast } from "@/components/common";
+import { Column, Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
 
 const COLUMNS = 2;
 const GAP = 12;
 const PADDING = 16;
 
-const SECTIONS = [{ data: chunk(STORIES, COLUMNS) }];
-
 export default function Stories() {
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
-  const cardWidth = (screenWidth - PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
+  const [stories, setStories] = useState<AlbumStory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const renderRow = ({ item: row }: { item: Story[] }) => (
+  const cardWidth = (screenWidth - PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
+  const sections = useMemo(() => [{ data: chunk(stories, COLUMNS) }], [stories]);
+
+  const refreshStories = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await getAlbumStories();
+      setStories(response.stories);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "加载故事失败";
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshStories();
+  }, [refreshStories]);
+
+  const renderRow = ({ item: row }: { item: AlbumStory[] }) => (
     <Row gap={GAP}>
       {row.map((story) => (
         <TouchableOpacity
@@ -37,7 +61,11 @@ export default function Stories() {
         >
           <Column gap={6}>
             <Image
-              source={story.cover}
+              source={
+                story.coverThumbnailUrl || story.coverUrl
+                  ? { uri: story.coverThumbnailUrl || story.coverUrl }
+                  : ImagesCoverPng
+              }
               style={{
                 width: "100%",
                 height: cardWidth * 0.75,
@@ -62,13 +90,23 @@ export default function Stories() {
       <ImageBackground source={ImagesAuthBackgroundPng} style={{ flex: 1 }}>
         <SafeAreaView style={{ flex: 1, padding: PADDING }}>
           <NavBar title="全部故事" />
-          <SectionList
-            sections={SECTIONS}
-            keyExtractor={(row, index) => String(row[0]?.id ?? index)}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ gap: GAP }}
-            renderItem={renderRow}
-          />
+          {isLoading ? (
+            <View style={styles.centerState}>
+              <ActivityIndicator />
+            </View>
+          ) : stories.length === 0 ? (
+            <View style={styles.centerState}>
+              <Text style={styles.emptyText}>还没有时光故事</Text>
+            </View>
+          ) : (
+            <SectionList
+              sections={sections}
+              keyExtractor={(row, index) => String(row[0]?.id ?? index)}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ gap: GAP }}
+              renderItem={renderRow}
+            />
+          )}
         </SafeAreaView>
       </ImageBackground>
     </View>
@@ -88,5 +126,14 @@ const styles = StyleSheet.create({
   cardMeta: {
     color: "#aaa",
     fontSize: 12,
+  },
+  centerState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#888",
   },
 });

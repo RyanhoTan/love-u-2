@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { router } from "expo-router";
 import { Check, FolderClosed, Plus } from "lucide-react-native";
 import {
@@ -10,14 +10,33 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { NavBar, PinkButton } from "@/components/common";
+import {
+  getAlbumStories,
+  type AlbumStory,
+} from "@/app/features/album/api";
+import { ImagesCoverPng } from "@/assets";
+import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
-import { STORIES } from "@/data/mock-stories";
 import { colors } from "@/styles/colors";
 
 export default function SelectLocation() {
   const [selectedStoryIds, setSelectedStoryIds] = useState<number[]>([]);
   const [selectedUncategorized, setSelectedUncategorized] = useState(false);
+  const [stories, setStories] = useState<AlbumStory[]>([]);
+
+  const refreshStories = useCallback(async () => {
+    try {
+      const response = await getAlbumStories();
+      setStories(response.stories);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "加载故事失败";
+      toast.error(message);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshStories();
+  }, [refreshStories]);
 
   const toggleUncategorized = () => {
     setSelectedUncategorized((current) => {
@@ -94,7 +113,7 @@ export default function SelectLocation() {
             </Row>
           </TouchableOpacity>
 
-          {STORIES.map((story) => {
+          {stories.map((story) => {
             const selected = selectedStoryIds.includes(story.id);
 
             return (
@@ -104,7 +123,14 @@ export default function SelectLocation() {
                 style={[styles.storyItem, selected && styles.storyItemSelected]}
                 onPress={() => toggleStory(story.id)}
               >
-                <Image source={story.cover} style={styles.storyCover} />
+                <Image
+                  source={
+                    story.coverThumbnailUrl || story.coverUrl
+                      ? { uri: story.coverThumbnailUrl || story.coverUrl }
+                      : ImagesCoverPng
+                  }
+                  style={styles.storyCover}
+                />
 
                 <Row flex={1} items="center" content="space-between" gap={12}>
                   <Column flex={1} gap={8}>
