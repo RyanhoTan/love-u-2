@@ -46,6 +46,7 @@ import {
   createWishRecord,
   getWishById,
   uploadWishFile,
+  type WishRecordMediaItem,
   type WishItem,
 } from "@/app/features/wish-list/api";
 import {
@@ -227,18 +228,23 @@ export default function CreateRecord() {
   };
 
   const uploadSelectedMedia = async () => {
-    const mediaUrls: string[] = [];
+    const media: WishRecordMediaItem[] = [];
 
-    for (const media of selectedMedia) {
+    for (const item of selectedMedia) {
       const result = await uploadWishFile(
-        media.uri,
-        getUploadedMediaFileName(media),
-        getUploadedMediaContentType(media),
+        item.uri,
+        getUploadedMediaFileName(item),
+        getUploadedMediaContentType(item),
       );
-      mediaUrls.push(result.url);
+
+      media.push({
+        url: result.url,
+        mediaType: item.type,
+        thumbnailUrl: "",
+      });
     }
 
-    return mediaUrls;
+    return media;
   };
 
   const handleSave = async () => {
@@ -260,7 +266,7 @@ export default function CreateRecord() {
 
     try {
       setSubmitting(true);
-      const mediaUrls = await uploadSelectedMedia();
+      const media = await uploadSelectedMedia();
       await createWishRecord(parsedWishId, {
         content: text.trim(),
         recordDate: date.toISOString().slice(0, 10),
@@ -269,7 +275,7 @@ export default function CreateRecord() {
         latitude: selectedLocation?.latitude ?? null,
         longitude: selectedLocation?.longitude ?? null,
         budgetAmount: budget ? Number(budget) : null,
-        mediaUrls,
+        media,
       });
       await clearWishRecordDraft(parsedWishId);
       toast.success("记录保存成功");

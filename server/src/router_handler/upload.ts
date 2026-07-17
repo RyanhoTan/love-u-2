@@ -18,10 +18,12 @@ function getExtension(fileName: string) {
   return parts[parts.length - 1];
 }
 
-export async function uploadMedia(req: Request, res: Response) {
-  const userId = getAuthenticatedUserId(req);
-  const fileName = String(req.header("x-file-name"));
-  const contentType = String(req.header("content-type"));
+export async function uploadMediaBuffer(
+  userId: number,
+  fileName: string,
+  contentType: string,
+  body: Buffer,
+) {
   const extension = getExtension(fileName);
   const key = `album/${userId}/${Date.now()}-${randomUUID()}.${extension}`;
 
@@ -29,13 +31,27 @@ export async function uploadMedia(req: Request, res: Response) {
     new PutObjectCommand({
       Bucket: config.r2Bucket,
       Key: key,
-      Body: req.body as Buffer,
+      Body: body,
       ContentType: contentType,
     }),
   );
 
-  res.status(201).json({
+  return {
     key,
     url: `${config.r2PublicUrl}/${key}`,
-  });
+  };
+}
+
+export async function uploadMedia(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  const fileName = String(req.header("x-file-name"));
+  const contentType = String(req.header("content-type"));
+  const result = await uploadMediaBuffer(
+    userId,
+    fileName,
+    contentType,
+    req.body as Buffer,
+  );
+
+  res.status(201).json(result);
 }

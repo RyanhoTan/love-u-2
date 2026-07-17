@@ -64,9 +64,18 @@ export const createWishRecordSchema = z.object({
   latitude: z.number().min(-90).max(90).nullable().optional().default(null),
   longitude: z.number().min(-180).max(180).nullable().optional().default(null),
   budgetAmount: z.number().int().min(0).nullable().optional().default(null),
-  mediaUrls: z
-    .array(z.string().trim().min(1, "mediaUrls contains an invalid item"))
-    .max(99, "mediaUrls must contain at most 99 items")
+  media: z
+    .array(
+      z.object({
+        url: z
+          .string()
+          .trim()
+          .pipe(z.url({ message: "media url must be a valid URL" })),
+        mediaType: z.enum(["image", "video"]),
+        thumbnailUrl: z.string().trim().optional().default(""),
+      }),
+    )
+    .max(99, "media must contain at most 99 items")
     .optional()
     .default([]),
 });

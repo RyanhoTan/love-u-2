@@ -26,17 +26,6 @@ import { useVideoViewer } from "@/hooks/use-video-viewer";
 
 const { width: screenWidth } = Dimensions.get("window");
 
-const VIDEO_EXTENSIONS = new Set([
-  "mp4",
-  "mov",
-  "m4v",
-  "webm",
-  "avi",
-  "mkv",
-  "3gp",
-  "hevc",
-]);
-
 function formatMonthDay(dateText: string) {
   const parts = dateText.split("-");
   if (parts.length !== 3) {
@@ -53,12 +42,6 @@ function formatDisplayDate(dateText: string) {
   }
 
   return `${parts[0]}.${parts[1]}.${parts[2]}`;
-}
-
-function isVideoUrl(url: string) {
-  const cleanUrl = url.split("?")[0]?.split("#")[0] ?? "";
-  const extension = cleanUrl.split(".").pop()?.toLowerCase();
-  return extension ? VIDEO_EXTENSIONS.has(extension) : false;
 }
 
 export default function Doing() {
@@ -185,26 +168,31 @@ export default function Doing() {
                       {item.content || ""}
                     </Text>
 
-                    {item.mediaUrls.length > 0 && (
+                    {item.media.length > 0 && (
                       <Row style={styles.imageGrid}>
-                        {item.mediaUrls.map((mediaUrl, idx) => {
-                          if (isVideoUrl(mediaUrl)) {
+                        {item.media.map((mediaItem, idx) => {
+                          if (mediaItem.mediaType === "video") {
                             return (
                               <TouchableOpacity
                                 key={`${item.id}-${idx}`}
                                 activeOpacity={0.9}
                                 onPress={() =>
                                   openVideoViewer(
-                                    { uri: mediaUrl },
+                                    { uri: mediaItem.url },
                                     wish?.title || "回忆视频",
                                     formatDisplayDate(item.recordDate),
                                   )
                                 }
                               >
-                                {/* TODO: 后端拿到视频生成缩略图 */}
                                 <View
                                   style={[styles.gridImage, styles.videoCard]}
                                 >
+                                  {!!mediaItem.thumbnailUrl && (
+                                    <Image
+                                      source={{ uri: mediaItem.thumbnailUrl }}
+                                      style={styles.gridImage}
+                                    />
+                                  )}
                                   <View style={styles.videoOverlay} />
                                   <Play
                                     color="#fff"
@@ -220,10 +208,10 @@ export default function Doing() {
                           return (
                             <TouchableOpacity
                               key={`${item.id}-${idx}`}
-                              onPress={() => openViewer({ uri: mediaUrl })}
+                              onPress={() => openViewer({ uri: mediaItem.url })}
                             >
                               <Image
-                                source={{ uri: mediaUrl }}
+                                source={{ uri: mediaItem.url }}
                                 style={styles.gridImage}
                               />
                             </TouchableOpacity>

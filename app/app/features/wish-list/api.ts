@@ -37,9 +37,16 @@ export interface WishRecordItem {
   latitude: number | null;
   longitude: number | null;
   budgetAmount: number | null;
+  media: WishRecordMediaItem[];
   mediaUrls: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface WishRecordMediaItem {
+  url: string;
+  mediaType: "image" | "video";
+  thumbnailUrl: string;
 }
 
 interface GetWishesResponse {
@@ -102,7 +109,7 @@ export interface CreateWishRecordPayload {
   latitude: number | null;
   longitude: number | null;
   budgetAmount: number | null;
-  mediaUrls: string[];
+  media: WishRecordMediaItem[];
 }
 
 export async function getWishes() {
