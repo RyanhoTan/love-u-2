@@ -48,6 +48,11 @@ import {
   uploadWishFile,
   type WishItem,
 } from "@/app/features/wish-list/api";
+import {
+  clearWishRecordDraft,
+  loadWishRecordDraft,
+  saveWishRecordDraft,
+} from "@/app/features/wish-list/record-draft";
 import { useStyledActionSheet } from "@/hooks/use-styled-action-sheet";
 import { useVideoViewer } from "@/hooks/use-video-viewer";
 import { type PickedMediaItem, useMediaPicker } from "@/hooks/use-media-picker";
@@ -130,6 +135,48 @@ export default function CreateRecord() {
     void loadWish();
   }, [id]);
 
+  useEffect(() => {
+    const parsedWishId = Number(id);
+
+    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+      return;
+    }
+
+    const restoreDraft = async () => {
+      const draft = await loadWishRecordDraft(parsedWishId);
+
+      if (!draft) {
+        return;
+      }
+
+      setText(draft.text);
+      setSelectedStatus(draft.selectedStatus);
+      setSelectedLocation(draft.selectedLocation);
+      setDate(new Date(draft.date));
+      setBudget(draft.budget);
+      setSelectedMedia(draft.selectedMedia);
+    };
+
+    void restoreDraft();
+  }, [id]);
+
+  const persistDraft = async (nextMedia: PickedMediaItem[]) => {
+    const parsedWishId = Number(id);
+
+    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+      return nextMedia;
+    }
+
+    return saveWishRecordDraft(parsedWishId, {
+      text,
+      selectedStatus,
+      selectedLocation,
+      date: date.toISOString(),
+      budget,
+      selectedMedia: nextMedia,
+    });
+  };
+
   const addMedia = async (pickMedia: () => Promise<PickedMediaItem[]>) => {
     const assets = await pickMedia();
 
@@ -137,9 +184,10 @@ export default function CreateRecord() {
       return;
     }
 
-    setSelectedMedia((current) =>
-      [...current, ...assets].slice(0, MAX_MEDIA_COUNT),
+    const nextMedia = await persistDraft(
+      [...selectedMedia, ...assets].slice(0, MAX_MEDIA_COUNT),
     );
+    setSelectedMedia(nextMedia);
   };
 
   const openMediaActions = () => {
@@ -171,10 +219,11 @@ export default function CreateRecord() {
     );
   };
 
-  const removeMedia = (mediaId: string) => {
-    setSelectedMedia((current) =>
-      current.filter((item) => item.id !== mediaId),
+  const removeMedia = async (mediaId: string) => {
+    const nextMedia = await persistDraft(
+      selectedMedia.filter((item) => item.id !== mediaId),
     );
+    setSelectedMedia(nextMedia);
   };
 
   const uploadSelectedMedia = async () => {
@@ -222,6 +271,7 @@ export default function CreateRecord() {
         budgetAmount: budget ? Number(budget) : null,
         mediaUrls,
       });
+      await clearWishRecordDraft(parsedWishId);
       toast.success("记录保存成功");
       router.back();
     } catch (error) {
