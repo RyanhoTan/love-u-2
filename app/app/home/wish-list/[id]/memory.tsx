@@ -226,7 +226,7 @@ export default function Memory() {
                                   {!!mediaItem.thumbnailUrl && (
                                     <Image
                                       source={{ uri: mediaItem.thumbnailUrl }}
-                                      style={styles.gridImage}
+                                      style={styles.thumbnailImage}
                                     />
                                   )}
                                   <View style={styles.videoOverlay} />
@@ -346,6 +346,10 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 8,
     resizeMode: "cover",
+  },
+  thumbnailImage: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: 8,
   },
   videoCard: {
     alignItems: "center",
