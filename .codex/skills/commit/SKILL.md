@@ -17,7 +17,9 @@ Create a Git commit with a professional Conventional Commits message based on th
 6. Run `git commit` with the generated message.
 7. Immediately verify the newly created commit message for encoding issues by inspecting `HEAD`.
 8. If the message is garbled, rewrite only the commit you just created with a UTF-8 message file and `git commit --amend -F`.
-9. Do not amend older existing commits and do not push.
+9. Treat `.git-commit-message.txt` as a local temporary file only. Never stage it, never include it in the commit, and never treat it as part of the product change.
+10. After the commit flow is finished, delete `.git-commit-message.txt`.
+11. Do not amend older existing commits and do not push.
 
 ## Encoding Safety
 
@@ -25,11 +27,12 @@ Treat commit-message encoding as a reliability-critical step.
 
 - Do not trust PowerShell console rendering alone when judging whether Chinese text is stored correctly.
 - Prefer creating `.git-commit-message.txt` with `apply_patch` so the message text is written exactly as intended.
+- Treat `.git-commit-message.txt` as a temporary commit-only artifact, not as a repository change to be versioned.
 - Avoid generating the final message file through PowerShell string literals, `Set-Content`, `Out-File`, or ad-hoc shell pipelines when the message contains Chinese text, because these frequently introduce BOMs, `?` replacement characters, or escaped `\\u` sequences.
 - If you must rewrite the message file programmatically, verify the file contents before committing and prefer a method that writes plain UTF-8 text without transformation.
 - If `git commit` output looks correct but `git cat-file -p HEAD` looks wrong, assume the terminal may be misrendering and verify the actual message file or other raw artifact before amending repeatedly.
 - If the message file itself contains `?` replacement characters or literal `\\uXXXX` sequences, treat that as a real corruption bug and regenerate the file before amending.
-- Keep a narrow loop: write message file, commit or amend once, inspect once, fix only if the stored content is truly wrong.
+- Keep a narrow loop: write message file, commit or amend once, inspect once, fix only if the stored content is truly wrong, then delete the temporary file.
 
 ## Allowed Git Commands
 
@@ -137,6 +140,8 @@ When the commit message contains non-ASCII text, prefer writing the message to a
 
 When creating the UTF-8 message file, prefer `apply_patch` over shell redirection so the text is preserved exactly and does not pick up shell-specific encoding issues.
 
+Do not `git add` `.git-commit-message.txt`. If it was accidentally staged, remove it from the index before committing. The file is a temporary input to `git commit -F`, not part of the business change set.
+
 If the just-created commit message is garbled, fix it immediately by rewriting only `HEAD` with a UTF-8 message file:
 
 ```sh
@@ -145,6 +150,8 @@ git cat-file -p HEAD
 ```
 
 If the amended message still appears wrong, inspect the message file itself before trying another amend. Do not repeatedly amend based only on terminal rendering.
+
+After the commit message is verified, delete `.git-commit-message.txt` from the working tree.
 
 If creating the commit is impossible, output only the final commit message text so the user can use it directly.
 
