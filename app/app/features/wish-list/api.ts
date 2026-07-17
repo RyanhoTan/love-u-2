@@ -38,7 +38,6 @@ export interface WishRecordItem {
   longitude: number | null;
   budgetAmount: number | null;
   media: WishRecordMediaItem[];
-  mediaUrls: string[];
   createdAt: string;
   updatedAt: string;
 }

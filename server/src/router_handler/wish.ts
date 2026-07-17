@@ -145,7 +145,6 @@ function serializeWishRecord(
     longitude: row.longitude === null ? null : Number(row.longitude),
     budgetAmount: row.budget_amount,
     media,
-    mediaUrls: media.map((item) => item.url),
     createdAt: formatDateTime(row.created_at),
     updatedAt: formatDateTime(row.updated_at),
   };

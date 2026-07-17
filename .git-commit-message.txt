@@ -1,0 +1,4 @@
+refactor(wish): 移除冗余的 mediaUrls 返回字段
+
+- 后端记录接口只返回 media，删除由 media 派生出的 mediaUrls
+- 前端记录类型同步收口为只读取 media
