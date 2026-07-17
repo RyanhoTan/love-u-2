@@ -31,7 +31,7 @@ import {
   IconsHomeStatusMissYouSvg,
   IconsHomeStatusSadSvg,
   IconsHomeStatusShockSvg,
-  ImagesCoverPng,
+  ImagesWishDefaultWishCoverPng,
 } from "@/assets";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
@@ -238,7 +238,9 @@ export default function CreateRecord() {
     }, 120);
   };
 
-  const wishCoverSource = wish?.cover ? { uri: wish.cover } : ImagesCoverPng;
+  const wishCoverSource = wish?.cover
+    ? { uri: wish.cover }
+    : ImagesWishDefaultWishCoverPng;
 
   return (
     <SafeAreaView style={styles.page}>

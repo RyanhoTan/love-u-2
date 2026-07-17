@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Play } from "lucide-react-native";
-import { ImagesCoverPng } from "@/assets";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import { Tag, VerticalDashedLine } from "@/components/wish-list";
@@ -91,28 +90,14 @@ export default function Doing() {
   }, [id]);
 
   useEffect(() => {
-    if (wish?.cover) {
-      Image.getSize(
-        wish.cover,
-        (width, height) => {
-          const calculatedHeight = screenWidth * (height / width);
-          setImageHeight(calculatedHeight);
-        },
-        () => {
-          const asset = Image.resolveAssetSource(ImagesCoverPng);
-          if (asset?.width && asset?.height) {
-            setImageHeight(screenWidth * (asset.height / asset.width));
-          }
-        },
-      );
+    if (!wish?.cover) {
       return;
     }
 
-    const asset = Image.resolveAssetSource(ImagesCoverPng);
-    if (asset?.width && asset?.height) {
-      const calculatedHeight = screenWidth * (asset.height / asset.width);
+    Image.getSize(wish.cover, (width, height) => {
+      const calculatedHeight = screenWidth * (height / width);
       setImageHeight(calculatedHeight);
-    }
+    });
   }, [wish?.cover]);
 
   useFocusEffect(
@@ -121,9 +106,9 @@ export default function Doing() {
     }, [loadData]),
   );
 
-  const coverSource: ImageSourcePropType = wish?.cover
+  const coverSource: ImageSourcePropType | undefined = wish?.cover
     ? { uri: wish.cover }
-    : ImagesCoverPng;
+    : undefined;
 
   const handleFinishWish = async () => {
     const parsedWishId = Number(id);
@@ -160,18 +145,20 @@ export default function Doing() {
         }
       />
       <ScrollView showsVerticalScrollIndicator={false}>
-        <TouchableOpacity onPress={() => openViewer(coverSource)}>
-          <Image
-            source={coverSource}
-            style={{
-              width: screenWidth,
-              height: imageHeight,
-              resizeMode: "contain",
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-            }}
-          />
-        </TouchableOpacity>
+        {coverSource ? (
+          <TouchableOpacity onPress={() => openViewer(coverSource)}>
+            <Image
+              source={coverSource}
+              style={{
+                width: screenWidth,
+                height: imageHeight,
+                resizeMode: "contain",
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+              }}
+            />
+          </TouchableOpacity>
+        ) : null}
         <Column gap={24} style={styles.container}>
           <Row gap={12}>
             <Text style={styles.title}>{wish?.title || "一起去看海"}</Text>
