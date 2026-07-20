@@ -3,7 +3,7 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ScrollView } from "react-native-gesture-handler";
 import { ChevronRight, ChevronsUpDown, Grid2x2, Play } from "lucide-react-native";
-import { ImagesCoverPng, ImagesWishDefaultWishCoverPng } from "@/assets";
+import { ImagesImageErrorPng } from "@/assets";
 import {
   getAlbumMedia,
   getAlbumStories,
@@ -137,9 +137,7 @@ export function AllMedias({ refreshKey = 0 }: AllMediasProps) {
               <Column>
                 <Image
                   source={
-                    wish.cover
-                      ? { uri: wish.cover }
-                      : ImagesWishDefaultWishCoverPng
+                    wish.cover ? { uri: wish.cover } : ImagesImageErrorPng
                   }
                   style={{ width: 120, height: 120 }}
                 />
@@ -181,7 +179,7 @@ export function AllMedias({ refreshKey = 0 }: AllMediasProps) {
                   source={
                     album.coverThumbnailUrl || album.coverUrl
                       ? { uri: album.coverThumbnailUrl || album.coverUrl }
-                      : ImagesCoverPng
+                      : ImagesImageErrorPng
                   }
                   style={{ width: 120, height: 120 }}
                 />
@@ -299,7 +297,7 @@ export function AllMedias({ refreshKey = 0 }: AllMediasProps) {
                               }}
                             >
                               <Image
-                                source={{ uri }}
+                                source={uri ? { uri } : ImagesImageErrorPng}
                                 style={{
                                   width: imageSize,
                                   height: imageSize,

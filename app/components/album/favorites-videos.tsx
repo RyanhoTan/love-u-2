@@ -13,6 +13,7 @@ import {
   getFavoriteAlbumMedia,
   type AlbumMediaItem,
 } from "@/app/features/album/api";
+import { ImagesImageErrorPng } from "@/assets";
 import { toast } from "@/components/common";
 import { Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
@@ -77,7 +78,11 @@ export function FavoritesVideosGrid({
         >
           <View>
             <Image
-              source={{ uri: video.thumbnailUrl || video.url }}
+              source={
+                video.thumbnailUrl || video.url
+                  ? { uri: video.thumbnailUrl || video.url }
+                  : ImagesImageErrorPng
+              }
               style={{ width: size, height: size, borderRadius: 6 }}
             />
             <View style={styles.playButton}>

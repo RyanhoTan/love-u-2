@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { getAlbumMedia, type AlbumMediaItem } from "@/app/features/album/api";
+import { ImagesImageErrorPng } from "@/assets";
 import { toast } from "@/components/common";
 import { useImageViewer } from "@/hooks/use-image-viewer";
 import { Column, Row } from "../layout";
@@ -126,7 +127,11 @@ export function Photos({ refreshKey = 0 }: PhotosProps) {
                   }}
                 >
                   <Image
-                    source={{ uri: src.thumbnailUrl || src.url }}
+                    source={
+                      src.thumbnailUrl || src.url
+                        ? { uri: src.thumbnailUrl || src.url }
+                        : ImagesImageErrorPng
+                    }
                     style={{
                       width: imageSize,
                       height: imageSize,

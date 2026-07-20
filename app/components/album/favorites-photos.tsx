@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { getFavoriteAlbumMedia, type AlbumMediaItem } from "@/app/features/album/api";
+import { ImagesImageErrorPng } from "@/assets";
 import { toast } from "@/components/common";
 import { Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
@@ -65,7 +66,11 @@ export function FavoritesPhotosGrid({
           onPress={() => openViewer({ uri: photo.url })}
         >
           <Image
-            source={{ uri: photo.thumbnailUrl || photo.url }}
+            source={
+              photo.thumbnailUrl || photo.url
+                ? { uri: photo.thumbnailUrl || photo.url }
+                : ImagesImageErrorPng
+            }
             style={{ width: size, height: size, borderRadius: 6 }}
           />
         </TouchableOpacity>

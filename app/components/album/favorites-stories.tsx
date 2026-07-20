@@ -13,7 +13,7 @@ import {
   getFavoriteAlbumStories,
   type AlbumStory,
 } from "@/app/features/album/api";
-import { ImagesCoverPng } from "@/assets";
+import { ImagesImageErrorPng } from "@/assets";
 import { toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
@@ -79,7 +79,7 @@ export function FavoritesStoriesGrid({
               source={
                 story.coverThumbnailUrl || story.coverUrl
                   ? { uri: story.coverThumbnailUrl || story.coverUrl }
-                  : ImagesCoverPng
+                  : ImagesImageErrorPng
               }
               style={{
                 width: "100%",

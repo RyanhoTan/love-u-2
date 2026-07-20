@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Image,
   SectionList,
@@ -10,13 +10,12 @@ import {
 import { useFocusEffect } from "expo-router";
 import { Play } from "lucide-react-native";
 import { getAlbumMedia, type AlbumMediaItem } from "@/app/features/album/api";
-import { ImagesCoverPng } from "@/assets";
+import { ImagesImageErrorPng } from "@/assets";
 import { toast } from "@/components/common";
 import { useVideoViewer } from "@/hooks/use-video-viewer";
 import { Column, Row } from "../layout";
 
 type VideoItem = AlbumMediaItem;
-
 type Section = {
   key: string;
   time: string;
@@ -29,7 +28,7 @@ interface VideosProps {
 
 function formatMonth(value: string) {
   if (!value) {
-    return "未记录时间";
+    return "Unknown";
   }
 
   const date = new Date(value);
@@ -37,7 +36,7 @@ function formatMonth(value: string) {
     return value.slice(0, 7);
   }
 
-  return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+  return `${date.getFullYear()}-${date.getMonth() + 1}`;
 }
 
 function formatDate(value: string) {
@@ -72,12 +71,6 @@ export function Videos({ refreshKey = 0 }: VideosProps) {
   const { openViewer, Viewer } = useVideoViewer();
   const [sections, setSections] = useState<Section[]>([]);
 
-  // TODO: 这里缩略图改成上传视频就绪后，前端展示的缩略图也上传到后端，这里加载就用这个缩略图
-  const fallbackThumbnail = useMemo(
-    () => Image.resolveAssetSource(ImagesCoverPng).uri,
-    [],
-  );
-
   const refreshVideos = useCallback(async () => {
     try {
       const response = await getAlbumMedia();
@@ -87,7 +80,7 @@ export function Videos({ refreshKey = 0 }: VideosProps) {
 
       setSections(groupVideosByMonth(videoMedia));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载视频失败";
+      const message = error instanceof Error ? error.message : "Failed to load videos";
       toast.error(message);
     }
   }, []);
@@ -108,7 +101,7 @@ export function Videos({ refreshKey = 0 }: VideosProps) {
     ({ section }: { section: Section }) => (
       <Row items="center" content="space-between" style={styles.sectionHeader}>
         <Text style={styles.sectionTime}>{section.time}</Text>
-        <Text style={styles.sectionCount}>{section.data.length}个视频</Text>
+        <Text style={styles.sectionCount}>{section.data.length} videos</Text>
       </Row>
     ),
     [],
@@ -128,7 +121,11 @@ export function Videos({ refreshKey = 0 }: VideosProps) {
         >
           <View style={styles.videoCover}>
             <Image
-              source={{ uri: video.thumbnailUrl || fallbackThumbnail }}
+              source={
+                video.thumbnailUrl
+                  ? { uri: video.thumbnailUrl }
+                  : ImagesImageErrorPng
+              }
               resizeMode="cover"
               style={styles.videoPoster}
             />
@@ -138,18 +135,17 @@ export function Videos({ refreshKey = 0 }: VideosProps) {
           </View>
           <Column flex={1} content="space-around" style={styles.videoInfo}>
             <Text numberOfLines={2} style={styles.videoTitle}>
-              {video.locationName || "视频"}
+              {video.locationName || "Video"}
             </Text>
             <Text style={styles.videoDate}>{videoDate}</Text>
           </Column>
         </TouchableOpacity>
       );
     },
-    [fallbackThumbnail, openViewer],
+    [openViewer],
   );
 
   const itemSeparator = useCallback(() => <View style={{ height: 12 }} />, []);
-
   const sectionFooter = useCallback(() => <View style={{ height: 30 }} />, []);
 
   return (
