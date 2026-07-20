@@ -57,7 +57,6 @@ export default function Interact() {
   const isAtBottomRef = useRef(true);
   const [inputValue, setInputValue] = useState("");
   const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
-  const [isLoadingCoupleSpace, setIsLoadingCoupleSpace] = useState(false);
   const { messages, sendMessage } =
     usePartnerChat(token, { isVisible: isFocused });
 
@@ -103,10 +102,8 @@ export default function Interact() {
         return;
       }
 
-      setIsLoadingCoupleSpace(true);
       const response = await getCoupleSpace();
       setCoupleSpace(response.coupleSpace);
-      setIsLoadingCoupleSpace(false);
     }
 
     void loadCoupleSpace();
