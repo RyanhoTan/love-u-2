@@ -28,7 +28,7 @@ interface VideosProps {
 
 function formatMonth(value: string) {
   if (!value) {
-    return "Unknown";
+    return "未记录时间";
   }
 
   const date = new Date(value);
@@ -36,7 +36,7 @@ function formatMonth(value: string) {
     return value.slice(0, 7);
   }
 
-  return `${date.getFullYear()}-${date.getMonth() + 1}`;
+  return `${date.getFullYear()}年${date.getMonth() + 1}月`;
 }
 
 function formatDate(value: string) {
@@ -80,7 +80,7 @@ export function Videos({ refreshKey = 0 }: VideosProps) {
 
       setSections(groupVideosByMonth(videoMedia));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load videos";
+      const message = error instanceof Error ? error.message : "加载视频失败";
       toast.error(message);
     }
   }, []);
@@ -101,7 +101,7 @@ export function Videos({ refreshKey = 0 }: VideosProps) {
     ({ section }: { section: Section }) => (
       <Row items="center" content="space-between" style={styles.sectionHeader}>
         <Text style={styles.sectionTime}>{section.time}</Text>
-        <Text style={styles.sectionCount}>{section.data.length} videos</Text>
+        <Text style={styles.sectionCount}>{section.data.length}个视频</Text>
       </Row>
     ),
     [],
@@ -135,7 +135,7 @@ export function Videos({ refreshKey = 0 }: VideosProps) {
           </View>
           <Column flex={1} content="space-around" style={styles.videoInfo}>
             <Text numberOfLines={2} style={styles.videoTitle}>
-              {video.locationName || "Video"}
+              {video.locationName || "视频"}
             </Text>
             <Text style={styles.videoDate}>{videoDate}</Text>
           </Column>
