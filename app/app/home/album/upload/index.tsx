@@ -1,180 +1,138 @@
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import {
-  CheckCircle2,
-  CircleAlert,
-  CloudUpload,
-  FileImage,
-  FileVideo,
-} from "lucide-react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { ArrowLeft, CheckCircle2, CloudUpload } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAlbumUpload } from "@/app/features/album/use-album-upload";
-import {
-  type AlbumUploadRecord,
-  useAlbumUploadRecords,
-} from "@/app/features/album/upload-records";
-import { NavBar, PinkButton } from "@/components/common";
-import { Column, Row } from "@/components/layout";
+import { useAlbumUploadRecords } from "@/app/features/album/upload-records";
+import { Row } from "@/components/layout";
 import { colors } from "@/styles/colors";
 
 function formatTime(value: string) {
   const date = new Date(value);
 
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
-
-function getStatusMeta(record: AlbumUploadRecord) {
-  switch (record.status) {
-    case "success":
-      return {
-        label: "上传成功",
-        color: "#2F9E44",
-        bgColor: "#EAF8EE",
-        icon: <CheckCircle2 color="#2F9E44" size={18} />,
-      };
-    case "failed":
-      return {
-        label: "上传失败",
-        color: "#E03131",
-        bgColor: "#FFF0F0",
-        icon: <CircleAlert color="#E03131" size={18} />,
-      };
-    default:
-      return {
-        label: "上传中",
-        color: colors.theme.primary,
-        bgColor: colors.theme.primaryTint,
-        icon: <ActivityIndicator color={colors.theme.primary} size="small" />,
-      };
-  }
+  return `${date.getMonth() + 1}-${date.getDate()} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
 export default function AlbumUploadRecordsPage() {
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const records = useAlbumUploadRecords();
   const { isUploadingMedia, startUpload } = useAlbumUpload();
 
+  const uploadingRecords = records.filter((record) => record.status === "uploading");
+  const successRecords = records.filter((record) => record.status === "success");
+
   return (
     <SafeAreaView style={styles.page}>
-      <NavBar title="上传记录" />
+      <LinearGradient
+        colors={["#FFF9FB", "#FFFDFE", "#F7FBFF"]}
+        style={StyleSheet.absoluteFill}
+      />
 
-      <View style={styles.content}>
-        <PinkButton
-          text={isUploadingMedia ? "上传中..." : "上传照片/视频"}
+      <View style={styles.haloTop} />
+      <View style={styles.haloBottom} />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: Math.max(insets.bottom, 16) + 108 },
+        ]}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity
+            activeOpacity={0.84}
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <ArrowLeft color={colors.semantic.textPrimary} size={18} />
+          </TouchableOpacity>
+
+          <View style={styles.headerText}>
+            <Text style={styles.title}>上传记录</Text>
+            <Text style={styles.subtitle}>{records.length} 条记录</Text>
+          </View>
+        </View>
+
+        <Row gap={10} style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{uploadingRecords.length}</Text>
+            <Text style={styles.statLabel}>正在上传</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{successRecords.length}</Text>
+            <Text style={styles.statLabel}>上传成功</Text>
+          </View>
+        </Row>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>正在上传</Text>
+          {uploadingRecords.length ? (
+            <View style={styles.list}>
+              {uploadingRecords.map((record) => (
+                <View key={record.id} style={styles.item}>
+                  <View style={styles.itemIcon}>
+                    <ActivityIndicator color={colors.theme.primary} size="small" />
+                  </View>
+                  <Text style={styles.itemText}>
+                    {record.fileCount} 个文件 · {formatTime(record.startedAt)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.emptyHint}>暂无正在上传</Text>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>上传成功</Text>
+          {successRecords.length ? (
+            <View style={styles.list}>
+              {successRecords.map((record) => (
+                <View key={record.id} style={styles.item}>
+                  <View style={[styles.itemIcon, styles.successIcon]}>
+                    <CheckCircle2 color="#1F8A4C" size={16} />
+                  </View>
+                  <Text style={styles.itemText}>
+                    {record.fileCount} 个文件 · {formatTime(record.completedAt || record.startedAt)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.emptyHint}>暂无上传成功</Text>
+          )}
+        </View>
+      </ScrollView>
+
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) + 12 }]}>
+        <TouchableOpacity
+          activeOpacity={0.88}
           onPress={() => {
             void startUpload();
           }}
-        />
-
-        <ScrollView
-          style={styles.list}
-          contentContainerStyle={
-            records.length ? styles.listContent : styles.emptyContent
-          }
-          showsVerticalScrollIndicator={false}
+          style={styles.primaryButton}
         >
-          {records.length ? (
-            <Column gap={12}>
-              {records.map((record) => {
-                const statusMeta = getStatusMeta(record);
-
-                return (
-                  <View key={record.id} style={styles.card}>
-                    <Row items="center" content="space-between" gap={12}>
-                      <Row items="center" gap={10}>
-                        <View
-                          style={[
-                            styles.statusIcon,
-                            { backgroundColor: statusMeta.bgColor },
-                          ]}
-                        >
-                          {statusMeta.icon}
-                        </View>
-                        <Column gap={4}>
-                          <Text style={styles.cardTitle}>
-                            {record.fileCount} 个文件
-                          </Text>
-                          <Text style={styles.cardTime}>
-                            开始时间 {formatTime(record.startedAt)}
-                          </Text>
-                        </Column>
-                      </Row>
-
-                      <View
-                        style={[
-                          styles.statusBadge,
-                          { backgroundColor: statusMeta.bgColor },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.statusText,
-                            { color: statusMeta.color },
-                          ]}
-                        >
-                          {statusMeta.label}
-                        </Text>
-                      </View>
-                    </Row>
-
-                    <View style={styles.divider} />
-
-                    <Text style={styles.detailText}>
-                      {record.status === "uploading"
-                        ? "文件正在上传中，完成后会自动更新为成功记录。"
-                        : record.status === "failed"
-                          ? record.errorMessage || "上传失败，请稍后重试。"
-                          : `完成时间 ${formatTime(record.completedAt || record.startedAt)}`}
-                    </Text>
-
-                    <View style={styles.fileList}>
-                      {record.files.map((file) => (
-                        <View key={file.id} style={styles.fileItem}>
-                          <View style={styles.fileIcon}>
-                            {file.type === "image" ? (
-                              <FileImage
-                                color={colors.theme.primary}
-                                size={16}
-                              />
-                            ) : (
-                              <FileVideo
-                                color={colors.theme.primary}
-                                size={16}
-                              />
-                            )}
-                          </View>
-
-                          <Column flex={1} gap={2}>
-                            <Text numberOfLines={1} style={styles.fileName}>
-                              {file.name}
-                            </Text>
-                            <Text numberOfLines={1} style={styles.fileMeta}>
-                              {file.type === "image" ? "图片" : "视频"}
-                            </Text>
-                          </Column>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                );
-              })}
-            </Column>
-          ) : (
-            <Column center gap={12} style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <CloudUpload color={colors.theme.primary} size={28} />
-              </View>
-              <Text style={styles.emptyTitle}>还没有上传记录</Text>
-              <Text style={styles.emptyText}>
-                点击上方按钮后，这里会显示上传中的任务和对应文件列表。
-              </Text>
-            </Column>
-          )}
-        </ScrollView>
+          <LinearGradient
+            colors={
+              isUploadingMedia
+                ? ["#F3C9D3", "#E7B6C3"]
+                : [colors.theme.primary, "#FF8EA8"]
+            }
+            style={styles.primaryButtonFill}
+          >
+            {isUploadingMedia ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <CloudUpload color="#FFFFFF" size={16} />
+            )}
+            <Text style={styles.primaryButtonText}>
+              {isUploadingMedia ? "上传中" : "上传照片 / 视频"}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -185,78 +143,106 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.semantic.page,
   },
-  content: {
-    flex: 1,
+  haloTop: {
+    position: "absolute",
+    top: -44,
+    right: -36,
+    width: 168,
+    height: 168,
+    borderRadius: 84,
+    backgroundColor: "rgba(255, 182, 193, 0.18)",
+  },
+  haloBottom: {
+    position: "absolute",
+    bottom: 40,
+    left: -52,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: "rgba(255, 107, 139, 0.10)",
+  },
+  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 16,
-    gap: 16,
+    gap: 12,
   },
-  list: {
-    flex: 1,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
-  listContent: {
-    paddingBottom: 12,
-  },
-  emptyContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
-  card: {
-    backgroundColor: colors.semantic.surface,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#F6E4E8",
-    gap: 14,
-  },
-  statusIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.72)",
   },
-  cardTitle: {
-    fontSize: 16,
+  headerText: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 26,
+    lineHeight: 32,
     fontWeight: "700",
+    letterSpacing: -0.4,
     color: colors.semantic.textPrimary,
   },
-  cardTime: {
-    fontSize: 12,
-    color: colors.semantic.textSecondary,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#F7E7EB",
-  },
-  detailText: {
+  subtitle: {
+    marginTop: 4,
     fontSize: 13,
-    lineHeight: 20,
     color: colors.semantic.textSecondary,
   },
-  fileList: {
+  statsRow: {
+    gap: 10,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 20,
+    paddingVertical: 14,
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.76)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.9)",
+  },
+  statValue: {
+    fontSize: 20,
+    lineHeight: 24,
+    fontWeight: "700",
+    letterSpacing: -0.2,
+    color: colors.semantic.textPrimary,
+  },
+  statLabel: {
+    marginTop: 4,
+    fontSize: 12,
+    color: colors.semantic.textSecondary,
+  },
+  section: {
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    letterSpacing: 0.2,
+    color: colors.semantic.textSecondary,
+    textTransform: "uppercase",
+  },
+  list: {
     gap: 8,
   },
-  fileItem: {
+  item: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: "#FFF7F9",
+    paddingVertical: 12,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.86)",
   },
-  fileIcon: {
+  itemIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -264,35 +250,40 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.theme.primaryTint,
   },
-  fileName: {
+  successIcon: {
+    backgroundColor: "#E7F8EE",
+  },
+  itemText: {
+    flex: 1,
     fontSize: 14,
     fontWeight: "600",
     color: colors.semantic.textPrimary,
   },
-  fileMeta: {
-    fontSize: 12,
+  emptyHint: {
+    fontSize: 13,
     color: colors.semantic.textSecondary,
   },
-  emptyState: {
-    paddingHorizontal: 24,
+  bottomBar: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 0,
   },
-  emptyIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.theme.primaryTint,
+  primaryButton: {
+    borderRadius: 999,
+    overflow: "hidden",
+  },
+  primaryButtonFill: {
+    minHeight: 44,
+    paddingHorizontal: 16,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 8,
   },
-  emptyTitle: {
-    fontSize: 18,
+  primaryButtonText: {
+    fontSize: 14,
     fontWeight: "700",
-    color: colors.semantic.textPrimary,
-  },
-  emptyText: {
-    textAlign: "center",
-    fontSize: 13,
-    lineHeight: 20,
-    color: colors.semantic.textSecondary,
+    color: "#FFFFFF",
   },
 });
