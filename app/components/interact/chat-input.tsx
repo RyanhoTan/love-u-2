@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { BlurView } from "expo-blur";
 import {
   Keyboard,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
 import {
   CirclePlus,
@@ -30,117 +32,153 @@ export function ChatInput({
 }: ChatInputProps) {
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const canSend = value.trim().length > 0 && !disabled;
+
   const toggleVoiceMode = () => {
     Keyboard.dismiss();
     setIsVoiceMode((current) => !current);
   };
 
   return (
-    <Row items="center" gap={10} style={styles.chatInputBar}>
-      <TouchableOpacity onPress={toggleVoiceMode}>
-        {isVoiceMode ? (
-          <KeyboardIcon size={24} color="#333" />
-        ) : (
-          <Mic size={24} color="#333" />
-        )}
-      </TouchableOpacity>
-      {isVoiceMode ? (
-        <TouchableOpacity
-          activeOpacity={0.85}
-          disabled={disabled}
-          style={[styles.voiceInput, disabled && styles.voiceInputDisabled]}
-        >
-          <Mic size={18} color={disabled ? "#b8b8b8" : "#ff5675"} />
-          <Text style={[styles.voiceText, disabled && styles.voiceTextDisabled]}>
-            按住 说话
-          </Text>
+    <BlurView intensity={34} tint="light" style={styles.shell}>
+      <Row items="center" gap={10} style={styles.bar}>
+        <TouchableOpacity activeOpacity={0.82} onPress={toggleVoiceMode}>
+          <View style={styles.sideButton}>
+            {isVoiceMode ? (
+              <KeyboardIcon size={18} color="#564853" />
+            ) : (
+              <Mic size={18} color="#564853" />
+            )}
+          </View>
         </TouchableOpacity>
-      ) : (
-        <TextInput
-          placeholder="输入消息..."
-          placeholderTextColor="#9b9b9b"
-          style={styles.chatInput}
-          value={value}
-          editable={!disabled}
-          returnKeyType="send"
-          onChangeText={onChangeText}
-          onSubmitEditing={() => {
-            if (canSend) {
-              onSend();
-            }
-          }}
-        />
-      )}
-      <TouchableOpacity onPress={() => {}}>
-        <Smile size={24} color="#333" />
-      </TouchableOpacity>
-      <TouchableOpacity
-        disabled={!canSend}
-        onPress={onSend}
-        style={[
-          // styles.sendButton, 
-          !canSend && styles.sendButtonDisabled]}
-      >
-        {canSend ? (
-          <Send size={24} color="#ff5675" />
+
+        {isVoiceMode ? (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            disabled={disabled}
+            style={[styles.voiceInput, disabled && styles.voiceInputDisabled]}
+          >
+            <Mic size={16} color={disabled ? "#baaeb4" : "#ff6f8f"} />
+            <Text style={[styles.voiceText, disabled && styles.voiceTextDisabled]}>
+              按住说话
+            </Text>
+          </TouchableOpacity>
         ) : (
-          <CirclePlus size={24} color="#333" />
+          <View style={[styles.textField, disabled && styles.textFieldDisabled]}>
+            <TextInput
+              placeholder="输入想说的话..."
+              placeholderTextColor="#aa9aa2"
+              style={styles.chatInput}
+              value={value}
+              editable={!disabled}
+              returnKeyType="send"
+              onChangeText={onChangeText}
+              onSubmitEditing={() => {
+                if (canSend) {
+                  onSend();
+                }
+              }}
+            />
+          </View>
         )}
-      </TouchableOpacity>
-    </Row>
+
+        <TouchableOpacity activeOpacity={0.82} onPress={() => {}}>
+          <View style={styles.sideButton}>
+            <Smile size={18} color="#564853" />
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.82}
+          disabled={!canSend}
+          onPress={onSend}
+        >
+          <View
+            style={[
+              styles.sendButton,
+              canSend ? styles.sendButtonActive : styles.sendButtonIdle,
+            ]}
+          >
+            {canSend ? (
+              <Send size={18} color="#ffffff" />
+            ) : (
+              <CirclePlus size={18} color="#564853" />
+            )}
+          </View>
+        </TouchableOpacity>
+      </Row>
+    </BlurView>
   );
 }
 
 const styles = StyleSheet.create({
-  chatInputBar: {
-    height: 52,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 26,
-    backgroundColor: "#fff",
-    marginBottom: 12,
+  shell: {
+    overflow: "hidden",
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.74)",
+    backgroundColor: "rgba(255,255,255,0.38)",
+  },
+  bar: {
+    minHeight: 64,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  sideButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.58)",
+  },
+  textField: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.78)",
+  },
+  textFieldDisabled: {
+    backgroundColor: "rgba(245,241,243,0.88)",
   },
   chatInput: {
-    flex: 1,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    backgroundColor: "#f4f4f4",
-    color: "#333",
+    color: "#352a30",
     fontSize: 15,
+    paddingVertical: 0,
   },
   voiceInput: {
     flex: 1,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#ffd2dc",
-    backgroundColor: "#fff5f7",
+    minHeight: 48,
+    borderRadius: 24,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "row",
-    gap: 6,
+    gap: 8,
+    backgroundColor: "#fff6f8",
   },
   voiceInputDisabled: {
-    borderColor: "#ececec",
-    backgroundColor: "#f4f4f4",
+    backgroundColor: "#f4eff1",
   },
   voiceText: {
-    color: "#333",
     fontSize: 15,
     fontWeight: "600",
+    color: "#564853",
   },
   voiceTextDisabled: {
-    color: "#b8b8b8",
+    color: "#baaeb4",
   },
-  // sendButton: {
-  //   width: 32,
-  //   height: 32,
-  //   borderRadius: 16,
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  //   backgroundColor: "#ff5675",
-  // },
-  sendButtonDisabled: {
-    backgroundColor: "transparent",
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sendButtonActive: {
+    backgroundColor: "#ff6f8f",
+  },
+  sendButtonIdle: {
+    backgroundColor: "rgba(255,255,255,0.58)",
   },
 });
