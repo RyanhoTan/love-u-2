@@ -4,12 +4,15 @@ import {
   CloudUpload,
   Ellipsis,
   ImagePlus,
+  Pencil,
   Plus,
   Sparkles,
   X,
 } from "lucide-react-native";
 import {
   Animated,
+  Modal,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -31,6 +34,7 @@ export default function Album() {
   const insets = useSafeAreaInsets();
   const { showStyledActionSheet } = useStyledActionSheet();
   const [albumRefreshKey, setAlbumRefreshKey] = useState(0);
+  const [moreMenuVisible, setMoreMenuVisible] = useState(false);
   const { startUpload } = useAlbumUpload({
     onSuccess: () => {
       setAlbumRefreshKey((currentKey) => currentKey + 1);
@@ -38,13 +42,11 @@ export default function Album() {
   });
 
   const headerMenus = [
-    { name: "搜索", icon: Search, onPress: () => toast.info("搜索") },
+    { icon: Search, onPress: () => toast.info("搜索") },
     {
-      name: "上传",
       icon: CloudUpload,
       onPress: () => router.push("/home/album/upload" as Href),
     },
-    { name: "更多", icon: Ellipsis, onPress: () => toast.info("更多") },
   ];
 
   const [index, setIndex] = useState(0);
@@ -110,7 +112,39 @@ export default function Album() {
 
   return (
     <View style={styles.page}>
-      <Row content="space-between">
+      {moreMenuVisible ? (
+        <Pressable
+          style={styles.moreMenuMask}
+          onPress={() => setMoreMenuVisible(false)}
+        />
+      ) : null}
+
+      <Modal
+        animationType="none"
+        transparent
+        visible={moreMenuVisible}
+        onRequestClose={() => setMoreMenuVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setMoreMenuVisible(false)}
+        >
+          <View style={styles.modalMenuWrap}>
+            <View style={styles.moreMenu}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => toast.info("编辑")}
+                style={styles.moreMenuItem}
+              >
+                <Pencil color="#000000" size={16} strokeWidth={2.2} />
+                <Text style={styles.moreMenuText}>编辑</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <Row content="space-between" style={styles.headerRow}>
         <Text style={styles.title}>相册</Text>
         <Row gap={12}>
           {headerMenus.map((menu, itemIndex) => (
@@ -122,6 +156,15 @@ export default function Album() {
               <menu.icon />
             </TouchableOpacity>
           ))}
+
+          <View style={styles.headerButtonWrap}>
+            <TouchableOpacity
+              onPress={() => setMoreMenuVisible((currentValue) => !currentValue)}
+              style={styles.headerButton}
+            >
+              <Ellipsis />
+            </TouchableOpacity>
+          </View>
         </Row>
       </Row>
 
@@ -182,12 +225,62 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
   },
+  headerRow: {
+    paddingHorizontal: 16,
+    zIndex: 20,
+  },
   title: {
     fontSize: 20,
     fontWeight: "bold",
   },
+  moreMenuMask: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 10,
+  },
+  modalBackdrop: {
+    flex: 1,
+  },
+  modalMenuWrap: {
+    position: "absolute",
+    top: 68,
+    right: 16,
+  },
+  headerButtonWrap: {
+    position: "relative",
+    zIndex: 30,
+  },
   headerButton: {
     padding: 8,
+  },
+  moreMenu: {
+    position: "absolute",
+    top: 44,
+    right: 0,
+    minWidth: 112,
+    padding: 6,
+    borderRadius: 14,
+    backgroundColor: colors.semantic.surface,
+    borderWidth: 1,
+    borderColor: colors.semantic.divider,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
+    zIndex: 40,
+  },
+  moreMenuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  moreMenuText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.semantic.textPrimary,
   },
   fab: {
     position: "absolute",
