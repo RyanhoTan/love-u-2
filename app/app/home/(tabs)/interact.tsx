@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -15,6 +16,7 @@ import {
 } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { ImagesAvatarFemalePng, ImagesAvatarMalePng } from "@/assets";
+import { uploadAlbumFile } from "@/app/features/album/api";
 import { useAuth } from "@/app/features/auth/auth-context";
 import {
   getCoupleSpace,
@@ -53,11 +55,14 @@ export default function Interact() {
   const keyboardVerticalOffset = useChatInputKeyboardOffset();
   const isFocused = useIsFocused();
   const { token, user } = useAuth();
+  const audioPlayer = useAudioPlayer();
+  const audioStatus = useAudioPlayerStatus(audioPlayer);
   const scrollRef = useRef<ScrollView>(null);
   const isAtBottomRef = useRef(true);
   const [inputValue, setInputValue] = useState("");
   const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
-  const { messages, sendMessage } =
+  const [playingAudioUrl, setPlayingAudioUrl] = useState<string | null>(null);
+  const { messages, sendMessage, sendAudioMessage } =
     usePartnerChat(token, { isVisible: isFocused });
 
   const isBound = Boolean(coupleSpace?.isBound && coupleSpace.partner);
@@ -93,6 +98,40 @@ export default function Interact() {
     setInputValue("");
     isAtBottomRef.current = true;
     scrollToBottom();
+  };
+
+  const handleSendVoice = async (audioUri: string) => {
+    const fileName = audioUri.split("/").pop() || "voice.m4a";
+    const extension = fileName.split(".").pop()?.toLowerCase();
+    const contentType =
+      extension === "wav"
+        ? "audio/wav"
+        : extension === "mp3"
+          ? "audio/mpeg"
+          : extension === "aac"
+            ? "audio/aac"
+            : "audio/mp4";
+    const upload = await uploadAlbumFile(
+      audioUri,
+      fileName,
+      contentType,
+      "interact",
+    );
+    sendAudioMessage(upload.url);
+    isAtBottomRef.current = true;
+    scrollToBottom();
+  };
+
+  const handlePressAudioMessage = (audioUrl: string) => {
+    if (playingAudioUrl === audioUrl && audioStatus.playing) {
+      audioPlayer.pause();
+      setPlayingAudioUrl(null);
+      return;
+    }
+
+    audioPlayer.replace(audioUrl);
+    audioPlayer.play();
+    setPlayingAudioUrl(audioUrl);
   };
 
   useEffect(() => {
@@ -179,6 +218,7 @@ export default function Interact() {
                 </Column>
               ) : (
                 messages.map((item) => {
+                  const audioUrl = item.audioUrl;
                   const statusLabel = item.status ? getStatusText(item.status) : "";
                   const timeText = [
                     formatMessageTime(item.sentAt),
@@ -191,9 +231,20 @@ export default function Interact() {
                     <ChatListItem
                       key={item.id}
                       avatar={item.isSelf ? selfAvatar : partnerAvatar}
-                      message={item.text}
+                      message={
+                        item.messageType === "audio"
+                          ? playingAudioUrl === audioUrl && audioStatus.playing
+                            ? "播放中..."
+                            : "语音消息"
+                          : item.text
+                      }
                       time={timeText}
                       isSelf={item.isSelf}
+                      onPress={
+                        item.messageType === "audio" && audioUrl
+                          ? () => handlePressAudioMessage(audioUrl)
+                          : undefined
+                      }
                     />
                   );
                 })
@@ -207,6 +258,7 @@ export default function Interact() {
               disabled={!canSendMessage}
               onChangeText={setInputValue}
               onSend={handleSend}
+              onSendVoice={handleSendVoice}
             />
           </View>
         </KeyboardAvoidingView>
@@ -319,3 +371,4 @@ const styles = StyleSheet.create({
   },
   inputWrap: { paddingTop: 12 },
 });
+

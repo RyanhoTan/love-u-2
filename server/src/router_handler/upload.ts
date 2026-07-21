@@ -20,12 +20,13 @@ function getExtension(fileName: string) {
 
 export async function uploadMediaBuffer(
   userId: number,
+  folder: string,
   fileName: string,
   contentType: string,
   body: Buffer,
 ) {
   const extension = getExtension(fileName);
-  const key = `album/${userId}/${Date.now()}-${randomUUID()}.${extension}`;
+  const key = `${folder}/${userId}/${Date.now()}-${randomUUID()}.${extension}`;
 
   await r2Client.send(
     new PutObjectCommand({
@@ -44,10 +45,12 @@ export async function uploadMediaBuffer(
 
 export async function uploadMedia(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(req);
+  const folder = String(req.query.folder);
   const fileName = String(req.header("x-file-name"));
   const contentType = String(req.header("content-type"));
   const result = await uploadMediaBuffer(
     userId,
+    folder,
     fileName,
     contentType,
     req.body as Buffer,

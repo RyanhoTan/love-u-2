@@ -190,15 +190,18 @@ export async function uploadWishFile(
 
   const fileResponse = await fetch(uri);
   const fileBlob = await fileResponse.blob();
-  const response = await fetch(`${API_BASE_URL}/upload/media`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": contentType,
-      "x-file-name": fileName,
+  const response = await fetch(
+    `${API_BASE_URL}/upload/media?folder=album`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": contentType,
+        "x-file-name": fileName,
+      },
+      body: fileBlob,
     },
-    body: fileBlob,
-  });
+  );
 
   const data = (await response.json()) as UploadMediaResponse;
 

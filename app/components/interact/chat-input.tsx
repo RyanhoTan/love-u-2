@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  RecordingPresets,
+  requestRecordingPermissionsAsync,
+  useAudioRecorder,
+} from "expo-audio";
 import { BlurView } from "expo-blur";
 import {
   Animated,
@@ -23,6 +28,7 @@ interface ChatInputProps {
   disabled?: boolean;
   onChangeText: (value: string) => void;
   onSend: () => void;
+  onSendVoice: (audioUri: string) => Promise<void>;
 }
 
 export function ChatInput({
@@ -30,9 +36,12 @@ export function ChatInput({
   disabled = false,
   onChangeText,
   onSend,
+  onSendVoice,
 }: ChatInputProps) {
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const wasRecordingRef = useRef(false);
   const pulse = useRef(new Animated.Value(0)).current;
   const barHeights = useRef([
     new Animated.Value(0.4),
@@ -98,6 +107,40 @@ export function ChatInput({
       barLoops.forEach((loop) => loop.stop());
     };
   }, [barHeights, isRecording, pulse]);
+
+  useEffect(() => {
+    async function syncRecording() {
+      if (isRecording) {
+        wasRecordingRef.current = true;
+        const status = recorder.getStatus();
+        if (status.isRecording) {
+          return;
+        }
+
+        const permission = await requestRecordingPermissionsAsync();
+        if (!permission.granted) {
+          setIsRecording(false);
+          return;
+        }
+
+        if (!status.canRecord) {
+          await recorder.prepareToRecordAsync();
+        }
+
+        recorder.record();
+        return;
+      }
+
+      if (wasRecordingRef.current && recorder.getStatus().isRecording) {
+        await recorder.stop();
+        await onSendVoice(recorder.uri!);
+      }
+
+      wasRecordingRef.current = false;
+    }
+
+    void syncRecording();
+  }, [isRecording, onSendVoice, recorder]);
 
   if (isVoiceMode) {
     return (

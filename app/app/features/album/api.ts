@@ -159,6 +159,7 @@ export async function uploadAlbumFile(
   uri: string,
   fileName: string,
   contentType: string,
+  folder: string,
 ) {
   const token = await getAuthToken();
 
@@ -168,7 +169,9 @@ export async function uploadAlbumFile(
 
   const fileResponse = await fetch(uri);
   const fileBlob = await fileResponse.blob();
-  const response = await fetch(`${API_BASE_URL}/upload/media`, {
+  const response = await fetch(
+    `${API_BASE_URL}/upload/media?folder=${encodeURIComponent(folder)}`,
+    {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -176,7 +179,8 @@ export async function uploadAlbumFile(
       "x-file-name": fileName,
     },
     body: fileBlob,
-  });
+    },
+  );
 
   const data = (await response.json()) as UploadMediaResponse;
 

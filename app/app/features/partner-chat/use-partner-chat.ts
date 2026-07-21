@@ -13,10 +13,14 @@ interface PartnerChatOptions {
   isVisible?: boolean;
 }
 
+export type PartnerChatMessageType = "text" | "audio";
+
 export interface PartnerChatMessage {
   id: string;
   serverMessageId?: string;
   text: string;
+  messageType: PartnerChatMessageType;
+  audioUrl?: string;
   sentAt: string;
   isSelf: boolean;
   status?: "sending" | "sent" | "partner_offline" | "read" | "failed";
@@ -28,6 +32,8 @@ interface ServerChatMessage {
   fromUserId: number;
   relationshipId: number;
   text: string;
+  messageType: PartnerChatMessageType;
+  audioUrl?: string;
   clientMessageId?: string;
   sentAt: string;
 }
@@ -94,6 +100,8 @@ function isPartnerChatMessage(value: unknown): value is PartnerChatMessage {
   return (
     typeof message.id === "string" &&
     typeof message.text === "string" &&
+    (message.messageType === "text" || message.messageType === "audio") &&
+    (message.audioUrl === undefined || typeof message.audioUrl === "string") &&
     typeof message.sentAt === "string" &&
     typeof message.isSelf === "boolean"
   );
@@ -241,6 +249,8 @@ export function usePartnerChat(
               id: payload.id,
               serverMessageId: payload.id,
               text: payload.text,
+              messageType: payload.messageType,
+              audioUrl: payload.audioUrl,
               sentAt: payload.sentAt,
               isSelf: false,
               status: "sent",
@@ -357,7 +367,7 @@ export function usePartnerChat(
     );
   }, [messages]);
 
-  const sendMessage = useCallback((text: string) => {
+  const sendTextMessage = useCallback((text: string) => {
     const trimmedText = text.trim();
     if (!trimmedText) {
       return false;
@@ -367,6 +377,7 @@ export function usePartnerChat(
     const nextMessage: PartnerChatMessage = {
       id: clientMessageId,
       text: trimmedText,
+      messageType: "text",
       sentAt: new Date().toISOString(),
       isSelf: true,
       status: "sending",
@@ -389,7 +400,50 @@ export function usePartnerChat(
     socket.send(
       JSON.stringify({
         type: "message",
+        messageType: "text",
         text: trimmedText,
+        clientMessageId,
+      }),
+    );
+    return true;
+  }, []);
+
+  const sendAudioMessage = useCallback((audioUrl: string) => {
+    const trimmedAudioUrl = audioUrl.trim();
+    if (!trimmedAudioUrl) {
+      return false;
+    }
+
+    const clientMessageId = createClientMessageId();
+    const nextMessage: PartnerChatMessage = {
+      id: clientMessageId,
+      text: "",
+      messageType: "audio",
+      audioUrl: trimmedAudioUrl,
+      sentAt: new Date().toISOString(),
+      isSelf: true,
+      status: "sending",
+    };
+
+    setMessages((current) => [...current, nextMessage]);
+
+    const socket = socketRef.current;
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === clientMessageId
+            ? { ...message, status: "failed" }
+            : message,
+        ),
+      );
+      return false;
+    }
+
+    socket.send(
+      JSON.stringify({
+        type: "message",
+        messageType: "audio",
+        audioUrl: trimmedAudioUrl,
         clientMessageId,
       }),
     );
@@ -405,8 +459,9 @@ export function usePartnerChat(
       errorMessage,
       isConnected,
       markAsRead: sendReadEvent,
-      sendMessage,
+      sendMessage: sendTextMessage,
+      sendAudioMessage,
     }),
-    [errorMessage, isConnected, messages, sendMessage, sendReadEvent, status],
+    [errorMessage, isConnected, messages, sendAudioMessage, sendReadEvent, sendTextMessage, status],
   );
 }

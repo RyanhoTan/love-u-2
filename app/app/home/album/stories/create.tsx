@@ -145,6 +145,7 @@ export default function CreateStory() {
           item.uri,
           item.fileName || `${item.id}.${item.type === "image" ? "jpg" : "mp4"}`,
           item.mimeType || (item.type === "image" ? "image/jpeg" : "video/mp4"),
+          "album",
         );
 
         media.push({

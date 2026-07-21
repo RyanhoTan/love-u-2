@@ -22,7 +22,9 @@ interface PartnerChatMessage {
   relationship_id: number;
   sender_id: number;
   receiver_id: number;
-  text: string;
+  text: string | null;
+  message_type: "text" | "audio";
+  audio_url: string | null;
   client_message_id: string | null;
   sent_at: Date | string;
 }
@@ -47,11 +49,20 @@ interface PartnerChatConnection {
 }
 
 const incomingPayloadSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("message"),
-    text: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
-    clientMessageId: z.string().trim().max(100).optional(),
-  }),
+  z.discriminatedUnion("messageType", [
+    z.object({
+      type: z.literal("message"),
+      messageType: z.literal("text"),
+      text: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
+      clientMessageId: z.string().trim().max(100).optional(),
+    }),
+    z.object({
+      type: z.literal("message"),
+      messageType: z.literal("audio"),
+      audioUrl: z.string().trim().min(1).max(2048),
+      clientMessageId: z.string().trim().max(100).optional(),
+    }),
+  ]),
   z.object({
     type: z.literal("read"),
   }),
@@ -69,7 +80,9 @@ function ensurePartnerChatSchema() {
           relationship_id BIGINT UNSIGNED NOT NULL,
           sender_id BIGINT UNSIGNED NOT NULL,
           receiver_id BIGINT UNSIGNED NOT NULL,
-          text VARCHAR(${MAX_MESSAGE_LENGTH}) NOT NULL,
+          text VARCHAR(${MAX_MESSAGE_LENGTH}) NULL,
+          message_type VARCHAR(20) NOT NULL DEFAULT 'text',
+          audio_url VARCHAR(2048) NULL,
           client_message_id VARCHAR(100) NULL,
           sent_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
           delivered_at DATETIME(3) NULL,
@@ -102,6 +115,51 @@ function ensurePartnerChatSchema() {
           `
         );
       }
+
+      const [messageTypeRows] = await db.query<ColumnExistsRow[]>(
+        `
+          SELECT COUNT(*) AS column_exists
+          FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'partner_chat_messages'
+            AND COLUMN_NAME = 'message_type'
+        `
+      );
+
+      if ((messageTypeRows[0]?.column_exists ?? 0) === 0) {
+        await db.execute(
+          `
+            ALTER TABLE partner_chat_messages
+            ADD COLUMN message_type VARCHAR(20) NOT NULL DEFAULT 'text' AFTER text
+          `
+        );
+      }
+
+      const [audioUrlRows] = await db.query<ColumnExistsRow[]>(
+        `
+          SELECT COUNT(*) AS column_exists
+          FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'partner_chat_messages'
+            AND COLUMN_NAME = 'audio_url'
+        `
+      );
+
+      if ((audioUrlRows[0]?.column_exists ?? 0) === 0) {
+        await db.execute(
+          `
+            ALTER TABLE partner_chat_messages
+            ADD COLUMN audio_url VARCHAR(2048) NULL AFTER message_type
+          `
+        );
+      }
+
+      await db.execute(
+        `
+          ALTER TABLE partner_chat_messages
+          MODIFY COLUMN text VARCHAR(${MAX_MESSAGE_LENGTH}) NULL
+        `
+      );
     })
     .then(() => undefined);
 
@@ -199,13 +257,20 @@ function createMessagePayload(message: PartnerChatMessage) {
     id: String(message.id),
     fromUserId: message.sender_id,
     relationshipId: message.relationship_id,
-    text: message.text,
+    text: message.text ?? "",
+    messageType: message.message_type,
+    audioUrl: message.audio_url ?? undefined,
     clientMessageId: message.client_message_id ?? undefined,
     sentAt: toIsoString(message.sent_at),
   };
 }
 
-async function saveMessage(connection: PartnerChatConnection, text: string, clientMessageId?: string) {
+async function saveMessage(
+  connection: PartnerChatConnection,
+  payload:
+    | { messageType: "text"; text: string; clientMessageId?: string }
+    | { messageType: "audio"; audioUrl: string; clientMessageId?: string }
+) {
   await ensurePartnerChatSchema();
 
   const sentAt = new Date();
@@ -216,18 +281,22 @@ async function saveMessage(connection: PartnerChatConnection, text: string, clie
         sender_id,
         receiver_id,
         text,
+        message_type,
+        audio_url,
         client_message_id,
         sent_at
       )
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
     `,
     [
       connection.relationshipId,
       connection.userId,
       connection.partnerId,
-      text,
-      clientMessageId ?? null,
+      payload.messageType === "text" ? payload.text : null,
+      payload.messageType,
+      payload.messageType === "audio" ? payload.audioUrl : null,
+      payload.clientMessageId ?? null,
       sentAt,
     ]
   );
@@ -240,6 +309,8 @@ async function saveMessage(connection: PartnerChatConnection, text: string, clie
         sender_id,
         receiver_id,
         text,
+        message_type,
+        audio_url,
         client_message_id,
         sent_at
       FROM partner_chat_messages
@@ -283,6 +354,8 @@ async function deliverPendingMessages(connection: PartnerChatConnection) {
         sender_id,
         receiver_id,
         text,
+        message_type,
+        audio_url,
         client_message_id,
         sent_at
       FROM partner_chat_messages
@@ -440,8 +513,17 @@ async function handleIncomingPayload(connection: PartnerChatConnection, rawData:
   try {
     message = await saveMessage(
       connection,
-      parsed.data.text,
-      parsed.data.clientMessageId
+      parsed.data.messageType === "text"
+        ? {
+            messageType: "text",
+            text: parsed.data.text,
+            clientMessageId: parsed.data.clientMessageId,
+          }
+        : {
+            messageType: "audio",
+            audioUrl: parsed.data.audioUrl,
+            clientMessageId: parsed.data.clientMessageId,
+          }
     );
   } catch (error) {
     console.error("failed to save partner chat message", error);

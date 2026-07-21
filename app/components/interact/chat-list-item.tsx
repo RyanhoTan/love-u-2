@@ -1,4 +1,11 @@
-import { Image, StyleSheet, Text, View, type ImageSourcePropType } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type ImageSourcePropType,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Column, Row } from "@/components/layout";
 
@@ -7,6 +14,7 @@ interface ChatListItemProps {
   message: string;
   time: string;
   isSelf?: boolean;
+  onPress?: () => void;
 }
 
 export function ChatListItem({
@@ -14,7 +22,23 @@ export function ChatListItem({
   message,
   time,
   isSelf = false,
+  onPress,
 }: ChatListItemProps) {
+  const bubble = isSelf ? (
+    <LinearGradient
+      colors={["#ff8ca5", "#ff6a8d"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.bubble, styles.selfBubble]}
+    >
+      <Text style={[styles.message, styles.selfMessage]}>{message}</Text>
+    </LinearGradient>
+  ) : (
+    <View style={[styles.bubble, styles.otherBubble]}>
+      <Text style={styles.message}>{message}</Text>
+    </View>
+  );
+
   return (
     <Column
       gap={6}
@@ -22,19 +46,12 @@ export function ChatListItem({
     >
       <Row items="flex-end" gap={10} reverse={isSelf}>
         <Image source={avatar} style={styles.avatar} />
-        {isSelf ? (
-          <LinearGradient
-            colors={["#ff8ca5", "#ff6a8d"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.bubble, styles.selfBubble]}
-          >
-            <Text style={[styles.message, styles.selfMessage]}>{message}</Text>
-          </LinearGradient>
+        {onPress ? (
+          <TouchableOpacity activeOpacity={0.82} onPress={onPress}>
+            {bubble}
+          </TouchableOpacity>
         ) : (
-          <View style={[styles.bubble, styles.otherBubble]}>
-            <Text style={styles.message}>{message}</Text>
-          </View>
+          bubble
         )}
       </Row>
       <Text style={[styles.time, isSelf ? styles.selfTime : styles.otherTime]}>

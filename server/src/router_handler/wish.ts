@@ -318,6 +318,7 @@ async function generateVideoThumbnailUrl(userId: number, videoUrl: string) {
     const thumbnail = await readFile(thumbnailPath);
     const result = await uploadMediaBuffer(
       userId,
+      "album",
       `${randomUUID()}-thumbnail.jpg`,
       "image/jpeg",
       thumbnail,
