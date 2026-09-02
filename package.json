@@ -7,8 +7,9 @@
     "dev": "node ./scripts/dev.mjs && adb reverse tcp:8081 tcp:8081",
     "dev:app": "pnpm --dir app dev",
     "dev:server": "pnpm --dir server dev",
+    "dev:web": "pnpm --dir web dev",
     "clean": "node ./scripts/clean.mjs",
-    "install:all": "pnpm --dir app install && pnpm --dir server install",
+    "install:all": "pnpm --dir app install && pnpm --dir server install && pnpm --dir web install",
     "format": "prettier --write ./app/app ./app/components ./scripts"
   },
   "dependencies": {
