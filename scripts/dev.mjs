@@ -5,11 +5,18 @@ import { resolve } from "node:path";
 const root = process.cwd();
 const appDir = resolve(root, "app");
 const serverDir = resolve(root, "server");
+const webDir = resolve(root, "web");
+const useNative = process.argv.includes("--native");
 
-const projects = [
-  { name: "server", dir: serverDir, stdio: ["ignore", "inherit", "inherit"] },
-  { name: "app", dir: appDir, stdio: "inherit" },
-];
+const server = {
+  name: "server",
+  dir: serverDir,
+  stdio: ["ignore", "inherit", "inherit"],
+};
+const app = { name: "app", dir: appDir, stdio: "inherit" };
+const web = { name: "web", dir: webDir, stdio: "inherit" };
+
+const projects = useNative ? [server, app] : [server, web];
 
 const envFiles = [
   {
@@ -17,11 +24,15 @@ const envFiles = [
     file: resolve(serverDir, ".env"),
     example: resolve(serverDir, ".env.example"),
   },
-  {
-    name: "app",
-    file: resolve(appDir, ".env"),
-    example: resolve(appDir, ".env.example"),
-  },
+  ...(useNative
+    ? [
+        {
+          name: "app",
+          file: resolve(appDir, ".env"),
+          example: resolve(appDir, ".env.example"),
+        },
+      ]
+    : []),
 ];
 
 const missingDeps = projects.filter(
@@ -38,8 +49,10 @@ if (missingDeps.length > 0) {
   console.error("");
   console.error("Run `pnpm run install:all` from the repository root,");
   console.error("or install each project separately with:");
-  console.error("- `pnpm --dir app install`");
-  console.error("- `pnpm --dir server install`");
+
+  for (const project of projects) {
+    console.error(`- \`pnpm --dir ${project.name} install\``);
+  }
   process.exit(1);
 }
 

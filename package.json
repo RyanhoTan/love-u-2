@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "packageManager": "pnpm@10.11.0",
   "scripts": {
-    "dev": "node ./scripts/dev.mjs && adb reverse tcp:8081 tcp:8081",
+    "dev": "node ./scripts/dev.mjs",
+    "dev:native": "node ./scripts/dev.mjs --native && adb reverse tcp:8081 tcp:8081",
     "dev:app": "pnpm --dir app dev",
     "dev:server": "pnpm --dir server dev",
     "dev:web": "pnpm --dir web dev",
