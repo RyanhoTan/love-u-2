@@ -688,7 +688,7 @@
       "name": "Motion Notes",
       "width": 360,
       "height": 280,
-      "content": "Apple motion\n\nButton/Primary: highlight on pointer-down, scale 0.97, 100ms. Never wait for click.\n\nSheets and drawers: spring damping 1.0, response 0.3. Interruptible from the live transform.\n\nPhoto grid: rubber-band at edges; project flick with d=0.998 then spring.\n\nChat: 1:1 with the pointer while dragging the thread; bounce only after a flick."
+      "content": "Apple motion\n\nButton/Primary: highlight on pointer-down, scale 0.97, 100ms. Never wait for click.\n\nLogin: field focus ring is instant on pointer-down; error appears inline under the fields, no modal. Submit label swaps to 登录中 without locking the field. Prefer reduced-motion: keep color/opacity, drop scale.\n\nSheets and drawers: spring damping 1.0, response 0.3. Interruptible from the live transform.\n\nPhoto grid: rubber-band at edges; project flick with d=0.998 then spring.\n\nChat: 1:1 with the pointer while dragging the thread; bounce only after a flick."
     },
     {
       "type": "frame",
@@ -15080,6 +15080,669 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "jFZYj",
+      "x": -5080,
+      "y": 382,
+      "name": "Web / Login",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$app",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "w12GA",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Wallpaper",
+          "metadata": {
+            "type": "unsplash",
+            "username": "profepix",
+            "link": "https://unsplash.com/@profepix",
+            "author": "Yuriy Bogdanov"
+          },
+          "clip": true,
+          "width": 1440,
+          "height": 900,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "https://images.unsplash.com/photo-1780818244691-16209b3b3e82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU0ODh8&ixlib=rb-4.1.0&q=80&w=1080",
+            "mode": "fill"
+          }
+        },
+        {
+          "type": "rectangle",
+          "id": "HUETs",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Wallpaper Dim",
+          "fill": "#1A141829",
+          "width": 1440,
+          "height": 900
+        },
+        {
+          "type": "frame",
+          "id": "hphVY",
+          "x": 540,
+          "y": 289,
+          "name": "Login Panel",
+          "width": 360,
+          "fill": "#FFFFFFB8",
+          "cornerRadius": "$radius-surface",
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 24
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#1A14182E",
+              "offset": {
+                "x": 0,
+                "y": 12
+              },
+              "blur": 40
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#FFFFFF8C",
+              "offset": {
+                "x": 0,
+                "y": 0.5
+              }
+            }
+          ],
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "EzOTk",
+              "name": "Wordmark",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Love U 2",
+              "textAlign": "center",
+              "fontFamily": "$font",
+              "fontSize": 15,
+              "fontWeight": "600",
+              "letterSpacing": -0.3
+            },
+            {
+              "type": "frame",
+              "id": "TrFoM",
+              "name": "Fields",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uSFky",
+                  "name": "Field/Username",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XvR4n",
+                      "name": "Username Label",
+                      "fill": "$text-primary",
+                      "content": "用户名",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "v5J84",
+                      "name": "Username Value",
+                      "fill": "$text-secondary",
+                      "content": "请输入用户名",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "z1j7E7",
+                  "name": "Field Hairline",
+                  "fill": "#1C141826",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "frame",
+                  "id": "ketv8",
+                  "name": "Field/Password",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Aa5hK",
+                      "name": "Password Label",
+                      "fill": "$text-primary",
+                      "content": "密码",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "z72Tm",
+                      "name": "Password Value",
+                      "fill": "$text-secondary",
+                      "content": "请输入密码",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "fxU6h",
+              "type": "ref",
+              "ref": "b8UmxM",
+              "name": "Button/Primary/Login",
+              "width": "fill_container",
+              "height": 40,
+              "descendants": {
+                "mqh79": {
+                  "content": "登录"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "m5rJrH",
+              "name": "Privacy Note",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "仅你们两人可见",
+              "textAlign": "center",
+              "fontFamily": "$font",
+              "fontSize": 12,
+              "fontWeight": "500",
+              "letterSpacing": 0.3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "gZi37",
+      "x": -3560,
+      "y": 382,
+      "name": "Web / Login · Focus",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$app",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "r24zt7",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Wallpaper",
+          "metadata": {
+            "type": "unsplash",
+            "username": "profepix",
+            "link": "https://unsplash.com/@profepix",
+            "author": "Yuriy Bogdanov"
+          },
+          "clip": true,
+          "width": 1440,
+          "height": 900,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "https://images.unsplash.com/photo-1780818244691-16209b3b3e82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU0ODh8&ixlib=rb-4.1.0&q=80&w=1080",
+            "mode": "fill"
+          }
+        },
+        {
+          "type": "rectangle",
+          "id": "NsBny",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Wallpaper Dim",
+          "fill": "#1A141829",
+          "width": 1440,
+          "height": 900
+        },
+        {
+          "type": "frame",
+          "id": "dWbbQ",
+          "x": 540,
+          "y": 289,
+          "name": "Login Panel",
+          "width": 360,
+          "fill": "#FFFFFFB8",
+          "cornerRadius": "$radius-surface",
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 24
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#1A14182E",
+              "offset": {
+                "x": 0,
+                "y": 12
+              },
+              "blur": 40
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#FFFFFF8C",
+              "offset": {
+                "x": 0,
+                "y": 0.5
+              }
+            }
+          ],
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "tuwza",
+              "name": "Wordmark",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Love U 2",
+              "textAlign": "center",
+              "fontFamily": "$font",
+              "fontSize": 15,
+              "fontWeight": "600",
+              "letterSpacing": -0.3
+            },
+            {
+              "type": "frame",
+              "id": "g2Jz1",
+              "name": "Fields",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ht20v",
+                  "name": "Field/Username",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "l1hg8",
+                      "name": "Username Label",
+                      "fill": "$text-primary",
+                      "content": "用户名",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "g4yowa",
+                      "name": "Username Value",
+                      "fill": "$text-primary",
+                      "content": "ryan",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "BelJD",
+                  "name": "Field Hairline",
+                  "fill": "#1C141826",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "frame",
+                  "id": "jv4Jp",
+                  "name": "Field/Password",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "SqZKo",
+                      "name": "Password Label",
+                      "fill": "$text-primary",
+                      "content": "密码",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "t36ItT",
+                      "name": "Password Value",
+                      "fill": "$text-primary",
+                      "content": "••••••••",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "IoYA8",
+              "type": "ref",
+              "ref": "b8UmxM",
+              "name": "Button/Primary/Login",
+              "width": "fill_container",
+              "height": 40,
+              "descendants": {
+                "mqh79": {
+                  "content": "登录"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "D97vJ",
+              "name": "Privacy Note",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "仅你们两人可见",
+              "textAlign": "center",
+              "fontFamily": "$font",
+              "fontSize": 12,
+              "fontWeight": "500",
+              "letterSpacing": 0.3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "byYg0",
+      "x": -2040,
+      "y": 382,
+      "name": "Web / Login · Error",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$app",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "A6G8Y0",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Wallpaper",
+          "metadata": {
+            "type": "unsplash",
+            "username": "profepix",
+            "link": "https://unsplash.com/@profepix",
+            "author": "Yuriy Bogdanov"
+          },
+          "clip": true,
+          "width": 1440,
+          "height": 900,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "https://images.unsplash.com/photo-1780818244691-16209b3b3e82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU0ODh8&ixlib=rb-4.1.0&q=80&w=1080",
+            "mode": "fill"
+          }
+        },
+        {
+          "type": "rectangle",
+          "id": "dSuMn",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Wallpaper Dim",
+          "fill": "#1A141829",
+          "width": 1440,
+          "height": 900
+        },
+        {
+          "type": "frame",
+          "id": "c68xX",
+          "x": 540,
+          "y": 270,
+          "name": "Login Panel",
+          "width": 360,
+          "fill": "#FFFFFFB8",
+          "cornerRadius": "$radius-surface",
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 24
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#1A14182E",
+              "offset": {
+                "x": 0,
+                "y": 12
+              },
+              "blur": 40
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#FFFFFF8C",
+              "offset": {
+                "x": 0,
+                "y": 0.5
+              }
+            }
+          ],
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "xSSmJ",
+              "name": "Wordmark",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Love U 2",
+              "textAlign": "center",
+              "fontFamily": "$font",
+              "fontSize": 15,
+              "fontWeight": "600",
+              "letterSpacing": -0.3
+            },
+            {
+              "type": "frame",
+              "id": "b3NMX",
+              "name": "Fields",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "UHuLb",
+                  "name": "Field/Username",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "nNjxu",
+                      "name": "Username Label",
+                      "fill": "$text-primary",
+                      "content": "用户名",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "m3J8fq",
+                      "name": "Username Value",
+                      "fill": "$text-primary",
+                      "content": "ryan",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "S6geoE",
+                  "name": "Field Hairline",
+                  "fill": "#1C141826",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "frame",
+                  "id": "TuIrU",
+                  "name": "Field/Password",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lV8Dw",
+                      "name": "Password Label",
+                      "fill": "$text-primary",
+                      "content": "密码",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "O8jvn",
+                      "name": "Password Value",
+                      "fill": "$text-primary",
+                      "content": "••••••••",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "riqSv",
+              "name": "Login Error",
+              "fill": "$danger",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "用户名或密码错误",
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "id": "VjQ6p",
+              "type": "ref",
+              "ref": "b8UmxM",
+              "name": "Button/Primary/Login",
+              "width": "fill_container",
+              "height": 40,
+              "descendants": {
+                "mqh79": {
+                  "content": "登录"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "q6yoE",
+              "name": "Privacy Note",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "仅你们两人可见",
+              "textAlign": "center",
+              "fontFamily": "$font",
+              "fontSize": 12,
+              "fontWeight": "500",
+              "letterSpacing": 0.3
+            }
+          ]
+        }
+      ]
     }
   ],
   "variables": {
@@ -15190,6 +15853,10 @@
     "sidebar-w": {
       "type": "number",
       "value": 232
+    },
+    "danger": {
+      "type": "color",
+      "value": "#C45C5C"
     }
   },
   "fileToken": "8731ba28-9f6d-4a8c-927d-c1a4c0fcf511"

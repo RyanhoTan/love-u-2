@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../app/auth";
 import { ME } from "../app/mock";
 import { PageBody } from "../components/layout/page-body";
 import { Avatar } from "../components/ui/avatar";
@@ -34,6 +35,8 @@ const GROUPS: {
 ];
 
 export function MePage() {
+  const { signOut } = useAuth();
+
   return (
     <PageBody className="gap-8">
       <section className="flex flex-col items-center gap-3">
@@ -81,6 +84,7 @@ export function MePage() {
 
       <button
         type="button"
+        onClick={signOut}
         className="inline-flex h-9 items-center justify-center rounded-control px-3 text-[13px] font-medium text-danger transition-transform duration-100 ease-out active:scale-[0.97]"
       >
         退出登录

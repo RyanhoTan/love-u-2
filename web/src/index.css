@@ -46,3 +46,39 @@
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+@layer components {
+  .login-material {
+    background: rgb(255 255 255 / 0.72);
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+    box-shadow: 0 12px 40px rgb(26 20 24 / 0.18);
+  }
+
+  .login-material::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.55);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .login-material {
+      background: var(--color-surface);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .login-material {
+      background: var(--color-surface);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: none;
+      outline: 1px solid var(--color-fg);
+    }
+  }
+}

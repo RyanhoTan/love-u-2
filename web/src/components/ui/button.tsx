@@ -30,7 +30,7 @@ export function Button({
   const classes = cx(
     "inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-control text-[13px]",
     "transition-[background-color,transform] duration-100 ease-out",
-    "active:scale-[0.97]",
+    "active:scale-[0.97] motion-reduce:transition-colors motion-reduce:active:scale-100",
     variant === "ghost" ? "px-3 font-medium" : "px-4 font-semibold",
     variantClass[variant],
     className,
@@ -68,7 +68,7 @@ export function IconButton({
   const classes = cx(
     "inline-flex size-9 shrink-0 items-center justify-center rounded-control border border-border bg-surface text-fg",
     "transition-[background-color,transform] duration-100 ease-out",
-    "hover:bg-surface-soft active:scale-[0.97]",
+    "hover:bg-surface-soft active:scale-[0.97] motion-reduce:transition-colors motion-reduce:active:scale-100",
     className,
   );
 
