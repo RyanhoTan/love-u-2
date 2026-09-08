@@ -1,7 +1,12 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import type { RouteHandle } from "./types";
 import { AppShell } from "../components/layout/app-shell";
+import { TodayPage } from "../pages/today-page";
 import { MessagesPage } from "../pages/messages-page";
+import { PhotosPage } from "../pages/photos-page";
+import { WishesPage } from "../pages/wishes-page";
+import { DaysPage } from "../pages/days-page";
+import { MePage } from "../pages/me-page";
 import { PlaceholderPage } from "../pages/placeholder-page";
 import { COUPLE } from "./couple";
 
@@ -10,7 +15,7 @@ const body = {
   photos: "px-8 pt-5 pb-7",
   wishes: "px-8 pt-5 pb-8",
   days: "px-12 pt-7 pb-10",
-  me: "px-12 pt-9 pb-10",
+  me: "items-center px-12 pt-9 pb-10",
   nested: "px-12 pt-7 pb-10",
 } as const;
 
@@ -28,14 +33,15 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        ...page({
+        handle: {
           navId: "today",
           title: "今天",
           meta: "today-date",
           actions: [{ kind: "search" }, { kind: "notify" }],
           placeholder: "今天",
           bodyClassName: body.today,
-        }),
+        } satisfies RouteHandle,
+        Component: TodayPage,
       },
       {
         path: "status",
@@ -76,7 +82,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "photos",
-        ...page({
+        handle: {
           navId: "photos",
           title: "相册",
           meta: "1,284 项",
@@ -86,7 +92,8 @@ export const router = createBrowserRouter([
           ],
           placeholder: "相册",
           bodyClassName: body.photos,
-        }),
+        } satisfies RouteHandle,
+        Component: PhotosPage,
       },
       {
         path: "photos/upload",
@@ -101,14 +108,15 @@ export const router = createBrowserRouter([
       },
       {
         path: "wishes",
-        ...page({
+        handle: {
           navId: "wishes",
           title: "心愿",
           meta: "3 件进行中",
           actions: [{ kind: "primary", label: "添加心愿", to: "/wishes/new" }],
           placeholder: "心愿",
           bodyClassName: body.wishes,
-        }),
+        } satisfies RouteHandle,
+        Component: WishesPage,
       },
       {
         path: "wishes/new",
@@ -137,14 +145,15 @@ export const router = createBrowserRouter([
       },
       {
         path: "days",
-        ...page({
+        handle: {
           navId: "days",
           title: "纪念日",
           meta: "3 个即将到来",
           actions: [{ kind: "primary", label: "添加", to: "/days/new" }],
           placeholder: "纪念日",
           bodyClassName: body.days,
-        }),
+        } satisfies RouteHandle,
+        Component: DaysPage,
       },
       {
         path: "days/new",
@@ -159,12 +168,13 @@ export const router = createBrowserRouter([
       },
       {
         path: "me",
-        ...page({
+        handle: {
           navId: "me",
           title: "我的",
           placeholder: "我的",
           bodyClassName: body.me,
-        }),
+        } satisfies RouteHandle,
+        Component: MePage,
       },
       {
         path: "me/profile",
