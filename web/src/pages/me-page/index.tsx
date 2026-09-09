@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Activity,
   Bell,
@@ -8,10 +9,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../app/auth";
-import { ME } from "../../app/mock";
-import { PageBody } from "../../components/layout/page-body";
-import { Avatar } from "../../components/ui/avatar";
+import { useAuth } from "@/app/auth";
+import {
+  displayName,
+  getUserInfo,
+  type UserProfile,
+} from "@/app/couple-api";
+import { PageBody } from "@/components/layout/page-body";
+import { Avatar } from "@/components/ui/avatar";
 
 const GROUPS: {
   label: string;
@@ -35,16 +40,43 @@ const GROUPS: {
 ];
 
 export function MePage() {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    void getUserInfo()
+      .then((response) => {
+        if (active) {
+          setProfile(response.user);
+        }
+      })
+      .catch(() => {
+        // Keep auth session fallback for name when profile fetch fails.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const name = profile
+    ? displayName(profile)
+    : (user?.username ?? "");
+  const signature = profile?.signature?.trim() || "";
+  const avatarSrc = profile?.avatar ?? undefined;
 
   return (
     <PageBody className="gap-8">
       <section className="flex flex-col items-center gap-3">
-        <Avatar src={ME.portrait} alt={ME.name} size={88} />
+        <Avatar src={avatarSrc} alt={name || "avatar"} size={88} />
         <h2 className="text-[28px] font-semibold tracking-[-0.5px] text-fg">
-          {ME.name}
+          {name}
         </h2>
-        <p className="text-sm text-fg-secondary">{ME.signature}</p>
+        {signature ? (
+          <p className="text-sm text-fg-secondary">{signature}</p>
+        ) : null}
       </section>
 
       <div className="flex w-full max-w-140 flex-col gap-5">

@@ -151,10 +151,3 @@ export const MESSAGES = [
     time: "10:24",
   },
 ] as const;
-
-export const ME = {
-  name: "Ryan",
-  signature: "想把日常过成值得被记住的样子",
-  portrait:
-    "https://images.unsplash.com/photo-1560031788-6fdaf72edda0?auto=format&fit=crop&w=256&q=80",
-} as const;

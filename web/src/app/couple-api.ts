@@ -56,6 +56,7 @@ export type UserProfile = {
   username: string;
   nickname: string | null;
   avatar: string | null;
+  signature: string | null;
 };
 
 type UserInfoResponse = {

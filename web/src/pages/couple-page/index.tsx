@@ -146,6 +146,7 @@ export function CouplePage() {
     username: user?.username ?? "",
     nickname: null,
     avatar: null,
+    signature: null,
   };
 
   return (
