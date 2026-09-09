@@ -8,6 +8,7 @@ import { MessagesPage } from "../pages/messages-page";
 import { PhotosPage } from "../pages/photos-page";
 import { WishesPage } from "../pages/wishes-page";
 import { DaysPage } from "../pages/days-page";
+import { DayEditPage, DayNewPage } from "../pages/days-page/form-page";
 import { MePage } from "../pages/me-page";
 import { CouplePage } from "../pages/couple-page";
 import { PlaceholderPage } from "../pages/placeholder-page";
@@ -162,14 +163,27 @@ export const router = createBrowserRouter([
           },
           {
             path: "days/new",
-            ...page({
+            handle: {
               navId: "days",
               title: "添加纪念日",
               backTo: "/days",
-              actions: [{ kind: "primary", label: "添加" }],
+              actions: [{ kind: "primary", label: "添加", to: "/days" }],
               placeholder: "添加纪念日",
               bodyClassName: body.nested,
-            }),
+            } satisfies RouteHandle,
+            Component: DayNewPage,
+          },
+          {
+            path: "days/:id",
+            handle: {
+              navId: "days",
+              title: "编辑纪念日",
+              backTo: "/days",
+              actions: [{ kind: "primary", label: "保存", to: "/days" }],
+              placeholder: "编辑纪念日",
+              bodyClassName: body.nested,
+            } satisfies RouteHandle,
+            Component: DayEditPage,
           },
           {
             path: "me",

@@ -1,10 +1,14 @@
-import { DAYS } from "../../app/mock";
-import { PageBody } from "../../components/layout/page-body";
+import { Link } from "react-router-dom";
+import { DAYS } from "@/app/mock";
+import { PageBody } from "@/components/layout/page-body";
 
 export function DaysPage() {
   return (
     <PageBody className="gap-10">
-      <section className="flex flex-col gap-2">
+      <Link
+        to={`/days/${DAYS.next.id}`}
+        className="flex flex-col gap-2 transition-transform duration-100 ease-out active:scale-[0.99]"
+      >
         <p className="text-[13px] font-medium tracking-[0.4px] text-fg-secondary">
           下一个纪念日
         </p>
@@ -18,13 +22,14 @@ export function DaysPage() {
           <p className="text-xl font-semibold text-accent">天</p>
         </div>
         <p className="text-sm text-fg-muted">{DAYS.next.date}</p>
-      </section>
+      </Link>
 
       <section className="flex flex-col divide-y divide-border">
         {DAYS.upcoming.map((day) => (
-          <div
-            key={day.title}
-            className="flex h-16 items-center justify-between"
+          <Link
+            key={day.id}
+            to={`/days/${day.id}`}
+            className="flex h-16 items-center justify-between transition-[background-color,transform] duration-100 ease-out hover:bg-surface-soft/60 active:scale-[0.99]"
           >
             <div className="flex flex-col gap-0.5">
               <p className="text-base font-medium text-fg">{day.title}</p>
@@ -36,7 +41,7 @@ export function DaysPage() {
               </p>
               <p className="pb-0.5 text-[13px] text-fg-muted">天</p>
             </div>
-          </div>
+          </Link>
         ))}
       </section>
     </PageBody>
