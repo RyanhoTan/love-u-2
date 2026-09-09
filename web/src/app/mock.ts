@@ -113,19 +113,6 @@ export const WISHES = [
   },
 ] as const;
 
-export const DAYS = {
-  next: {
-    title: "相识 1000 天",
-    remain: 12,
-    date: "2026.09.20",
-  },
-  upcoming: [
-    { title: "她的生日", date: "2026.10.19", remain: 41 },
-    { title: "在一起周年", date: "2026.07.12", remain: 307 },
-    { title: "第一次旅行", date: "2026.12.01", remain: 84 },
-  ],
-} as const;
-
 export const MESSAGES = [
   { kind: "stamp", text: "今天 10:21" },
   {

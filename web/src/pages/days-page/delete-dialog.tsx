@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { cx } from "@/lib/cx";
 
 function Overlay({
@@ -39,10 +39,13 @@ export function DeleteDayDialog({
 }: {
   title: string;
   onCancel: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
 }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
   return (
-    <Overlay onDismiss={onCancel}>
+    <Overlay onDismiss={submitting ? undefined : onCancel}>
       <div
         role="dialog"
         aria-modal="true"
@@ -62,6 +65,11 @@ export function DeleteDayDialog({
           <p className="text-sm leading-[1.45] tracking-[-0.1px] text-fg-secondary">
             「{title}」将被永久删除，相关提醒也会一并取消。此操作无法撤销。
           </p>
+          {error ? (
+            <p className="mt-1 text-[13px] font-medium text-danger" role="alert">
+              {error}
+            </p>
+          ) : null}
         </div>
 
         <div className="h-px bg-border" />
@@ -69,21 +77,37 @@ export function DeleteDayDialog({
         <div className="flex h-[52px] items-stretch">
           <button
             type="button"
+            disabled={submitting}
             onClick={onCancel}
-            className="flex flex-1 items-center justify-center text-base font-medium tracking-[-0.2px] text-fg transition-colors duration-100 ease-out hover:bg-surface-soft active:scale-[0.99]"
+            className="flex flex-1 items-center justify-center text-base font-medium tracking-[-0.2px] text-fg transition-colors duration-100 ease-out hover:bg-surface-soft active:scale-[0.99] disabled:opacity-60"
           >
             取消
           </button>
           <div className="w-px bg-border" />
           <button
             type="button"
-            onClick={onConfirm}
+            disabled={submitting}
+            onClick={() => {
+              void (async () => {
+                try {
+                  setSubmitting(true);
+                  setError("");
+                  await onConfirm();
+                } catch (caught) {
+                  setError(
+                    caught instanceof Error ? caught.message : "request failed",
+                  );
+                  setSubmitting(false);
+                }
+              })();
+            }}
             className={cx(
               "flex flex-1 items-center justify-center text-base font-semibold tracking-[-0.2px] text-danger",
               "transition-colors duration-100 ease-out hover:bg-surface-soft active:scale-[0.99]",
+              "disabled:opacity-60",
             )}
           >
-            删除
+            {submitting ? "删除中…" : "删除"}
           </button>
         </div>
       </div>

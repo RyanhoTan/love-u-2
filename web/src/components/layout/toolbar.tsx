@@ -113,14 +113,19 @@ function ToolbarActionButton({ action }: { action: ToolbarAction }) {
 
   if (action.kind === "ghost") {
     return (
-      <Button variant="ghost" to={action.to}>
+      <Button variant="ghost" to={action.to} form={action.form} type={action.form ? "submit" : "button"}>
         {action.label}
       </Button>
     );
   }
 
   return (
-    <Button variant="primary" to={action.to}>
+    <Button
+      variant="primary"
+      to={action.to}
+      form={action.form}
+      type={action.form ? "submit" : "button"}
+    >
       {action.label}
     </Button>
   );

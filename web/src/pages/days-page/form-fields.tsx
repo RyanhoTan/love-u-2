@@ -1,10 +1,13 @@
 import { Calendar, ChevronRight, RefreshCw } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { DAY_CATEGORIES } from "@/app/mock";
 import { Input } from "@/components/ui/input";
 import { cx } from "@/lib/cx";
 import { DatePickerSheet, RepeatPickerSheet } from "./pickers";
-import type { DayFormValues } from "./types";
+import {
+  DAY_TYPE_OPTIONS,
+  repeatLabel,
+  type DayFormValues,
+} from "./types";
 
 type Picker = "none" | "date" | "repeat";
 
@@ -12,10 +15,12 @@ export function DayFormFields({
   values,
   onChange,
   footer,
+  disabled = false,
 }: {
   values: DayFormValues;
   onChange: (next: DayFormValues) => void;
   footer?: ReactNode;
+  disabled?: boolean;
 }) {
   const [picker, setPicker] = useState<Picker>("none");
 
@@ -27,6 +32,7 @@ export function DayFormFields({
           <Input
             value={values.title}
             placeholder="例如：她的生日"
+            disabled={disabled}
             onChange={(event) =>
               onChange({ ...values, title: event.target.value })
             }
@@ -36,22 +42,24 @@ export function DayFormFields({
         <div className="flex flex-col gap-2">
           <p className="text-xs font-medium text-fg-muted">类型</p>
           <div className="flex flex-wrap gap-2">
-            {DAY_CATEGORIES.map((category) => {
-              const active = values.category === category;
+            {DAY_TYPE_OPTIONS.map((option) => {
+              const active = values.type === option.value;
               return (
                 <button
-                  key={category}
+                  key={option.value}
                   type="button"
-                  onClick={() => onChange({ ...values, category })}
+                  disabled={disabled}
+                  onClick={() => onChange({ ...values, type: option.value })}
                   className={cx(
                     "inline-flex h-9 items-center justify-center rounded-full px-3.5 text-[13px]",
                     "transition-[background-color,transform,color] duration-100 ease-out active:scale-[0.97]",
+                    "disabled:opacity-60",
                     active
                       ? "bg-accent-soft font-semibold text-accent"
                       : "border border-border bg-surface font-medium text-fg",
                   )}
                 >
-                  {category}
+                  {option.label}
                 </button>
               );
             })}
@@ -64,13 +72,15 @@ export function DayFormFields({
             label={values.date || "选择日期"}
             muted={!values.date}
             active={picker === "date"}
+            disabled={disabled}
             onClick={() => setPicker("date")}
           />
           <div className="h-px bg-border" />
           <FieldRow
             icon={RefreshCw}
-            label={values.repeat}
+            label={repeatLabel(values.repeatType)}
             active={picker === "repeat"}
+            disabled={disabled}
             onClick={() => setPicker("repeat")}
           />
         </div>
@@ -80,15 +90,17 @@ export function DayFormFields({
             title="提前 7 天提醒"
             description="到日子前一周轻轻提醒双方"
             checked={values.remind7}
+            disabled={disabled}
             onChange={(remind7) => onChange({ ...values, remind7 })}
           />
-          {/* <div className="h-px bg-border" /> */}
-          {/* <SwitchRow
+          <div className="h-px bg-border" />
+          <SwitchRow
             title="当天提醒"
             description="当天早上出现在首页"
             checked={values.remindDay}
+            disabled={disabled}
             onChange={(remindDay) => onChange({ ...values, remindDay })}
-          /> */}
+          />
         </div>
 
         {footer}
@@ -104,9 +116,9 @@ export function DayFormFields({
 
       {picker === "repeat" ? (
         <RepeatPickerSheet
-          value={values.repeat}
+          value={values.repeatType}
           onClose={() => setPicker("none")}
-          onDone={(repeat) => onChange({ ...values, repeat })}
+          onDone={(repeatType) => onChange({ ...values, repeatType })}
         />
       ) : null}
     </>
@@ -118,22 +130,25 @@ function FieldRow({
   label,
   muted,
   active,
+  disabled,
   onClick,
 }: {
   icon: typeof Calendar;
   label: string;
   muted?: boolean;
   active?: boolean;
+  disabled?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
+      disabled={disabled}
       onClick={onClick}
       className={cx(
         "relative flex h-11 w-full items-center gap-3 px-3.5 text-left",
         "transition-[background-color,transform] duration-100 ease-out",
-        "active:scale-[0.99]",
+        "active:scale-[0.99] disabled:opacity-60",
         active ? "bg-accent-soft" : "hover:bg-surface-soft",
       )}
     >
@@ -161,11 +176,13 @@ function SwitchRow({
   title,
   description,
   checked,
+  disabled,
   onChange,
 }: {
   title: string;
   description: string;
   checked: boolean;
+  disabled?: boolean;
   onChange: (checked: boolean) => void;
 }) {
   return (
@@ -178,9 +195,11 @@ function SwitchRow({
         type="button"
         role="switch"
         aria-checked={checked}
+        disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cx(
           "relative h-[26px] w-11 shrink-0 rounded-full p-0.5 transition-colors duration-150 ease-out",
+          "disabled:opacity-60",
           checked ? "bg-accent" : "bg-track",
         )}
       >

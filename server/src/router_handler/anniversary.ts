@@ -3,8 +3,12 @@ import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
-import { createAnniversarySchema } from "../schema/anniversary.js";
+import {
+  createAnniversarySchema,
+  updateAnniversarySchema,
+} from "../schema/anniversary.js";
 import { parseRequestBody } from "../validation.js";
+
 
 const ANNIVERSARIES_TABLE = "anniversaries";
 const COUPLE_RELATIONSHIPS_TABLE = "couple_relationships";
@@ -312,3 +316,128 @@ export async function createAnniversary(req: Request, res: Response) {
     anniversary: serializeAnniversary(anniversary),
   });
 }
+
+async function findActiveAnniversaryForUser(userId: number, anniversaryId: number) {
+  const relationship = await findActiveRelationshipByUserId(userId);
+  if (!relationship) {
+    return null;
+  }
+
+  const [rows] = await db.query<AnniversaryRow[]>(
+    `
+      SELECT
+        id,
+        relationship_id,
+        created_by_user_id,
+        title,
+        type,
+        original_date,
+        repeat_type,
+        reminder_days_before,
+        status,
+        created_at,
+        updated_at,
+        deleted_at
+      FROM ${ANNIVERSARIES_TABLE}
+      WHERE id = ?
+        AND relationship_id = ?
+        AND status = 'active'
+      LIMIT 1
+    `,
+    [anniversaryId, relationship.id]
+  );
+
+  return rows[0] ?? null;
+}
+
+function parseAnniversaryId(raw: string) {
+  const anniversaryId = Number(raw);
+  if (!Number.isInteger(anniversaryId) || anniversaryId <= 0) {
+    throw new HttpError(400, "anniversary id is invalid");
+  }
+  return anniversaryId;
+}
+
+export async function updateAnniversary(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  const anniversaryId = parseAnniversaryId(String(req.params.id));
+  const payload = parseRequestBody(updateAnniversarySchema, req.body);
+  await assertAnniversaryTablesReady();
+
+  const existing = await findActiveAnniversaryForUser(userId, anniversaryId);
+  if (!existing) {
+    throw new HttpError(404, "anniversary not found");
+  }
+
+  const [result] = await db.query<ResultSetHeader>(
+    `
+      UPDATE ${ANNIVERSARIES_TABLE}
+      SET
+        title = ?,
+        type = ?,
+        original_date = ?,
+        repeat_type = ?,
+        reminder_days_before = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+        AND status = 'active'
+      LIMIT 1
+    `,
+    [
+      payload.title,
+      payload.type,
+      payload.originalDate,
+      payload.repeatType,
+      payload.reminderDaysBefore,
+      anniversaryId,
+    ]
+  );
+
+  if (result.affectedRows === 0) {
+    throw new HttpError(404, "anniversary not found");
+  }
+
+  const updated = await findActiveAnniversaryForUser(userId, anniversaryId);
+  if (!updated) {
+    throw new HttpError(500, "failed to update anniversary");
+  }
+
+  res.status(200).json({
+    message: "update anniversary success",
+    anniversary: serializeAnniversary(updated),
+  });
+}
+
+export async function deleteAnniversary(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(req);
+  const anniversaryId = parseAnniversaryId(String(req.params.id));
+  await assertAnniversaryTablesReady();
+
+  const existing = await findActiveAnniversaryForUser(userId, anniversaryId);
+  if (!existing) {
+    throw new HttpError(404, "anniversary not found");
+  }
+
+  const [result] = await db.query<ResultSetHeader>(
+    `
+      UPDATE ${ANNIVERSARIES_TABLE}
+      SET
+        status = 'deleted',
+        deleted_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+        AND status = 'active'
+      LIMIT 1
+    `,
+    [anniversaryId]
+  );
+
+  if (result.affectedRows === 0) {
+    throw new HttpError(404, "anniversary not found");
+  }
+
+  res.status(200).json({
+    message: "delete anniversary success",
+  });
+}
+

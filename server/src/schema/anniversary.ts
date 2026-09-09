@@ -9,7 +9,7 @@ export const anniversaryTypeSchema = z.enum([
 
 export const anniversaryRepeatTypeSchema = z.enum(["none", "yearly"]);
 
-export const createAnniversarySchema = z.object({
+export const anniversaryPayloadSchema = z.object({
   title: z
     .string()
     .trim()
@@ -27,4 +27,8 @@ export const createAnniversarySchema = z.object({
     .max(30, "reminderDaysBefore must be at most 30"),
 });
 
+export const createAnniversarySchema = anniversaryPayloadSchema;
+export const updateAnniversarySchema = anniversaryPayloadSchema;
+
 export type CreateAnniversaryInput = z.infer<typeof createAnniversarySchema>;
+export type UpdateAnniversaryInput = z.infer<typeof updateAnniversarySchema>;

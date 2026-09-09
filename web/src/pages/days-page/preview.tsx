@@ -1,9 +1,20 @@
-import type { DayFormValues } from "./types";
-import { remindLabel } from "./types";
+import {
+  remindLabel,
+  repeatLabel,
+  typeLabel,
+  type DayFormValues,
+} from "./types";
 
-export function DayPreview({ values, remain }: { values: DayFormValues; remain: number | null }) {
+export function DayPreview({
+  values,
+  remain,
+}: {
+  values: DayFormValues;
+  remain: number | null;
+}) {
   const titled = values.title.trim().length > 0;
   const dated = values.date.trim().length > 0;
+  const ready = titled || dated;
 
   return (
     <aside className="flex w-full max-w-[360px] shrink-0 flex-col gap-3 self-start pt-2">
@@ -50,15 +61,15 @@ export function DayPreview({ values, remain }: { values: DayFormValues; remain: 
       <div className="flex flex-col gap-2 px-1">
         <PreviewMeta
           label="类型"
-          value={titled || dated ? values.category : "—"}
+          value={ready ? typeLabel(values.type) : "—"}
         />
         <PreviewMeta
           label="重复"
-          value={titled || dated ? values.repeat : "—"}
+          value={ready ? repeatLabel(values.repeatType) : "—"}
         />
         <PreviewMeta
           label="提醒"
-          value={titled || dated ? remindLabel(values) : "—"}
+          value={ready ? remindLabel(values) : "—"}
         />
       </div>
     </aside>

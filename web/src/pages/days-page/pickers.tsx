@@ -1,16 +1,11 @@
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState, type AnimationEvent, type ReactNode } from "react";
-import { DAY_REPEATS, type DayRepeat } from "@/app/mock";
+import type { AnniversaryRepeatType } from "@/app/days-api";
 import { Button } from "@/components/ui/button";
 import { cx } from "@/lib/cx";
+import { DAY_REPEAT_OPTIONS } from "./types";
 
 const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"] as const;
-
-const REPEAT_META: Record<DayRepeat, string> = {
-  不重复: "只提醒这一次",
-  每年: "每年同一天倒数",
-  每月: "每月同一日提醒",
-};
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -221,9 +216,9 @@ export function RepeatPickerSheet({
   onClose,
   onDone,
 }: {
-  value: DayRepeat;
+  value: AnniversaryRepeatType;
   onClose: () => void;
-  onDone: (repeat: DayRepeat) => void;
+  onDone: (repeat: AnniversaryRepeatType) => void;
 }) {
   const [selected, setSelected] = useState(value);
 
@@ -254,16 +249,16 @@ export function RepeatPickerSheet({
           </p>
 
           <div className="mt-4 overflow-hidden rounded-surface bg-surface-soft">
-            {DAY_REPEATS.map((option, index) => {
-              const active = option === selected;
+            {DAY_REPEAT_OPTIONS.map((option, index) => {
+              const active = option.value === selected;
 
               return (
-                <div key={option}>
+                <div key={option.value}>
                   {index > 0 ? <div className="h-px bg-border" /> : null}
                   <button
                     type="button"
                     disabled={closing}
-                    onClick={() => setSelected(option)}
+                    onClick={() => setSelected(option.value)}
                     className={cx(
                       "flex h-14 w-full items-center gap-3 px-4 text-left",
                       "transition-[background-color,transform] duration-100 ease-out active:scale-[0.99]",
@@ -280,10 +275,10 @@ export function RepeatPickerSheet({
                             : "font-medium text-fg",
                         )}
                       >
-                        {option}
+                        {option.label}
                       </span>
                       <span className="block text-xs text-fg-muted">
-                        {REPEAT_META[option]}
+                        {option.description}
                       </span>
                     </span>
                     {active ? (

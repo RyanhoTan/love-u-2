@@ -4,8 +4,8 @@ export type ToolbarAction =
   | { kind: "search" }
   | { kind: "notify" }
   | { kind: "info" }
-  | { kind: "primary"; label: string; to?: string }
-  | { kind: "ghost"; label: string; to?: string };
+  | { kind: "primary"; label: string; to?: string; form?: string }
+  | { kind: "ghost"; label: string; to?: string; form?: string };
 
 export type RouteHandle = {
   navId: NavId;
