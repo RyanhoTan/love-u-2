@@ -9,6 +9,7 @@ import { PhotosPage } from "../pages/photos-page";
 import { WishesPage } from "../pages/wishes-page";
 import { DaysPage } from "../pages/days-page";
 import { MePage } from "../pages/me-page";
+import { CouplePage } from "../pages/couple-page";
 import { PlaceholderPage } from "../pages/placeholder-page";
 import { COUPLE } from "./couple";
 
@@ -198,13 +199,14 @@ export const router = createBrowserRouter([
           },
           {
             path: "me/couple",
-            ...page({
+            handle: {
               navId: "me",
               title: "情侣空间",
               backTo: "/me",
               placeholder: "情侣空间",
               bodyClassName: body.nested,
-            }),
+            } satisfies RouteHandle,
+            Component: CouplePage,
           },
           {
             path: "me/notify",

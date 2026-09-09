@@ -353,6 +353,9 @@ export async function getCoupleSpace(req: Request, res: Response) {
 
 export async function createCoupleInvite(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(req);
+  const regenerate = Boolean(
+    req.body && typeof req.body === "object" && req.body.regenerate === true
+  );
   await assertCoupleSpaceTablesReady();
 
   const connection = await db.getConnection();
@@ -366,13 +369,26 @@ export async function createCoupleInvite(req: Request, res: Response) {
     }
 
     const existingInvite = await findActiveInviteByInviterId(connection, userId);
-    if (existingInvite) {
+    if (existingInvite && !regenerate) {
       await connection.commit();
       res.status(200).json({
         message: "create couple invite success",
         invite: serializeInvite(existingInvite),
       });
       return;
+    }
+
+    if (existingInvite && regenerate) {
+      await connection.query<ResultSetHeader>(
+        `
+          UPDATE ${COUPLE_INVITES_TABLE}
+          SET
+            expires_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE code = ?
+        `,
+        [existingInvite.code]
+      );
     }
 
     const code = await createUniqueInviteCode(connection);
