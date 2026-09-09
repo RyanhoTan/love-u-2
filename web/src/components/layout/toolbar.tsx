@@ -1,6 +1,7 @@
 import { Bell, ChevronLeft, Ellipsis, Search } from "lucide-react";
 import { Link } from "react-router-dom";
-import { COUPLE } from "../../app/couple";
+import { useAuth } from "@/app/auth";
+import { displayName } from "@/app/user-api";
 import { useRouteHandle } from "../../app/use-route-handle";
 import { formatToolbarDate } from "../../lib/date";
 import { Avatar } from "../ui/avatar";
@@ -9,8 +10,12 @@ import type { ToolbarAction } from "../../app/types";
 
 export function Toolbar() {
   const handle = useRouteHandle();
+  const { user, profileStatus } = useAuth();
   const meta =
     handle.meta === "today-date" ? formatToolbarDate() : handle.meta;
+
+  const partner = user?.couple.isBound ? user.couple.partner : null;
+  const partnerName = partner ? displayName(partner) : "";
 
   return (
     <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
@@ -26,19 +31,31 @@ export function Toolbar() {
         ) : null}
 
         {handle.peer ? (
-          <div className="flex items-center gap-2.5">
-            <Avatar
-              src={handle.peer.src ?? COUPLE.lin.src}
-              alt={handle.peer.name}
-              size={32}
-            />
-            <div className="flex flex-col gap-px">
-              <p className="text-base font-semibold tracking-[-0.2px] text-fg">
-                {handle.peer.name}
-              </p>
-              <p className="text-xs text-accent">{handle.peer.status}</p>
+          partner ? (
+            <div className="flex items-center gap-2.5">
+              <Avatar
+                src={partner.avatar ?? undefined}
+                alt={partnerName}
+                size={32}
+              />
+              <div className="flex flex-col gap-px">
+                <p className="text-base font-semibold tracking-[-0.2px] text-fg">
+                  {partnerName}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+                对话
+              </h1>
+              <p className="text-xs text-fg-muted">
+                {profileStatus === "loading"
+                  ? "加载中…"
+                  : "绑定情侣后即可对话"}
+              </p>
+            </div>
+          )
         ) : (
           <div className="flex min-w-0 flex-col gap-0.5">
             <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">

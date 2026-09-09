@@ -1,4 +1,5 @@
 import { requestWithAuth } from "@/lib/api";
+import type { CoupleSummary } from "@/lib/api";
 
 export type UserProfile = {
   id: number;
@@ -6,6 +7,7 @@ export type UserProfile = {
   nickname: string | null;
   avatar: string | null;
   signature: string | null;
+  couple: CoupleSummary;
 };
 
 type UserInfoResponse = {
@@ -24,4 +26,12 @@ export function displayName(user: {
   nickname: string | null;
 }) {
   return user.nickname?.trim() || user.username;
+}
+
+export function formatAnniversaryDot(date: string | null | undefined) {
+  if (!date) {
+    return null;
+  }
+
+  return date.replace(/-/g, ".");
 }

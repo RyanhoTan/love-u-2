@@ -1,6 +1,4 @@
 export const TODAY = {
-  days: 428,
-  since: "2025.07.12",
   hero:
     "https://images.unsplash.com/photo-1780818244691-16209b3b3e82?auto=format&fit=crop&w=800&q=80",
   insights: [
@@ -19,7 +17,7 @@ export const TODAY = {
     {
       kicker: "一句话",
       title: "晚饭想吃拉面",
-      detail: "Lin · 1 小时前",
+      detail: "1 小时前",
       to: "/sentence",
     },
   ],

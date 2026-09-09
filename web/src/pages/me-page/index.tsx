@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   Activity,
   Bell,
@@ -10,11 +9,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/app/auth";
-import {
-  displayName,
-  getUserInfo,
-  type UserProfile,
-} from "@/app/user-api";
+import { displayName } from "@/app/user-api";
 import { PageBody } from "@/components/layout/page-body";
 import { Avatar } from "@/components/ui/avatar";
 
@@ -41,31 +36,10 @@ const GROUPS: {
 
 export function MePage() {
   const { signOut, user } = useAuth();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
 
-  useEffect(() => {
-    let active = true;
-
-    void getUserInfo()
-      .then((response) => {
-        if (active) {
-          setProfile(response.user);
-        }
-      })
-      .catch(() => {
-        // Keep auth session fallback for name when profile fetch fails.
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const name = profile
-    ? displayName(profile)
-    : (user?.username ?? "");
-  const signature = profile?.signature?.trim() || "";
-  const avatarSrc = profile?.avatar ?? undefined;
+  const name = user ? displayName(user) : "";
+  const signature = user?.signature?.trim() || "";
+  const avatarSrc = user?.avatar ?? undefined;
 
   return (
     <PageBody className="gap-8">

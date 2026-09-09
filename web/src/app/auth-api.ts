@@ -1,9 +1,12 @@
-import { request, type AuthUser } from "../lib/api";
+import { request } from "../lib/api";
 
 export type LoginResponse = {
   message: string;
   token: string;
-  user: AuthUser;
+  user: {
+    id: number;
+    username: string;
+  };
 };
 
 export type RegisterResponse = {

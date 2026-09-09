@@ -1,75 +1,32 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/auth";
-import { getUserInfo, type UserProfile } from "@/app/user-api";
+import {
+  bindCoupleSpace,
+  createCoupleInvite,
+  getCoupleSpace,
+  updateCoupleSpace,
+  unbindCoupleSpace,
+} from "@/app/couple-api";
+import type { UserProfile } from "@/app/user-api";
 import { PageBody } from "@/components/layout/page-body";
 import { Button } from "@/components/ui/button";
-import { requestWithAuth } from "@/lib/api";
 import { BoundView } from "./bound-view";
 import { AnniversarySheet, UnbindDialog } from "./dialogs";
-import type { CoupleInvite, CoupleSpace } from "./types";
+import type { CoupleSpace } from "./types";
 import { UnboundView } from "./unbound-view";
-
-type CoupleSpaceResponse = {
-  message: string;
-  coupleSpace: CoupleSpace;
-};
-
-type CoupleInviteResponse = {
-  message: string;
-  invite: CoupleInvite | null;
-};
-
-function getCoupleSpace() {
-  return requestWithAuth<CoupleSpaceResponse>("/couple-space", {
-    method: "GET",
-  });
-}
-
-function createCoupleInvite(options?: { regenerate?: boolean }) {
-  return requestWithAuth<CoupleInviteResponse>("/couple-space/invite", {
-    method: "POST",
-    body: JSON.stringify({ regenerate: Boolean(options?.regenerate) }),
-  });
-}
-
-function bindCoupleSpace(payload: { inviteCode: string }) {
-  return requestWithAuth<CoupleSpaceResponse>("/couple-space/bind", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
-
-function updateCoupleSpace(payload: { anniversaryDate: string | null }) {
-  return requestWithAuth<CoupleSpaceResponse>("/couple-space", {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-  });
-}
-
-function unbindCoupleSpace() {
-  return requestWithAuth<{ message: string }>("/couple-space/bind", {
-    method: "DELETE",
-  });
-}
 
 type Panel = "none" | "unbind" | "anniversary";
 
 export function CouplePage() {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [space, setSpace] = useState<CoupleSpace | null>(null);
-  const [me, setMe] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [panel, setPanel] = useState<Panel>("none");
 
-  async function reload(): Promise<CoupleSpace> {
-    const [spaceResponse, userResponse] = await Promise.all([
-      getCoupleSpace(),
-      getUserInfo(),
-    ]);
-
-    let nextSpace = spaceResponse.coupleSpace;
-    setMe(userResponse.user);
+  async function loadSpace(): Promise<CoupleSpace> {
+    const response = await getCoupleSpace();
+    let nextSpace = response.coupleSpace;
 
     if (!nextSpace.isBound && !nextSpace.activeInvite) {
       const inviteResponse = await createCoupleInvite();
@@ -91,18 +48,12 @@ export function CouplePage() {
       try {
         setLoading(true);
         setLoadError("");
-        const [spaceResponse, userResponse] = await Promise.all([
-          getCoupleSpace(),
-          getUserInfo(),
-        ]);
-
+        const response = await getCoupleSpace();
         if (!active) {
           return;
         }
 
-        let nextSpace = spaceResponse.coupleSpace;
-        setMe(userResponse.user);
-
+        let nextSpace = response.coupleSpace;
         if (!nextSpace.isBound && !nextSpace.activeInvite) {
           const inviteResponse = await createCoupleInvite();
           if (!active) {
@@ -152,7 +103,7 @@ export function CouplePage() {
           variant="secondary"
           onClick={() => {
             setLoading(true);
-            void reload()
+            void loadSpace()
               .catch((caught) =>
                 setLoadError(
                   caught instanceof Error ? caught.message : "request failed",
@@ -167,12 +118,18 @@ export function CouplePage() {
     );
   }
 
-  const selfProfile: UserProfile = me ?? {
+  const selfProfile: UserProfile = {
     id: user?.id ?? 0,
     username: user?.username ?? "",
-    nickname: null,
-    avatar: null,
-    signature: null,
+    nickname: user?.nickname ?? null,
+    avatar: user?.avatar ?? null,
+    signature: user?.signature ?? null,
+    couple: user?.couple ?? {
+      isBound: false,
+      daysInLove: null,
+      anniversaryDate: null,
+      partner: null,
+    },
   };
 
   return (
@@ -198,7 +155,8 @@ export function CouplePage() {
             }}
             onBind={async (inviteCode) => {
               await bindCoupleSpace({ inviteCode });
-              await reload();
+              await loadSpace();
+              await refreshProfile();
             }}
           />
         )}
@@ -210,7 +168,8 @@ export function CouplePage() {
           onConfirm={async () => {
             await unbindCoupleSpace();
             setPanel("none");
-            await reload();
+            await loadSpace();
+            await refreshProfile();
           }}
         />
       ) : null}
@@ -223,6 +182,7 @@ export function CouplePage() {
             const response = await updateCoupleSpace({ anniversaryDate });
             setSpace(response.coupleSpace);
             setPanel("none");
+            await refreshProfile();
           }}
         />
       ) : null}

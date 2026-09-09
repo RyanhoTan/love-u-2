@@ -1,10 +1,33 @@
+import { useAuth } from "@/app/auth";
+import { displayName } from "@/app/user-api";
 import { MESSAGES } from "../../app/mock";
-import { COUPLE } from "../../app/couple";
 import { Composer } from "../../components/layout/composer";
 import { Avatar } from "../../components/ui/avatar";
+import { Button } from "../../components/ui/button";
 import { cx } from "../../lib/cx";
 
 export function MessagesPage() {
+  const { user, profileStatus } = useAuth();
+  const partner = user?.couple.isBound ? user.couple.partner : null;
+  const partnerName = partner ? displayName(partner) : "";
+
+  if (profileStatus === "loading") {
+    return (
+      <div className="flex min-h-0 flex-1 items-center justify-center">
+        <p className="text-sm text-fg-muted">加载中…</p>
+      </div>
+    );
+  }
+
+  if (!partner) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-8">
+        <p className="text-sm text-fg-secondary">绑定情侣后即可开始对话</p>
+        <Button to="/me/couple">去绑定</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-18 py-7">
@@ -24,7 +47,11 @@ export function MessagesPage() {
             if (message.kind === "photo") {
               return (
                 <div key={index} className="flex items-end gap-2">
-                  <Avatar src={COUPLE.lin.src} alt={COUPLE.lin.name} size={28} />
+                  <Avatar
+                    src={partner.avatar ?? undefined}
+                    alt={partnerName}
+                    size={28}
+                  />
                   <img
                     src={message.src}
                     alt={message.alt}
@@ -45,7 +72,11 @@ export function MessagesPage() {
                 )}
               >
                 {incoming ? (
-                  <Avatar src={COUPLE.lin.src} alt={COUPLE.lin.name} size={28} />
+                  <Avatar
+                    src={partner.avatar ?? undefined}
+                    alt={partnerName}
+                    size={28}
+                  />
                 ) : null}
                 <div
                   className={cx(

@@ -1,15 +1,11 @@
 import { Heart, Calendar, ChevronRight } from "lucide-react";
-import { displayName, type UserProfile } from "@/app/user-api";
-import { Avatar } from "@/components/ui/avatar";
 import type { CoupleSpace } from "./types";
-
-function formatAnniversaryDot(date: string | null | undefined) {
-  if (!date) {
-    return null;
-  }
-
-  return date.replace(/-/g, ".");
-}
+import {
+  displayName,
+  formatAnniversaryDot,
+  type UserProfile,
+} from "@/app/user-api";
+import { Avatar } from "@/components/ui/avatar";
 
 export function BoundView({
   space,

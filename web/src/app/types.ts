@@ -12,11 +12,8 @@ export type RouteHandle = {
   title?: string;
   meta?: string | "today-date";
   backTo?: string;
-  peer?: {
-    name: string;
-    status: string;
-    src?: string;
-  };
+  /** Show partner in the toolbar from couple space. */
+  peer?: boolean;
   actions?: ToolbarAction[];
   placeholder: string;
   bodyClassName: string;

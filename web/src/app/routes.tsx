@@ -11,7 +11,6 @@ import { DaysPage } from "../pages/days-page";
 import { MePage } from "../pages/me-page";
 import { CouplePage } from "../pages/couple-page";
 import { PlaceholderPage } from "../pages/placeholder-page";
-import { COUPLE } from "./couple";
 
 const body = {
   today: "px-12 pt-7 pb-10",
@@ -79,11 +78,7 @@ export const router = createBrowserRouter([
             path: "messages",
             handle: {
               navId: "messages",
-              peer: {
-                name: COUPLE.lin.name,
-                status: "现在在线",
-                src: COUPLE.lin.src,
-              },
+              peer: true,
               actions: [{ kind: "info" }],
               placeholder: "对话",
               bodyClassName: "",
