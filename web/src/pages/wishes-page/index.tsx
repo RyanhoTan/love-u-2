@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { WISHES } from "../app/mock";
-import { PageBody } from "../components/layout/page-body";
-import { Segmented } from "../components/ui/segmented";
+import { WISHES } from "../../app/mock";
+import { PageBody } from "../../components/layout/page-body";
+import { Segmented } from "../../components/ui/segmented";
 
 const TABS = [
   { value: "want", label: "想去" },

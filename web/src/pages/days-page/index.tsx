@@ -1,5 +1,5 @@
-import { DAYS } from "../app/mock";
-import { PageBody } from "../components/layout/page-body";
+import { DAYS } from "../../app/mock";
+import { PageBody } from "../../components/layout/page-body";
 
 export function DaysPage() {
   return (

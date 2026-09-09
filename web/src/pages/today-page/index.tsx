@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { TODAY } from "../app/mock";
-import { PageBody } from "../components/layout/page-body";
-import { Button } from "../components/ui/button";
+import { TODAY } from "../../app/mock";
+import { PageBody } from "../../components/layout/page-body";
+import { Button } from "../../components/ui/button";
 
 export function TodayPage() {
   return (

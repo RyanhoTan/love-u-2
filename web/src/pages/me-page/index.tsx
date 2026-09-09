@@ -8,10 +8,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../app/auth";
-import { ME } from "../app/mock";
-import { PageBody } from "../components/layout/page-body";
-import { Avatar } from "../components/ui/avatar";
+import { useAuth } from "../../app/auth";
+import { ME } from "../../app/mock";
+import { PageBody } from "../../components/layout/page-body";
+import { Avatar } from "../../components/ui/avatar";
 
 const GROUPS: {
   label: string;

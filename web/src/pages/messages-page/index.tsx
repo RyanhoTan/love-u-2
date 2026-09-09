@@ -1,8 +1,8 @@
-import { MESSAGES } from "../app/mock";
-import { COUPLE } from "../app/couple";
-import { Composer } from "../components/layout/composer";
-import { Avatar } from "../components/ui/avatar";
-import { cx } from "../lib/cx";
+import { MESSAGES } from "../../app/mock";
+import { COUPLE } from "../../app/couple";
+import { Composer } from "../../components/layout/composer";
+import { Avatar } from "../../components/ui/avatar";
+import { cx } from "../../lib/cx";
 
 export function MessagesPage() {
   return (

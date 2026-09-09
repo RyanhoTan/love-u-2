@@ -5,7 +5,7 @@ import {
   type ReactNode,
 } from "react";
 import { Calendar, ChevronRight, Heart } from "lucide-react";
-import { useAuth } from "../app/auth";
+import { useAuth } from "../../app/auth";
 import {
   bindCoupleSpace,
   createCoupleInvite,
@@ -19,12 +19,12 @@ import {
   updateCoupleSpace,
   type CoupleSpace,
   type UserProfile,
-} from "../app/couple-api";
-import { PageBody } from "../components/layout/page-body";
-import { Avatar } from "../components/ui/avatar";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { cx } from "../lib/cx";
+} from "../../app/couple-api";
+import { PageBody } from "../../components/layout/page-body";
+import { Avatar } from "../../components/ui/avatar";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { cx } from "../../lib/cx";
 
 type Panel = "none" | "unbind" | "anniversary";
 
