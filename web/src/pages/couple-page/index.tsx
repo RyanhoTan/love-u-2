@@ -5,26 +5,121 @@ import {
   type ReactNode,
 } from "react";
 import { Calendar, ChevronRight, Heart } from "lucide-react";
-import { useAuth } from "../../app/auth";
-import {
-  bindCoupleSpace,
-  createCoupleInvite,
-  displayName,
-  formatAnniversaryDot,
-  formatInviteExpiry,
-  getCoupleSpace,
-  getUserInfo,
-  normalizeInviteCode,
-  unbindCoupleSpace,
-  updateCoupleSpace,
-  type CoupleSpace,
-  type UserProfile,
-} from "../../app/couple-api";
-import { PageBody } from "../../components/layout/page-body";
-import { Avatar } from "../../components/ui/avatar";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { cx } from "../../lib/cx";
+import { useAuth } from "@/app/auth";
+import { displayName, getUserInfo, type UserProfile } from "@/app/user-api";
+import { PageBody } from "@/components/layout/page-body";
+import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { requestWithAuth } from "@/lib/api";
+import { cx } from "@/lib/cx";
+
+type CouplePartner = {
+  id: number;
+  username: string;
+  nickname: string | null;
+  avatar: string | null;
+};
+
+type CoupleInvite = {
+  code: string;
+  status: string;
+  expiresAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  usedAt: string | null;
+};
+
+type CoupleRelationship = {
+  id: number;
+  status: string;
+  anniversaryDate: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  unboundAt: string | null;
+};
+
+type CoupleSpace = {
+  isBound: boolean;
+  partner: CouplePartner | null;
+  relationship: CoupleRelationship | null;
+  daysInLove: number | null;
+  activeInvite: CoupleInvite | null;
+};
+
+type CoupleSpaceResponse = {
+  message: string;
+  coupleSpace: CoupleSpace;
+};
+
+type CoupleInviteResponse = {
+  message: string;
+  invite: CoupleInvite | null;
+};
+
+function getCoupleSpace() {
+  return requestWithAuth<CoupleSpaceResponse>("/couple-space", {
+    method: "GET",
+  });
+}
+
+function createCoupleInvite(options?: { regenerate?: boolean }) {
+  return requestWithAuth<CoupleInviteResponse>("/couple-space/invite", {
+    method: "POST",
+    body: JSON.stringify({ regenerate: Boolean(options?.regenerate) }),
+  });
+}
+
+function bindCoupleSpace(payload: { inviteCode: string }) {
+  return requestWithAuth<CoupleSpaceResponse>("/couple-space/bind", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+function updateCoupleSpace(payload: { anniversaryDate: string | null }) {
+  return requestWithAuth<CoupleSpaceResponse>("/couple-space", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+function unbindCoupleSpace() {
+  return requestWithAuth<{ message: string }>("/couple-space/bind", {
+    method: "DELETE",
+  });
+}
+
+function formatAnniversaryDot(date: string | null | undefined) {
+  if (!date) {
+    return null;
+  }
+
+  return date.replace(/-/g, ".");
+}
+
+function formatInviteExpiry(expiresAt: string | null) {
+  if (!expiresAt) {
+    return "邀请码有效";
+  }
+
+  const remainingMs = new Date(expiresAt).getTime() - Date.now();
+  if (remainingMs <= 0) {
+    return "已过期，请重新生成";
+  }
+
+  const minutes = Math.ceil(remainingMs / (1000 * 60));
+  if (minutes < 60) {
+    return `${minutes} 分钟内有效`;
+  }
+
+  const hours = Math.ceil(minutes / 60);
+  return `${hours} 小时内有效`;
+}
+
+function normalizeInviteCode(value: string) {
+  return value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
 
 type Panel = "none" | "unbind" | "anniversary";
 

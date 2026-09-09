@@ -14,7 +14,7 @@ import {
   displayName,
   getUserInfo,
   type UserProfile,
-} from "@/app/couple-api";
+} from "@/app/user-api";
 import { PageBody } from "@/components/layout/page-body";
 import { Avatar } from "@/components/ui/avatar";
 
