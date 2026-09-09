@@ -688,7 +688,7 @@
       "name": "Motion Notes",
       "width": 360,
       "height": 280,
-      "content": "Apple motion\n\nButton/Primary: highlight on pointer-down, scale 0.97, 100ms. Never wait for click.\n\nLogin: field focus ring is instant on pointer-down; error appears inline under the fields, no modal. Submit label swaps to 登录中 without locking the field. Prefer reduced-motion: keep color/opacity, drop scale.\n\nSheets and drawers: spring damping 1.0, response 0.3. Interruptible from the live transform.\n\nPhoto grid: rubber-band at edges; project flick with d=0.998 then spring.\n\nChat: 1:1 with the pointer while dragging the thread; bounce only after a flick."
+      "content": "Apple motion\n\nButton/Primary: highlight on pointer-down, scale 0.97, 100ms. Never wait for click.\n\nLogin / Register: field focus ring is instant on pointer-down; error appears inline under the fields, no modal. Mode switch (登录 ↔ 注册) is a text action — no second primary button. Submit label swaps to 登录中 / 注册中 without locking the field. Prefer reduced-motion: keep color/opacity, drop scale.\n\nSheets and drawers: spring damping 1.0, response 0.3. Interruptible from the live transform.\n\nPhoto grid: rubber-band at edges; project flick with d=0.998 then spring.\n\nChat: 1:1 with the pointer while dragging the thread; bounce only after a flick."
     },
     {
       "type": "frame",
@@ -15131,7 +15131,7 @@
           "type": "frame",
           "id": "hphVY",
           "x": 540,
-          "y": 289,
+          "y": 288,
           "name": "Login Panel",
           "width": 360,
           "fill": "#FFFFFFB8",
@@ -15281,18 +15281,35 @@
               }
             },
             {
-              "type": "text",
-              "id": "m5rJrH",
-              "name": "Privacy Note",
-              "fill": "$text-secondary",
-              "textGrowth": "fixed-width",
+              "type": "frame",
+              "id": "lo7AQ",
+              "name": "Auth Switch",
               "width": "fill_container",
-              "content": "仅你们两人可见",
-              "textAlign": "center",
-              "fontFamily": "$font",
-              "fontSize": 12,
-              "fontWeight": "500",
-              "letterSpacing": 0.3
+              "gap": 4,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "vkY8N",
+                  "name": "Switch Lead",
+                  "fill": "$text-secondary",
+                  "content": "还没有账号？",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "BvH4m",
+                  "name": "Switch Action",
+                  "fill": "$accent",
+                  "content": "注册",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
             }
           ]
         }
@@ -15348,7 +15365,7 @@
           "type": "frame",
           "id": "dWbbQ",
           "x": 540,
-          "y": 289,
+          "y": 291,
           "name": "Login Panel",
           "width": 360,
           "fill": "#FFFFFFB8",
@@ -15498,18 +15515,35 @@
               }
             },
             {
-              "type": "text",
-              "id": "D97vJ",
-              "name": "Privacy Note",
-              "fill": "$text-secondary",
-              "textGrowth": "fixed-width",
+              "type": "frame",
+              "id": "lb5sP",
+              "name": "Auth Switch",
               "width": "fill_container",
-              "content": "仅你们两人可见",
-              "textAlign": "center",
-              "fontFamily": "$font",
-              "fontSize": 12,
-              "fontWeight": "500",
-              "letterSpacing": 0.3
+              "gap": 4,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "TUPTV",
+                  "name": "Switch Lead",
+                  "fill": "$text-secondary",
+                  "content": "还没有账号？",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "qlQf1",
+                  "name": "Switch Action",
+                  "fill": "$accent",
+                  "content": "注册",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
             }
           ]
         }
@@ -15565,7 +15599,7 @@
           "type": "frame",
           "id": "c68xX",
           "x": 540,
-          "y": 270,
+          "y": 269,
           "name": "Login Panel",
           "width": 360,
           "fill": "#FFFFFFB8",
@@ -15727,18 +15761,599 @@
               }
             },
             {
+              "type": "frame",
+              "id": "sQWdh",
+              "name": "Auth Switch",
+              "width": "fill_container",
+              "gap": 4,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "bsp8d",
+                  "name": "Switch Lead",
+                  "fill": "$text-secondary",
+                  "content": "还没有账号？",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "dtQwZ",
+                  "name": "Switch Action",
+                  "fill": "$accent",
+                  "content": "注册",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "B2CiN",
+      "x": 7600,
+      "y": 382,
+      "name": "Web / Register",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$app",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "Rr0B8",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Wallpaper",
+          "metadata": {
+            "type": "unsplash",
+            "username": "profepix",
+            "link": "https://unsplash.com/@profepix",
+            "author": "Yuriy Bogdanov"
+          },
+          "clip": true,
+          "width": 1440,
+          "height": 900,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "https://images.unsplash.com/photo-1780818244691-16209b3b3e82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU0ODh8&ixlib=rb-4.1.0&q=80&w=1080",
+            "mode": "fill"
+          }
+        },
+        {
+          "type": "rectangle",
+          "id": "R728p",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Wallpaper Dim",
+          "fill": "#1A141829",
+          "width": 1440,
+          "height": 900
+        },
+        {
+          "type": "frame",
+          "id": "xten7",
+          "x": 540,
+          "y": 256,
+          "name": "Register Panel",
+          "width": 360,
+          "fill": "#FFFFFFB8",
+          "cornerRadius": "$radius-surface",
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 24
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#1A14182E",
+              "offset": {
+                "x": 0,
+                "y": 12
+              },
+              "blur": 40
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#FFFFFF8C",
+              "offset": {
+                "x": 0,
+                "y": 0.5
+              }
+            }
+          ],
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "alignItems": "center",
+          "children": [
+            {
               "type": "text",
-              "id": "q6yoE",
-              "name": "Privacy Note",
-              "fill": "$text-secondary",
+              "id": "K4gdQs",
+              "name": "Wordmark",
+              "fill": "$text-primary",
               "textGrowth": "fixed-width",
               "width": "fill_container",
-              "content": "仅你们两人可见",
+              "content": "Love U 2",
               "textAlign": "center",
               "fontFamily": "$font",
-              "fontSize": 12,
-              "fontWeight": "500",
-              "letterSpacing": 0.3
+              "fontSize": 15,
+              "fontWeight": "600",
+              "letterSpacing": -0.3
+            },
+            {
+              "type": "frame",
+              "id": "k338Yh",
+              "name": "Fields",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Cwu7Q",
+                  "name": "Field/Username",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "W1Z50Y",
+                      "name": "Username Label",
+                      "fill": "$text-primary",
+                      "content": "用户名",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "u1ML5o",
+                      "name": "Username Value",
+                      "fill": "$text-secondary",
+                      "content": "请输入用户名",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "R1d58s",
+                  "name": "Field Hairline",
+                  "fill": "#1C141826",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "frame",
+                  "id": "u6p8oP",
+                  "name": "Field/Password",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DTP5w",
+                      "name": "Password Label",
+                      "fill": "$text-primary",
+                      "content": "密码",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "L5gJYX",
+                      "name": "Password Value",
+                      "fill": "$text-secondary",
+                      "content": "请输入密码",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "fPuIb",
+                  "name": "Field Hairline",
+                  "fill": "#1C141826",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "frame",
+                  "id": "UQqXx",
+                  "name": "Field/ConfirmPassword",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "yD1FP",
+                      "name": "Confirm Label",
+                      "fill": "$text-primary",
+                      "content": "确认密码",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "QwuAT",
+                      "name": "Confirm Value",
+                      "fill": "$text-secondary",
+                      "content": "请再次输入密码",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "TxT2w",
+              "type": "ref",
+              "ref": "b8UmxM",
+              "name": "Button/Primary/Register",
+              "width": "fill_container",
+              "height": 40,
+              "descendants": {
+                "mqh79": {
+                  "content": "注册"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "og75b",
+              "name": "Auth Switch",
+              "width": "fill_container",
+              "gap": 4,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "bFscW",
+                  "name": "Switch Lead",
+                  "fill": "$text-secondary",
+                  "content": "已有账号？",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "ayrnz",
+                  "name": "Switch Action",
+                  "fill": "$accent",
+                  "content": "登录",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "oivEr",
+      "x": 9120,
+      "y": 382,
+      "name": "Web / Register · Error",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$app",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "eBTsu",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Wallpaper",
+          "metadata": {
+            "type": "unsplash",
+            "username": "profepix",
+            "link": "https://unsplash.com/@profepix",
+            "author": "Yuriy Bogdanov"
+          },
+          "clip": true,
+          "width": 1440,
+          "height": 900,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "https://images.unsplash.com/photo-1780818244691-16209b3b3e82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU0ODh8&ixlib=rb-4.1.0&q=80&w=1080",
+            "mode": "fill"
+          }
+        },
+        {
+          "type": "rectangle",
+          "id": "JnX83",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Wallpaper Dim",
+          "fill": "#1A141829",
+          "width": 1440,
+          "height": 900
+        },
+        {
+          "type": "frame",
+          "id": "rDOzY",
+          "x": 540,
+          "y": 239,
+          "name": "Register Panel",
+          "width": 360,
+          "fill": "#FFFFFFB8",
+          "cornerRadius": "$radius-surface",
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 24
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#1A14182E",
+              "offset": {
+                "x": 0,
+                "y": 12
+              },
+              "blur": 40
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#FFFFFF8C",
+              "offset": {
+                "x": 0,
+                "y": 0.5
+              }
+            }
+          ],
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "xLpkP",
+              "name": "Wordmark",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Love U 2",
+              "textAlign": "center",
+              "fontFamily": "$font",
+              "fontSize": 15,
+              "fontWeight": "600",
+              "letterSpacing": -0.3
+            },
+            {
+              "type": "frame",
+              "id": "S8STF",
+              "name": "Fields",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ZqRsV",
+                  "name": "Field/Username",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "d9ENHI",
+                      "name": "Username Label",
+                      "fill": "$text-primary",
+                      "content": "用户名",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "XXZlu",
+                      "name": "Username Value",
+                      "fill": "$text-primary",
+                      "content": "ryan",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "MGeyG",
+                  "name": "Field Hairline",
+                  "fill": "#1C141826",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "frame",
+                  "id": "h4fnt",
+                  "name": "Field/Password",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zcIDR",
+                      "name": "Password Label",
+                      "fill": "$text-primary",
+                      "content": "密码",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "pR9OY",
+                      "name": "Password Value",
+                      "fill": "$text-primary",
+                      "content": "••••••••",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "SNS0s",
+                  "name": "Field Hairline",
+                  "fill": "#1C141826",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "frame",
+                  "id": "PWkKN",
+                  "name": "Field/ConfirmPassword",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "JlPTK",
+                      "name": "Confirm Label",
+                      "fill": "$text-primary",
+                      "content": "确认密码",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.3
+                    },
+                    {
+                      "type": "text",
+                      "id": "QNUx4",
+                      "name": "Confirm Value",
+                      "fill": "$text-primary",
+                      "content": "••••••••",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "ce8PP",
+              "name": "Register Error",
+              "fill": "$danger",
+              "content": "用户名已存在",
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "id": "PXnBN",
+              "type": "ref",
+              "ref": "b8UmxM",
+              "name": "Button/Primary/Register",
+              "width": "fill_container",
+              "height": 40,
+              "descendants": {
+                "mqh79": {
+                  "content": "注册"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "Y1ZX1t",
+              "name": "Auth Switch",
+              "width": "fill_container",
+              "gap": 4,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "kFpYB",
+                  "name": "Switch Lead",
+                  "fill": "$text-secondary",
+                  "content": "已有账号？",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "j78UNR",
+                  "name": "Switch Action",
+                  "fill": "$accent",
+                  "content": "登录",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
             }
           ]
         }
