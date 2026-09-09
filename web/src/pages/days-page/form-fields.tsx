@@ -1,5 +1,6 @@
 import { Calendar, ChevronRight, RefreshCw } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { cx } from "@/lib/cx";
 import { DatePickerSheet, RepeatPickerSheet } from "./pickers";
@@ -12,16 +13,19 @@ import {
 type Picker = "none" | "date" | "repeat";
 
 export function DayFormFields({
-  values,
-  onChange,
   footer,
   disabled = false,
 }: {
-  values: DayFormValues;
-  onChange: (next: DayFormValues) => void;
   footer?: ReactNode;
   disabled?: boolean;
 }) {
+  const {
+    control,
+    register,
+    setValue,
+    formState: { errors },
+  } = useFormContext<DayFormValues>();
+  const values = useWatch({ control });
   const [picker, setPicker] = useState<Picker>("none");
 
   return (
@@ -30,76 +34,98 @@ export function DayFormFields({
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-fg-muted">名称</span>
           <Input
-            value={values.title}
             placeholder="例如：她的生日"
             disabled={disabled}
-            onChange={(event) =>
-              onChange({ ...values, title: event.target.value })
-            }
+            aria-invalid={Boolean(errors.title)}
+            {...register("title")}
           />
+          {errors.title ? (
+            <FieldError message={errors.title.message} />
+          ) : null}
         </label>
 
         <div className="flex flex-col gap-2">
           <p className="text-xs font-medium text-fg-muted">类型</p>
-          <div className="flex flex-wrap gap-2">
-            {DAY_TYPE_OPTIONS.map((option) => {
-              const active = values.type === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onChange({ ...values, type: option.value })}
-                  className={cx(
-                    "inline-flex h-9 items-center justify-center rounded-full px-3.5 text-[13px]",
-                    "transition-[background-color,transform,color] duration-100 ease-out active:scale-[0.97]",
-                    "disabled:opacity-60",
-                    active
-                      ? "bg-accent-soft font-semibold text-accent"
-                      : "border border-border bg-surface font-medium text-fg",
-                  )}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
+          <Controller
+            name="type"
+            control={control}
+            render={({ field }) => (
+              <div className="flex flex-wrap gap-2">
+                {DAY_TYPE_OPTIONS.map((option) => {
+                  const active = field.value === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => field.onChange(option.value)}
+                      className={cx(
+                        "inline-flex h-9 items-center justify-center rounded-full px-3.5 text-[13px]",
+                        "transition-[background-color,transform,color] duration-100 ease-out active:scale-[0.97]",
+                        "disabled:opacity-60",
+                        active
+                          ? "bg-accent-soft font-semibold text-accent"
+                          : "border border-border bg-surface font-medium text-fg",
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <div className="overflow-hidden rounded-control bg-surface">
+            <FieldRow
+              icon={Calendar}
+              label={values.date || "选择日期"}
+              muted={!values.date}
+              active={picker === "date"}
+              disabled={disabled}
+              onClick={() => setPicker("date")}
+            />
+            <div className="h-px bg-border" />
+            <FieldRow
+              icon={RefreshCw}
+              label={repeatLabel(values.repeatType ?? "yearly")}
+              active={picker === "repeat"}
+              disabled={disabled}
+              onClick={() => setPicker("repeat")}
+            />
           </div>
+          {errors.date ? <FieldError message={errors.date.message} /> : null}
         </div>
 
         <div className="overflow-hidden rounded-control bg-surface">
-          <FieldRow
-            icon={Calendar}
-            label={values.date || "选择日期"}
-            muted={!values.date}
-            active={picker === "date"}
-            disabled={disabled}
-            onClick={() => setPicker("date")}
+          <Controller
+            name="remind7"
+            control={control}
+            render={({ field }) => (
+              <SwitchRow
+                title="提前 7 天提醒"
+                description="到日子前一周轻轻提醒双方"
+                checked={field.value}
+                disabled={disabled}
+                onChange={field.onChange}
+              />
+            )}
           />
           <div className="h-px bg-border" />
-          <FieldRow
-            icon={RefreshCw}
-            label={repeatLabel(values.repeatType)}
-            active={picker === "repeat"}
-            disabled={disabled}
-            onClick={() => setPicker("repeat")}
-          />
-        </div>
-
-        <div className="overflow-hidden rounded-control bg-surface">
-          <SwitchRow
-            title="提前 7 天提醒"
-            description="到日子前一周轻轻提醒双方"
-            checked={values.remind7}
-            disabled={disabled}
-            onChange={(remind7) => onChange({ ...values, remind7 })}
-          />
-          <div className="h-px bg-border" />
-          <SwitchRow
-            title="当天提醒"
-            description="当天早上出现在首页"
-            checked={values.remindDay}
-            disabled={disabled}
-            onChange={(remindDay) => onChange({ ...values, remindDay })}
+          <Controller
+            name="remindDay"
+            control={control}
+            render={({ field }) => (
+              <SwitchRow
+                title="当天提醒"
+                description="当天早上出现在首页"
+                checked={field.value}
+                disabled={disabled}
+                onChange={field.onChange}
+              />
+            )}
           />
         </div>
 
@@ -108,20 +134,39 @@ export function DayFormFields({
 
       {picker === "date" ? (
         <DatePickerSheet
-          value={values.date}
+          value={values.date ?? ""}
           onClose={() => setPicker("none")}
-          onDone={(date) => onChange({ ...values, date })}
+          onDone={(date) => {
+            setValue("date", date, { shouldDirty: true, shouldValidate: true });
+          }}
         />
       ) : null}
 
       {picker === "repeat" ? (
         <RepeatPickerSheet
-          value={values.repeatType}
+          value={values.repeatType ?? "yearly"}
           onClose={() => setPicker("none")}
-          onDone={(repeatType) => onChange({ ...values, repeatType })}
+          onDone={(repeatType) => {
+            setValue("repeatType", repeatType, {
+              shouldDirty: true,
+              shouldValidate: true,
+            });
+          }}
         />
       ) : null}
     </>
+  );
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <p className="text-[13px] font-medium text-danger" role="alert">
+      {message}
+    </p>
   );
 }
 

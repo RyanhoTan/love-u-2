@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type {
   AnniversaryItem,
   AnniversaryPayload,
@@ -21,14 +22,19 @@ export const DAY_REPEAT_OPTIONS: {
   { value: "yearly", label: "每年", description: "每年同一天倒数" },
 ];
 
-export type DayFormValues = {
-  title: string;
-  type: AnniversaryType;
-  date: string;
-  repeatType: AnniversaryRepeatType;
-  remind7: boolean;
-  remindDay: boolean;
-};
+export const dayFormSchema = z.object({
+  title: z
+    .string()
+    .refine((value) => value.trim().length > 0, "请输入名称")
+    .refine((value) => value.trim().length <= 100, "名称最多 100 个字"),
+  type: z.enum(["love", "birthday", "holiday", "custom"]),
+  date: z.string().regex(/^\d{4}\.\d{2}\.\d{2}$/, "请选择日期"),
+  repeatType: z.enum(["none", "yearly"]),
+  remind7: z.boolean(),
+  remindDay: z.boolean(),
+});
+
+export type DayFormValues = z.infer<typeof dayFormSchema>;
 
 export function emptyDayForm(): DayFormValues {
   return {
@@ -73,7 +79,7 @@ export function repeatLabel(repeatType: AnniversaryRepeatType): string {
   );
 }
 
-export function remindLabel(values: DayFormValues): string {
+export function remindLabel(values: Partial<DayFormValues>): string {
   const parts: string[] = [];
   if (values.remind7) {
     parts.push("提前 7 天");
@@ -98,8 +104,10 @@ export function dotDateToIso(dot: string): string {
   return dot.replaceAll(".", "-");
 }
 
-export function previewRemainingDays(values: DayFormValues): number | null {
-  if (!values.date) {
+export function previewRemainingDays(
+  values: Partial<DayFormValues> | undefined,
+): number | null {
+  if (!values?.date || !values.repeatType) {
     return null;
   }
 

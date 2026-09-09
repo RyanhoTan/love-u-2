@@ -1,54 +1,16 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  getAnniversaries,
-  type AnniversaryItem,
-} from "@/app/days-api";
+  errorMessage,
+  useAnniversariesQuery,
+} from "@/app/days-queries";
 import { PageBody } from "@/components/layout/page-body";
 import { Button } from "@/components/ui/button";
 import { isoToDotDate } from "./types";
 
 export function DaysPage() {
-  const [items, setItems] = useState<AnniversaryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const query = useAnniversariesQuery();
 
-  async function load() {
-    const response = await getAnniversaries();
-    setItems(response.anniversaries);
-    setError("");
-  }
-
-  useEffect(() => {
-    let active = true;
-
-    void (async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const response = await getAnniversaries();
-        if (!active) {
-          return;
-        }
-        setItems(response.anniversaries);
-      } catch (caught) {
-        if (!active) {
-          return;
-        }
-        setError(caught instanceof Error ? caught.message : "request failed");
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  if (loading) {
+  if (query.isPending) {
     return (
       <PageBody className="items-center justify-center">
         <p className="text-sm text-fg-muted">加载中…</p>
@@ -56,30 +18,20 @@ export function DaysPage() {
     );
   }
 
-  if (error) {
+  if (query.isError) {
     return (
       <PageBody className="items-center justify-center gap-4">
         <p className="text-sm font-medium text-danger" role="alert">
-          {error}
+          {errorMessage(query.error)}
         </p>
-        <Button
-          variant="secondary"
-          onClick={() => {
-            setLoading(true);
-            void load()
-              .catch((caught) =>
-                setError(
-                  caught instanceof Error ? caught.message : "request failed",
-                ),
-              )
-              .finally(() => setLoading(false));
-          }}
-        >
+        <Button variant="secondary" onClick={() => void query.refetch()}>
           重试
         </Button>
       </PageBody>
     );
   }
+
+  const items = query.data.anniversaries;
 
   if (items.length === 0) {
     return (

@@ -9,11 +9,13 @@ export function DayPreview({
   values,
   remain,
 }: {
-  values: DayFormValues;
+  values: Partial<DayFormValues> | undefined;
   remain: number | null;
 }) {
-  const titled = values.title.trim().length > 0;
-  const dated = values.date.trim().length > 0;
+  const title = values?.title?.trim() ?? "";
+  const date = values?.date?.trim() ?? "";
+  const titled = title.length > 0;
+  const dated = date.length > 0;
   const ready = titled || dated;
 
   return (
@@ -31,7 +33,7 @@ export function DayPreview({
               : "text-[28px] font-semibold tracking-[-0.6px] text-fg-muted"
           }
         >
-          {titled ? values.title.trim() : "未命名纪念日"}
+          {titled ? title : "未命名纪念日"}
         </h2>
         <div className="flex items-end gap-2">
           <p
@@ -54,22 +56,26 @@ export function DayPreview({
           </p>
         </div>
         <p className="text-sm text-fg-muted">
-          {dated ? values.date : "选择日期后显示倒数"}
+          {dated ? date : "选择日期后显示倒数"}
         </p>
       </div>
 
       <div className="flex flex-col gap-2 px-1">
         <PreviewMeta
           label="类型"
-          value={ready ? typeLabel(values.type) : "—"}
+          value={ready && values?.type ? typeLabel(values.type) : "—"}
         />
         <PreviewMeta
           label="重复"
-          value={ready ? repeatLabel(values.repeatType) : "—"}
+          value={
+            ready && values?.repeatType
+              ? repeatLabel(values.repeatType)
+              : "—"
+          }
         />
         <PreviewMeta
           label="提醒"
-          value={ready ? remindLabel(values) : "—"}
+          value={ready && values ? remindLabel(values) : "—"}
         />
       </div>
     </aside>

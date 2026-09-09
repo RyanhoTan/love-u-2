@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cx } from "@/lib/cx";
 
 function Overlay({
@@ -34,18 +34,19 @@ function Overlay({
 
 export function DeleteDayDialog({
   title,
+  pending = false,
+  error,
   onCancel,
   onConfirm,
 }: {
   title: string;
+  pending?: boolean;
+  error?: string;
   onCancel: () => void;
-  onConfirm: () => Promise<void>;
+  onConfirm: () => void;
 }) {
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-
   return (
-    <Overlay onDismiss={submitting ? undefined : onCancel}>
+    <Overlay onDismiss={pending ? undefined : onCancel}>
       <div
         role="dialog"
         aria-modal="true"
@@ -77,7 +78,7 @@ export function DeleteDayDialog({
         <div className="flex h-[52px] items-stretch">
           <button
             type="button"
-            disabled={submitting}
+            disabled={pending}
             onClick={onCancel}
             className="flex flex-1 items-center justify-center text-base font-medium tracking-[-0.2px] text-fg transition-colors duration-100 ease-out hover:bg-surface-soft active:scale-[0.99] disabled:opacity-60"
           >
@@ -86,28 +87,15 @@ export function DeleteDayDialog({
           <div className="w-px bg-border" />
           <button
             type="button"
-            disabled={submitting}
-            onClick={() => {
-              void (async () => {
-                try {
-                  setSubmitting(true);
-                  setError("");
-                  await onConfirm();
-                } catch (caught) {
-                  setError(
-                    caught instanceof Error ? caught.message : "request failed",
-                  );
-                  setSubmitting(false);
-                }
-              })();
-            }}
+            disabled={pending}
+            onClick={onConfirm}
             className={cx(
               "flex flex-1 items-center justify-center text-base font-semibold tracking-[-0.2px] text-danger",
               "transition-colors duration-100 ease-out hover:bg-surface-soft active:scale-[0.99]",
               "disabled:opacity-60",
             )}
           >
-            {submitting ? "删除中…" : "删除"}
+            {pending ? "删除中…" : "删除"}
           </button>
         </div>
       </div>
