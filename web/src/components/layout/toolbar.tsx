@@ -1,12 +1,12 @@
 import { Bell, ChevronLeft, Ellipsis, Search } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/app/auth";
-import { displayName } from "@/app/user-api";
-import { useRouteHandle } from "../../app/use-route-handle";
+import { useAuth } from "@/features/auth/context";
+import { displayName } from "@/features/user/api";
+import { useRouteHandle } from "@/routes/use-route-handle";
 import { formatToolbarDate } from "../../lib/date";
 import { Avatar } from "../ui/avatar";
 import { Button, IconButton } from "../ui/button";
-import type { ToolbarAction } from "../../app/types";
+import type { ToolbarAction } from "@/routes/types";
 
 export function Toolbar() {
   const handle = useRouteHandle();

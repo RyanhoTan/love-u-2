@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { useAuth } from "@/app/auth";
-import { formatAnniversaryDot } from "@/app/user-api";
-import { TODAY } from "../../app/mock";
+import { useAuth } from "@/features/auth/context";
+import { formatAnniversaryDot } from "@/features/user/api";
+import { TODAY } from "@/mocks";
 import { PageBody } from "../../components/layout/page-body";
 import { Button } from "../../components/ui/button";
 

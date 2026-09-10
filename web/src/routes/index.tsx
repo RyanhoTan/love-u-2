@@ -1,17 +1,17 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import type { RouteHandle } from "./types";
-import { RequireAuth } from "./auth";
-import { AppShell } from "../components/layout/app-shell";
-import { TodayPage } from "../pages/today-page";
-import { LoginPage } from "../pages/login-page";
-import { MessagesPage } from "../pages/messages-page";
-import { PhotosPage } from "../pages/photos-page";
-import { WishesPage } from "../pages/wishes-page";
-import { DaysPage } from "../pages/days-page";
-import { DayEditPage, DayNewPage } from "../pages/days-page/form-page";
-import { MePage } from "../pages/me-page";
-import { CouplePage } from "../pages/couple-page";
-import { PlaceholderPage } from "../pages/placeholder-page";
+import { RequireAuth } from "@/features/auth/context";
+import { AppShell } from "@/components/layout/app-shell";
+import { TodayPage } from "@/pages/today-page";
+import { LoginPage } from "@/pages/login-page";
+import { MessagesPage } from "@/pages/messages-page";
+import { PhotosPage } from "@/pages/photos-page";
+import { WishesPage } from "@/pages/wishes-page";
+import { DaysPage } from "@/pages/days-page";
+import { DayEditPage, DayNewPage } from "@/pages/days-page/form-page";
+import { MePage } from "@/pages/me-page";
+import { CouplePage } from "@/pages/couple-page";
+import { PlaceholderPage } from "@/pages/placeholder-page";
 
 const body = {
   today: "px-12 pt-7 pb-10",

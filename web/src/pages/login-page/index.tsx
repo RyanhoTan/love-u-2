@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../../app/auth";
-import { register } from "../../app/auth-api";
-import { TODAY } from "../../app/mock";
-import { Button } from "../../components/ui/button";
+import { useAuth } from "@/features/auth/context";
+import { register } from "@/features/auth/api";
+import { TODAY } from "@/mocks";
+import { Button } from "@/components/ui/button";
 
 type AuthMode = "login" | "register";
 

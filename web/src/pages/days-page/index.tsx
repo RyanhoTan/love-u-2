@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import {
   errorMessage,
   useAnniversariesQuery,
-} from "@/app/days-queries";
+} from "@/features/anniversary/queries";
 import { PageBody } from "@/components/layout/page-body";
 import { Button } from "@/components/ui/button";
 import { isoToDotDate } from "./types";

@@ -1,4 +1,4 @@
-import { useRouteHandle } from "../../app/use-route-handle";
+import { useRouteHandle } from "@/routes/use-route-handle";
 import { cx } from "../../lib/cx";
 
 export function ContentPlaceholder({ label }: { label?: string }) {

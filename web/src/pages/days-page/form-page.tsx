@@ -2,14 +2,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
-import type { AnniversaryItem } from "@/app/days-api";
+import type { AnniversaryItem } from "@/features/anniversary/api";
 import {
   errorMessage,
   useAnniversariesQuery,
   useCreateAnniversaryMutation,
   useDeleteAnniversaryMutation,
   useUpdateAnniversaryMutation,
-} from "@/app/days-queries";
+} from "@/features/anniversary/queries";
 import { PageBody } from "@/components/layout/page-body";
 import { Button } from "@/components/ui/button";
 import { DeleteDayDialog } from "./delete-dialog";

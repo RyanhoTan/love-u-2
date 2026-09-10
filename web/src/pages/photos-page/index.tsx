@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PHOTOS } from "../../app/mock";
+import { PHOTOS } from "@/mocks";
 import { PageBody } from "../../components/layout/page-body";
 import { Segmented } from "../../components/ui/segmented";
 

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "@/app/auth";
+import { useAuth } from "@/features/auth/context";
 import {
   bindCoupleSpace,
   createCoupleInvite,
   getCoupleSpace,
   updateCoupleSpace,
   unbindCoupleSpace,
-} from "@/app/couple-api";
-import type { UserProfile } from "@/app/user-api";
-import { emptyAuthUser } from "@/lib/api";
+} from "@/features/couple/api";
+import type { UserProfile } from "@/features/user/api";
+import { emptyAuthUser } from "@/api/client";
 import { PageBody } from "@/components/layout/page-body";
 import { Button } from "@/components/ui/button";
 import { BoundView } from "./bound-view";

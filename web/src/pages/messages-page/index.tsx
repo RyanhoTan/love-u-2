@@ -1,6 +1,6 @@
-import { useAuth } from "@/app/auth";
-import { displayName } from "@/app/user-api";
-import { MESSAGES } from "../../app/mock";
+import { useAuth } from "@/features/auth/context";
+import { displayName } from "@/features/user/api";
+import { MESSAGES } from "@/mocks";
 import { Composer } from "../../components/layout/composer";
 import { Avatar } from "../../components/ui/avatar";
 import { Button } from "../../components/ui/button";

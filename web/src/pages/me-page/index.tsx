@@ -8,8 +8,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/app/auth";
-import { displayName } from "@/app/user-api";
+import { useAuth } from "@/features/auth/context";
+import { displayName } from "@/features/user/api";
 import { PageBody } from "@/components/layout/page-body";
 import { Avatar } from "@/components/ui/avatar";
 

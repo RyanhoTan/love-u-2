@@ -4,7 +4,7 @@ import {
   displayName,
   formatAnniversaryDot,
   type UserProfile,
-} from "@/app/user-api";
+} from "@/features/user/api";
 import { Avatar } from "@/components/ui/avatar";
 
 export function BoundView({

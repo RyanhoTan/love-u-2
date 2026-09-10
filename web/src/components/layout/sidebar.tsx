@@ -1,9 +1,9 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/app/auth";
-import { displayName } from "@/app/user-api";
-import { NAV_ITEMS } from "../../app/nav";
-import { useRouteHandle } from "../../app/use-route-handle";
+import { useAuth } from "@/features/auth/context";
+import { displayName } from "@/features/user/api";
+import { NAV_ITEMS } from "@/routes/nav";
+import { useRouteHandle } from "@/routes/use-route-handle";
 import { cx } from "../../lib/cx";
 import { Avatar } from "../ui/avatar";
 

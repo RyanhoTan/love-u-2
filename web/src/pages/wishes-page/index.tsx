@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { WISHES } from "../../app/mock";
+import { WISHES } from "@/mocks";
 import { PageBody } from "../../components/layout/page-body";
 import { Segmented } from "../../components/ui/segmented";
 

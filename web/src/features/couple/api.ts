@@ -1,4 +1,4 @@
-import { requestWithAuth } from "@/lib/api";
+import { requestWithAuth } from "@/api/client";
 import type {
   SchemaBindCoupleRequest,
   SchemaCoupleInviteResponse,

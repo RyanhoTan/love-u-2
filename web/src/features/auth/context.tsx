@@ -8,15 +8,15 @@ import {
   type ReactNode,
 } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { login } from "./auth-api";
-import { getUserInfo } from "./user-api";
+import { login } from "./api";
+import { getUserInfo } from "@/features/user/api";
 import {
   emptyAuthUser,
   readAuthSession,
   writeAuthSession,
   type AuthSession,
   type AuthUser,
-} from "../lib/api";
+} from "@/api/client";
 
 type AuthContextValue = {
   user: AuthUser | null;

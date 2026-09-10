@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useRouteHandle } from "../../app/use-route-handle";
+import { useRouteHandle } from "@/routes/use-route-handle";
 import { cx } from "../../lib/cx";
 
 export function PageBody({
