@@ -1,0 +1,3888 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Love-U API",
+    "description": "Formal HTTP API contract derived from the current server/ implementation.\n\nSource of truth: Express routers and serialize* functions.\n\nCompatibility: OpenAPI 3.0.3 (Apifox / Swagger friendly).\nCoupleSummary (inside /userinfo) and CoupleSpace (/couple-space) are different models.\nUpload success body is { key, url } without message. Lists are not paginated.\n",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Love-U"
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "User"
+    },
+    {
+      "name": "Couple"
+    },
+    {
+      "name": "Anniversary"
+    },
+    {
+      "name": "Wish"
+    },
+    {
+      "name": "Album"
+    },
+    {
+      "name": "Upload"
+    },
+    {
+      "name": "PartnerChat"
+    }
+  ],
+  "paths": {
+    "/user/register": {
+      "post": {
+        "summary": "注册",
+        "deprecated": false,
+        "description": "",
+        "operationId": "register",
+        "tags": [
+          "Auth"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthCredentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "409": {
+            "description": "Username already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/login": {
+      "post": {
+        "summary": "登录",
+        "deprecated": false,
+        "description": "",
+        "operationId": "login",
+        "tags": [
+          "Auth"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthCredentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Login success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/userinfo": {
+      "get": {
+        "summary": "获取用户资料",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getUserInfo",
+        "tags": [
+          "User"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfoResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Invalid or expired token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "更新用户资料",
+        "deprecated": false,
+        "description": "",
+        "operationId": "updateUserInfo",
+        "tags": [
+          "User"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfoResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Invalid or expired token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "500": {
+            "description": "Profile columns unsupported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/couple-space": {
+      "get": {
+        "summary": "获取情侣空间",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getCoupleSpace",
+        "tags": [
+          "Couple"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Couple space",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoupleSpaceResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "500": {
+            "description": "Missing tables",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "更新恋爱纪念日",
+        "deprecated": false,
+        "description": "",
+        "operationId": "updateCoupleSpace",
+        "tags": [
+          "Couple"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCoupleSpaceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoupleSpaceResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Bound relationship not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/couple-space/invite": {
+      "post": {
+        "summary": "创建邀请码",
+        "deprecated": false,
+        "description": "已有有效邀请且未 regenerate 时复用现有邀请码；regenerate=true 时作废旧码并新建。",
+        "operationId": "createCoupleInvite",
+        "tags": [
+          "Couple"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCoupleInviteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing pending invite returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoupleInviteResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "201": {
+            "description": "New invite created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoupleInviteResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "409": {
+            "description": "Already bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/couple-space/bind": {
+      "post": {
+        "summary": "绑定邀请码",
+        "deprecated": false,
+        "description": "",
+        "operationId": "bindCoupleSpace",
+        "tags": [
+          "Couple"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindCoupleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoupleSpaceResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Validation or own invite code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Invite not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "409": {
+            "description": "Already bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "410": {
+            "description": "Invite expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "解除绑定",
+        "deprecated": false,
+        "description": "",
+        "operationId": "unbindCoupleSpace",
+        "tags": [
+          "Couple"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Unbound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageOnlyResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Bound relationship not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/anniversaries": {
+      "get": {
+        "summary": "获取纪念日列表",
+        "deprecated": false,
+        "description": "按 remainingDays、nextOccurrenceDate 排序；未绑定关系时返回空数组（仍为 200）。",
+        "operationId": "getAnniversaries",
+        "tags": [
+          "Anniversary"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List sorted by remainingDays then nextOccurrenceDate.\nEmpty array when user is not bound (still 200).\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnniversaryListResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "创建纪念日",
+        "deprecated": false,
+        "description": "",
+        "operationId": "createAnniversary",
+        "tags": [
+          "Anniversary"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnniversaryPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnniversaryItemResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "409": {
+            "description": "Bound couple relationship not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/anniversaries/{id}": {
+      "patch": {
+        "summary": "更新纪念日",
+        "deprecated": false,
+        "description": "请求体为全量 AnniversaryPayload，非 partial。",
+        "operationId": "updateAnniversary",
+        "tags": [
+          "Anniversary"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnniversaryPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnniversaryItemResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Invalid id or payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Anniversary not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "删除纪念日",
+        "deprecated": false,
+        "description": "软删除（status=deleted）。",
+        "operationId": "deleteAnniversary",
+        "tags": [
+          "Anniversary"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageOnlyResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Anniversary not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/wishes": {
+      "get": {
+        "summary": "获取心愿列表",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getWishes",
+        "tags": [
+          "Wish"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Wishes (no pagination)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishListResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "创建心愿",
+        "deprecated": false,
+        "description": "",
+        "operationId": "createWish",
+        "tags": [
+          "Wish"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWishRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishItemResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/wishes/recycle": {
+      "get": {
+        "summary": "获取回收站心愿",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getDeletedWishes",
+        "tags": [
+          "Wish"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Deleted wishes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishListResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/wishes/{id}": {
+      "get": {
+        "summary": "获取心愿详情",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getWishById",
+        "tags": [
+          "Wish"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wish",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishItemResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "更新心愿状态",
+        "deprecated": false,
+        "description": "当前仅允许修改 `status` 字段。",
+        "operationId": "updateWish",
+        "tags": [
+          "Wish"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWishRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishItemResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Invalid id or payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "删除心愿",
+        "deprecated": false,
+        "description": "软删除，响应返回删除后的 wish 实体。",
+        "operationId": "deleteWish",
+        "tags": [
+          "Wish"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Soft-deleted wish entity returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishItemResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/wishes/{id}/restore": {
+      "post": {
+        "summary": "恢复心愿",
+        "deprecated": false,
+        "description": "",
+        "operationId": "restoreWish",
+        "tags": [
+          "Wish"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Restored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishItemResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Deleted wish not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/wishes/{id}/permanent": {
+      "delete": {
+        "summary": "永久删除心愿",
+        "deprecated": false,
+        "description": "",
+        "operationId": "permanentlyDeleteWish",
+        "tags": [
+          "Wish"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permanently deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageOnlyResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Deleted wish not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/wishes/{id}/records": {
+      "get": {
+        "summary": "获取心愿记录",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getWishRecords",
+        "tags": [
+          "Wish"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wish plus records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishRecordsResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Wish not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "创建心愿记录",
+        "deprecated": false,
+        "description": "",
+        "operationId": "createWishRecord",
+        "tags": [
+          "Wish"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWishRecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateWishRecordResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Validation or invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Wish not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "500": {
+            "description": "Missing tables / ffmpeg",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/album/media": {
+      "get": {
+        "summary": "获取相册媒体",
+        "deprecated": false,
+        "description": "含 legacy wish_records.media_urls 合成项（id 可能为负数）；无分页。",
+        "operationId": "getAlbumMedia",
+        "tags": [
+          "Album"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Media list (no pagination)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumMediaListResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "创建相册媒体",
+        "deprecated": false,
+        "description": "",
+        "operationId": "createAlbumMedia",
+        "tags": [
+          "Album"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAlbumMediaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumMediaItemResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/album/stories": {
+      "get": {
+        "summary": "获取故事列表",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getAlbumStories",
+        "tags": [
+          "Album"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Stories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumStoryListResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "500": {
+            "description": "Stories table missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "创建故事",
+        "deprecated": false,
+        "description": "media 可选；有媒体时会写入 album_media 并设置封面。",
+        "operationId": "createAlbumStory",
+        "tags": [
+          "Album"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAlbumStoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumStoryItemResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/album/stories/favorites": {
+      "get": {
+        "summary": "获取收藏故事",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getFavoriteAlbumStories",
+        "tags": [
+          "Album"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Favorite stories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumStoryListResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/album/stories/{id}": {
+      "get": {
+        "summary": "获取故事详情",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getAlbumStory",
+        "tags": [
+          "Album"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Story + media",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumStoryDetailResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Invalid story id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Story not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/album/stories/{id}/favorite": {
+      "post": {
+        "summary": "设置故事收藏",
+        "deprecated": false,
+        "description": "",
+        "operationId": "updateAlbumStoryFavorite",
+        "tags": [
+          "Album"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Positive integer resource id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAlbumStoryFavoriteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated story",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumStoryItemResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Invalid id or payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Story not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/upload/media": {
+      "post": {
+        "summary": "上传媒体文件",
+        "deprecated": false,
+        "description": "请求体为原始二进制；成功响应为 `{ key, url }`，无 message。",
+        "operationId": "uploadMedia",
+        "tags": [
+          "Upload"
+        ],
+        "parameters": [
+          {
+            "name": "folder",
+            "in": "query",
+            "description": "Storage folder segment. Not Zod-validated; clients use values like `album`.\n",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-file-name",
+            "in": "header",
+            "description": "Original file name (used for extension)",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "*/*": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Uploaded — body is `{ key, url }` without message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadMediaResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/partner-chat": {
+      "get": {
+        "summary": "伴侣聊天 WebSocket",
+        "deprecated": false,
+        "description": "Not a JSON REST endpoint. Clients open a WebSocket to\n`ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade).\n\nRequires an active bound couple relationship; otherwise upgrade is rejected\nwith HTTP 403.\n\nClient → server message schemas:\n- PartnerChatClientMessageText\n- PartnerChatClientMessageAudio\n- PartnerChatClientRead\n\nServer → client message schemas:\n- PartnerChatServerReady\n- PartnerChatServerMessage\n- PartnerChatServerDelivery\n- PartnerChatServerReadReceipt\n- PartnerChatServerError\n\nMessage `id` values are **strings** (unlike HTTP resource ids).\n",
+        "operationId": "partnerChatUpgrade",
+        "tags": [
+          "PartnerChat"
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "description": "JWT when not using Authorization header",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "101": {
+            "description": "Switching Protocols (WebSocket)",
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized upgrade rejection (plain text, not ErrorMessage JSON)",
+            "headers": {}
+          },
+          "403": {
+            "description": "No bound partner (plain text)",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "webhooks": {},
+  "components": {
+    "schemas": {
+      "ErrorMessage": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message (no stable machine code yet)"
+          }
+        },
+        "description": "Uniform HTTP error body used by `HttpError`, JSON parse failures,\nunknown routes, and unhandled 500s.\n"
+      },
+      "DateOnly": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+        "description": "Calendar date `YYYY-MM-DD` (no time zone)",
+        "examples": [
+          "2024-06-01"
+        ]
+      },
+      "DateOnlyNullable": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+        "description": "Calendar date or null when unset"
+      },
+      "IsoDateTime": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 timestamp from `Date#toISOString()`"
+      },
+      "IsoDateTimeNullable": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time",
+        "description": "ISO 8601 timestamp or null"
+      },
+      "MessageOnlyResponse": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthCredentials": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "LoginUser": {
+        "type": "object",
+        "required": [
+          "id",
+          "username"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "description": "Slim user returned by login only. Full profile is `User` from `/userinfo`.\n"
+      },
+      "LoginResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "token",
+          "user"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/LoginUser"
+          }
+        }
+      },
+      "RegisterResponse": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string",
+            "examples": [
+              "register success"
+            ]
+          }
+        }
+      },
+      "PartnerSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "nickname",
+          "avatar"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          },
+          "nickname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "avatar": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Avatar URL or null (field name is `avatar`, not avatarUrl)"
+          }
+        },
+        "description": "Partner card used inside CoupleSummary and CoupleSpace"
+      },
+      "CoupleSummary": {
+        "type": "object",
+        "required": [
+          "isBound",
+          "daysInLove",
+          "anniversaryDate",
+          "partner"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "isBound": {
+            "type": "boolean"
+          },
+          "daysInLove": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Days since anniversaryDate; null if unbound or no date"
+          },
+          "anniversaryDate": {
+            "$ref": "#/components/schemas/DateOnlyNullable"
+          },
+          "partner": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartnerSummary"
+              }
+            ],
+            "type": "null"
+          }
+        },
+        "description": "Embedded couple **summary** on `User` from `/userinfo`.\nThis is NOT the same model as `CoupleSpace` from `/couple-space`.\nOverlapping semantics (isBound, daysInLove, partner, anniversary date)\nexist in both, but CoupleSpace also exposes relationship + activeInvite.\n"
+      },
+      "User": {
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "nickname",
+          "avatar",
+          "signature",
+          "birthday",
+          "gender",
+          "coupleStatus",
+          "couple",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          },
+          "nickname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "avatar": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "signature": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "birthday": {
+            "$ref": "#/components/schemas/DateOnlyNullable"
+          },
+          "gender": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Returned by GET/PUT userinfo; not updatable via current PUT body"
+          },
+          "coupleStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Latest couple_relationships.status for this user, or null.\nOverlaps conceptually with `couple.isBound` — do not collapse in contract.\n"
+          },
+          "couple": {
+            "$ref": "#/components/schemas/CoupleSummary"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          }
+        },
+        "description": "Canonical user entity from `/userinfo` serializeUser.\n\nClient gaps (types only; runtime JSON still includes these fields):\n- Web AuthUser/UserProfile: often omits birthday, gender, coupleStatus, createdAt, updatedAt\n- App AuthUser: often omits nested `couple` while keeping coupleStatus\n"
+      },
+      "UserInfoResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "user"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "UpdateUserProfileRequest": {
+        "type": "object",
+        "required": [
+          "nickname",
+          "avatar",
+          "signature",
+          "birthday"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "maxLength": 30,
+            "description": "Empty string is stored as null"
+          },
+          "avatar": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2048,
+            "description": "Empty string is stored as null"
+          },
+          "signature": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Empty string is stored as null"
+          },
+          "birthday": {
+            "$ref": "#/components/schemas/DateOnly",
+            "description": "Required by current Zod schema; cannot be cleared to null via API"
+          }
+        }
+      },
+      "CoupleInvite": {
+        "type": "object",
+        "required": [
+          "code",
+          "status",
+          "expiresAt",
+          "createdAt",
+          "updatedAt",
+          "usedAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "e.g. pending, used (string as returned; not a closed enum in code)"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "usedAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          }
+        }
+      },
+      "CoupleRelationship": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "anniversaryDate",
+          "createdAt",
+          "updatedAt",
+          "unboundAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "anniversaryDate": {
+            "$ref": "#/components/schemas/DateOnlyNullable"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "unboundAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          }
+        }
+      },
+      "CoupleSpace": {
+        "type": "object",
+        "required": [
+          "isBound",
+          "partner",
+          "relationship",
+          "daysInLove",
+          "activeInvite"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "isBound": {
+            "type": "boolean"
+          },
+          "partner": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartnerSummary"
+              }
+            ],
+            "type": "null"
+          },
+          "relationship": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CoupleRelationship"
+              }
+            ],
+            "type": "null"
+          },
+          "daysInLove": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "activeInvite": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CoupleInvite"
+              }
+            ],
+            "type": "null"
+          }
+        },
+        "description": "Full couple-space payload from `/couple-space`.\nDistinct from `CoupleSummary` on User. Do not merge schemas.\n"
+      },
+      "CoupleSpaceResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "coupleSpace"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "coupleSpace": {
+            "$ref": "#/components/schemas/CoupleSpace"
+          }
+        }
+      },
+      "CreateCoupleInviteRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "regenerate": {
+            "type": "boolean",
+            "description": "If true, expires the current pending invite and creates a new code.\nOmitted or false reuses an existing valid pending invite when present.\nNot validated by Zod — only `=== true` is treated as regenerate.\n"
+          }
+        },
+        "description": "Body may be empty or omitted; App currently sends no body."
+      },
+      "CoupleInviteResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "invite"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "invite": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CoupleInvite"
+              }
+            ],
+            "type": "null"
+          }
+        }
+      },
+      "BindCoupleRequest": {
+        "type": "object",
+        "required": [
+          "inviteCode"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "inviteCode": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 12,
+            "pattern": "^[A-Z0-9]+$"
+          }
+        }
+      },
+      "UpdateCoupleSpaceRequest": {
+        "type": "object",
+        "required": [
+          "anniversaryDate"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "anniversaryDate": {
+            "$ref": "#/components/schemas/DateOnlyNullable"
+          }
+        }
+      },
+      "AnniversaryType": {
+        "type": "string",
+        "enum": [
+          "love",
+          "birthday",
+          "holiday",
+          "custom"
+        ]
+      },
+      "AnniversaryRepeatType": {
+        "type": "string",
+        "enum": [
+          "none",
+          "yearly"
+        ]
+      },
+      "AnniversaryStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "deleted"
+        ]
+      },
+      "Anniversary": {
+        "type": "object",
+        "required": [
+          "id",
+          "relationshipId",
+          "createdByUserId",
+          "title",
+          "type",
+          "originalDate",
+          "repeatType",
+          "reminderDaysBefore",
+          "status",
+          "nextOccurrenceDate",
+          "remainingDays",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "relationshipId": {
+            "type": "integer"
+          },
+          "createdByUserId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AnniversaryType"
+          },
+          "originalDate": {
+            "$ref": "#/components/schemas/DateOnly"
+          },
+          "repeatType": {
+            "$ref": "#/components/schemas/AnniversaryRepeatType"
+          },
+          "reminderDaysBefore": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30
+          },
+          "status": {
+            "$ref": "#/components/schemas/AnniversaryStatus"
+          },
+          "nextOccurrenceDate": {
+            "$ref": "#/components/schemas/DateOnly",
+            "description": "Computed server-side"
+          },
+          "remainingDays": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Computed server-side"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "deletedAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          }
+        }
+      },
+      "AnniversaryPayload": {
+        "type": "object",
+        "required": [
+          "title",
+          "type",
+          "originalDate",
+          "repeatType",
+          "reminderDaysBefore"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "type": {
+            "$ref": "#/components/schemas/AnniversaryType"
+          },
+          "originalDate": {
+            "$ref": "#/components/schemas/DateOnly"
+          },
+          "repeatType": {
+            "$ref": "#/components/schemas/AnniversaryRepeatType"
+          },
+          "reminderDaysBefore": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30
+          }
+        },
+        "description": "Used for both create and update (full replacement, not partial)"
+      },
+      "AnniversaryListResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "anniversaries"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "anniversaries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Anniversary"
+            }
+          }
+        }
+      },
+      "AnniversaryItemResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "anniversary"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "anniversary": {
+            "$ref": "#/components/schemas/Anniversary"
+          }
+        }
+      },
+      "WishStatus": {
+        "type": "string",
+        "enum": [
+          "todo",
+          "doing",
+          "done"
+        ]
+      },
+      "Wish": {
+        "type": "object",
+        "required": [
+          "id",
+          "relationshipId",
+          "createdByUserId",
+          "title",
+          "description",
+          "cover",
+          "targetDate",
+          "locationName",
+          "latitude",
+          "longitude",
+          "budgetAmount",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "deleteExpiresAt",
+          "isDeleted"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "relationshipId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "createdByUserId": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "description": "DB null serialized as empty string"
+          },
+          "cover": {
+            "type": "string",
+            "description": "DB null serialized as empty string"
+          },
+          "targetDate": {
+            "$ref": "#/components/schemas/DateOnly"
+          },
+          "locationName": {
+            "type": "string",
+            "description": "DB null serialized as empty string"
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "budgetAmount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Integer amount; unit not specified in code (open question)"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WishStatus"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable",
+            "description": "Backend `formatDateTime` may return null. App TypeScript currently\nmarks this as non-null string — contract follows backend.\n"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "deletedAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "deleteExpiresAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WishListResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "wishes"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "wishes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Wish"
+            }
+          }
+        }
+      },
+      "WishItemResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "wish"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "wish": {
+            "$ref": "#/components/schemas/Wish"
+          }
+        }
+      },
+      "CreateWishRequest": {
+        "type": "object",
+        "required": [
+          "title",
+          "targetDate"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "default": ""
+          },
+          "cover": {
+            "type": "string",
+            "description": "Valid URL or empty string; default ''",
+            "default": ""
+          },
+          "targetDate": {
+            "$ref": "#/components/schemas/DateOnly"
+          },
+          "locationName": {
+            "type": "string",
+            "maxLength": 100,
+            "default": ""
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90,
+            "default": null
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180,
+            "default": null
+          },
+          "budgetAmount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "default": null
+          }
+        }
+      },
+      "UpdateWishRequest": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/WishStatus"
+          }
+        },
+        "description": "Current backend only allows status changes"
+      },
+      "WishRecordMedia": {
+        "type": "object",
+        "required": [
+          "url",
+          "mediaType",
+          "thumbnailUrl"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "mediaType": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video"
+            ]
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "description": "Empty string when absent"
+          }
+        }
+      },
+      "WishRecord": {
+        "type": "object",
+        "required": [
+          "id",
+          "wishId",
+          "createdByUserId",
+          "content",
+          "recordDate",
+          "mood",
+          "locationName",
+          "latitude",
+          "longitude",
+          "budgetAmount",
+          "media",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "wishId": {
+            "type": "integer"
+          },
+          "createdByUserId": {
+            "type": "integer"
+          },
+          "content": {
+            "type": "string"
+          },
+          "recordDate": {
+            "$ref": "#/components/schemas/DateOnly"
+          },
+          "mood": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "budgetAmount": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "media": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WishRecordMedia"
+            }
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/IsoDateTimeNullable"
+          }
+        }
+      },
+      "WishRecordsResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "wish",
+          "records"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "wish": {
+            "$ref": "#/components/schemas/Wish"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WishRecord"
+            }
+          }
+        }
+      },
+      "CreateWishRecordMediaInput": {
+        "type": "object",
+        "required": [
+          "url",
+          "mediaType"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "mediaType": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video"
+            ]
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "default": ""
+          }
+        }
+      },
+      "CreateWishRecordRequest": {
+        "type": "object",
+        "required": [
+          "recordDate"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 1000,
+            "default": ""
+          },
+          "recordDate": {
+            "$ref": "#/components/schemas/DateOnly"
+          },
+          "mood": {
+            "type": "string",
+            "maxLength": 50,
+            "default": ""
+          },
+          "locationName": {
+            "type": "string",
+            "maxLength": 100,
+            "default": ""
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "default": null
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "default": null
+          },
+          "budgetAmount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "default": null
+          },
+          "media": {
+            "type": "array",
+            "maxItems": 99,
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CreateWishRecordMediaInput"
+            }
+          }
+        }
+      },
+      "CreateWishRecordResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "wish",
+          "record"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "wish": {
+            "$ref": "#/components/schemas/Wish"
+          },
+          "record": {
+            "$ref": "#/components/schemas/WishRecord"
+          }
+        }
+      },
+      "AlbumMediaType": {
+        "type": "string",
+        "enum": [
+          "image",
+          "video"
+        ]
+      },
+      "AlbumMediaSourceType": {
+        "type": "string",
+        "enum": [
+          "wish_record",
+          "story",
+          "upload"
+        ]
+      },
+      "AlbumMedia": {
+        "type": "object",
+        "required": [
+          "id",
+          "relationshipId",
+          "createdByUserId",
+          "mediaType",
+          "sourceType",
+          "sourceId",
+          "url",
+          "thumbnailUrl",
+          "takenAt",
+          "locationName",
+          "latitude",
+          "longitude",
+          "uploadedAt",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Positive for DB rows. Legacy wish_records.media_urls synthesis may\nproduce negative ids — treat as opaque identifiers.\n"
+          },
+          "relationshipId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "createdByUserId": {
+            "type": "integer"
+          },
+          "mediaType": {
+            "$ref": "#/components/schemas/AlbumMediaType"
+          },
+          "sourceType": {
+            "$ref": "#/components/schemas/AlbumMediaSourceType"
+          },
+          "sourceId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "description": "Empty string when absent"
+          },
+          "takenAt": {
+            "type": "string",
+            "description": "Date-only when set; empty string when unset\n(backend formatDateOnly returns \"\" for null — not JSON null)\n"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "uploadedAt": {
+            "$ref": "#/components/schemas/IsoDateTime",
+            "description": "Same underlying created_at as createdAt"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/IsoDateTime"
+          }
+        }
+      },
+      "AlbumMediaListResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "media"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "media": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AlbumMedia"
+            }
+          }
+        }
+      },
+      "AlbumMediaItemResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "media"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "media": {
+            "$ref": "#/components/schemas/AlbumMedia"
+          }
+        }
+      },
+      "CreateAlbumMediaRequest": {
+        "type": "object",
+        "required": [
+          "mediaType",
+          "url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "mediaType": {
+            "$ref": "#/components/schemas/AlbumMediaType"
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "default": ""
+          },
+          "takenAt": {
+            "$ref": "#/components/schemas/DateOnly"
+          },
+          "locationName": {
+            "type": "string",
+            "maxLength": 100,
+            "default": ""
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "default": null
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "AlbumStory": {
+        "type": "object",
+        "required": [
+          "id",
+          "relationshipId",
+          "createdByUserId",
+          "title",
+          "description",
+          "coverMediaId",
+          "coverUrl",
+          "coverThumbnailUrl",
+          "photos",
+          "videos",
+          "isFavorite",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "relationshipId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "createdByUserId": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "coverMediaId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "coverUrl": {
+            "type": "string"
+          },
+          "coverThumbnailUrl": {
+            "type": "string"
+          },
+          "photos": {
+            "type": "integer",
+            "description": "Count of image media (API name photos, not photoCount)"
+          },
+          "videos": {
+            "type": "integer"
+          },
+          "isFavorite": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/IsoDateTime"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/IsoDateTime"
+          }
+        }
+      },
+      "AlbumStoryListResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "stories"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "stories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AlbumStory"
+            }
+          }
+        }
+      },
+      "AlbumStoryDetailResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "story",
+          "media"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "story": {
+            "$ref": "#/components/schemas/AlbumStory"
+          },
+          "media": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AlbumMedia"
+            }
+          }
+        }
+      },
+      "AlbumStoryItemResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "story"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "story": {
+            "$ref": "#/components/schemas/AlbumStory"
+          }
+        }
+      },
+      "CreateAlbumStoryMediaInput": {
+        "type": "object",
+        "required": [
+          "mediaType",
+          "url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "mediaType": {
+            "$ref": "#/components/schemas/AlbumMediaType"
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "default": ""
+          },
+          "takenAt": {
+            "$ref": "#/components/schemas/DateOnly"
+          },
+          "locationName": {
+            "type": "string",
+            "maxLength": 100,
+            "default": ""
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "default": null
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "CreateAlbumStoryRequest": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "default": ""
+          },
+          "media": {
+            "type": "array",
+            "maxItems": 99,
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CreateAlbumStoryMediaInput"
+            }
+          }
+        }
+      },
+      "UpdateAlbumStoryFavoriteRequest": {
+        "type": "object",
+        "required": [
+          "isFavorite"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "isFavorite": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UploadMediaResponse": {
+        "type": "object",
+        "required": [
+          "key",
+          "url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Object storage key"
+          },
+          "url": {
+            "type": "string",
+            "description": "Public URL"
+          }
+        },
+        "description": "Success body has NO `message` field — keep as implemented.\n"
+      },
+      "PartnerChatClientMessageText": {
+        "type": "object",
+        "required": [
+          "type",
+          "messageType",
+          "text"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "message"
+            ]
+          },
+          "messageType": {
+            "type": "string",
+            "enum": [
+              "text"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "clientMessageId": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      },
+      "PartnerChatClientMessageAudio": {
+        "type": "object",
+        "required": [
+          "type",
+          "messageType",
+          "audioUrl"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "message"
+            ]
+          },
+          "messageType": {
+            "type": "string",
+            "enum": [
+              "audio"
+            ]
+          },
+          "audioUrl": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "clientMessageId": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      },
+      "PartnerChatClientRead": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "read"
+            ]
+          }
+        }
+      },
+      "PartnerChatServerReady": {
+        "type": "object",
+        "required": [
+          "type",
+          "userId",
+          "partnerId",
+          "relationshipId"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ready"
+            ]
+          },
+          "userId": {
+            "type": "integer"
+          },
+          "partnerId": {
+            "type": "integer"
+          },
+          "relationshipId": {
+            "type": "integer"
+          }
+        }
+      },
+      "PartnerChatServerMessage": {
+        "type": "object",
+        "required": [
+          "type",
+          "id",
+          "fromUserId",
+          "relationshipId",
+          "text",
+          "messageType",
+          "sentAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "message"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Message id as string (not number)"
+          },
+          "fromUserId": {
+            "type": "integer"
+          },
+          "relationshipId": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "messageType": {
+            "type": "string",
+            "enum": [
+              "text",
+              "audio"
+            ]
+          },
+          "audioUrl": {
+            "type": "string"
+          },
+          "clientMessageId": {
+            "type": "string"
+          },
+          "sentAt": {
+            "$ref": "#/components/schemas/IsoDateTime"
+          }
+        }
+      },
+      "PartnerChatServerDelivery": {
+        "type": "object",
+        "required": [
+          "type",
+          "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "delivery"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "sent",
+              "partner_offline"
+            ]
+          },
+          "clientMessageId": {
+            "type": "string"
+          },
+          "serverMessageId": {
+            "type": "string"
+          },
+          "sentAt": {
+            "$ref": "#/components/schemas/IsoDateTime"
+          }
+        }
+      },
+      "PartnerChatServerReadReceipt": {
+        "type": "object",
+        "required": [
+          "type",
+          "relationshipId",
+          "messageIds",
+          "readAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "read_receipt"
+            ]
+          },
+          "relationshipId": {
+            "type": "integer"
+          },
+          "messageIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "readAt": {
+            "$ref": "#/components/schemas/IsoDateTime"
+          }
+        }
+      },
+      "PartnerChatServerError": {
+        "type": "object",
+        "required": [
+          "type",
+          "code",
+          "message"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "error"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "description": "WS errors include `code`; HTTP errors currently do not"
+      }
+    },
+    "responses": {},
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT from `POST /user/login`. Payload `sub` is the user id as a string.\nHeader: `Authorization: Bearer <token>`.\n"
+      }
+    },
+    "parameters": {
+      "ResourceId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "description": "Positive integer resource id"
+      }
+    }
+  },
+  "servers": [],
+  "security": []
+}

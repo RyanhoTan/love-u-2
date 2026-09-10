@@ -9,6 +9,7 @@
     "dev:app": "pnpm --dir app dev",
     "dev:server": "pnpm --dir server dev",
     "dev:web": "pnpm --dir web dev",
+    "api": "pnpm --dir web api",
     "clean": "node ./scripts/clean.mjs",
     "install:all": "pnpm --dir app install && pnpm --dir server install && pnpm --dir web install",
     "format": "prettier --write ./app/app ./app/components ./scripts"
