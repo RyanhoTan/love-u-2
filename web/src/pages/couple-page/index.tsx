@@ -8,6 +8,7 @@ import {
   unbindCoupleSpace,
 } from "@/app/couple-api";
 import type { UserProfile } from "@/app/user-api";
+import { emptyAuthUser } from "@/lib/api";
 import { PageBody } from "@/components/layout/page-body";
 import { Button } from "@/components/ui/button";
 import { BoundView } from "./bound-view";
@@ -118,19 +119,8 @@ export function CouplePage() {
     );
   }
 
-  const selfProfile: UserProfile = {
-    id: user?.id ?? 0,
-    username: user?.username ?? "",
-    nickname: user?.nickname ?? null,
-    avatar: user?.avatar ?? null,
-    signature: user?.signature ?? null,
-    couple: user?.couple ?? {
-      isBound: false,
-      daysInLove: null,
-      anniversaryDate: null,
-      partner: null,
-    },
-  };
+  const selfProfile: UserProfile =
+    user ?? emptyAuthUser({ id: 0, username: "" });
 
   return (
     <>

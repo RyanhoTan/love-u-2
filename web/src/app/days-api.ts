@@ -1,65 +1,47 @@
 import { requestWithAuth } from "@/lib/api";
+import type {
+  SchemaAnniversary,
+  SchemaAnniversaryItemResponse,
+  SchemaAnniversaryListResponse,
+  SchemaAnniversaryPayload,
+  SchemaAnniversaryRepeatType,
+  SchemaAnniversaryType,
+  SchemaMessageOnlyResponse,
+} from "@/api/schemas";
 
-export type AnniversaryType = "love" | "birthday" | "holiday" | "custom";
-export type AnniversaryRepeatType = "none" | "yearly";
-
-export type AnniversaryItem = {
-  id: number;
-  relationshipId: number;
-  createdByUserId: number | null;
-  title: string;
-  type: AnniversaryType;
-  originalDate: string;
-  repeatType: AnniversaryRepeatType;
-  reminderDaysBefore: number;
-  status: "active" | "deleted";
-  nextOccurrenceDate: string;
-  remainingDays: number;
-  createdAt: string | null;
-  updatedAt: string | null;
-  deletedAt: string | null;
-};
-
-export type AnniversaryPayload = {
-  title: string;
-  type: AnniversaryType;
-  originalDate: string;
-  repeatType: AnniversaryRepeatType;
-  reminderDaysBefore: number;
-};
-
-type ListResponse = {
-  message: string;
-  anniversaries: AnniversaryItem[];
-};
-
-type ItemResponse = {
-  message: string;
-  anniversary: AnniversaryItem;
-};
+export type AnniversaryType = SchemaAnniversaryType;
+export type AnniversaryRepeatType = SchemaAnniversaryRepeatType;
+export type AnniversaryItem = SchemaAnniversary;
+export type AnniversaryPayload = SchemaAnniversaryPayload;
 
 export function getAnniversaries() {
-  return requestWithAuth<ListResponse>("/anniversaries", {
+  return requestWithAuth<SchemaAnniversaryListResponse>("/anniversaries", {
     method: "GET",
   });
 }
 
-export function createAnniversary(payload: AnniversaryPayload) {
-  return requestWithAuth<ItemResponse>("/anniversaries", {
+export function createAnniversary(payload: SchemaAnniversaryPayload) {
+  return requestWithAuth<SchemaAnniversaryItemResponse>("/anniversaries", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
-export function updateAnniversary(id: number, payload: AnniversaryPayload) {
-  return requestWithAuth<ItemResponse>(`/anniversaries/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-  });
+export function updateAnniversary(
+  id: number,
+  payload: SchemaAnniversaryPayload,
+) {
+  return requestWithAuth<SchemaAnniversaryItemResponse>(
+    `/anniversaries/${id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+  );
 }
 
 export function deleteAnniversary(id: number) {
-  return requestWithAuth<{ message: string }>(`/anniversaries/${id}`, {
+  return requestWithAuth<SchemaMessageOnlyResponse>(`/anniversaries/${id}`, {
     method: "DELETE",
   });
 }

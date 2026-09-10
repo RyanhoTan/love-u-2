@@ -1,45 +1,52 @@
 import { requestWithAuth } from "@/lib/api";
-import type { CoupleInvite, CoupleSpace } from "@/pages/couple-page/types";
+import type {
+  SchemaBindCoupleRequest,
+  SchemaCoupleInviteResponse,
+  SchemaCoupleSpaceResponse,
+  SchemaCreateCoupleInviteRequest,
+  SchemaMessageOnlyResponse,
+  SchemaUpdateCoupleSpaceRequest,
+} from "@/api/schemas";
 
-type CoupleSpaceResponse = {
-  message: string;
-  coupleSpace: CoupleSpace;
-};
-
-type CoupleInviteResponse = {
-  message: string;
-  invite: CoupleInvite | null;
-};
+export type {
+  SchemaCoupleInvite as CoupleInvite,
+  SchemaCoupleSpace as CoupleSpace,
+  SchemaCoupleRelationship as CoupleRelationship,
+  SchemaPartnerSummary as CouplePartner,
+} from "@/api/schemas";
 
 export function getCoupleSpace() {
-  return requestWithAuth<CoupleSpaceResponse>("/couple-space", {
+  return requestWithAuth<SchemaCoupleSpaceResponse>("/couple-space", {
     method: "GET",
   });
 }
 
-export function createCoupleInvite(options?: { regenerate?: boolean }) {
-  return requestWithAuth<CoupleInviteResponse>("/couple-space/invite", {
+export function createCoupleInvite(options?: SchemaCreateCoupleInviteRequest) {
+  const body: SchemaCreateCoupleInviteRequest = {
+    regenerate: Boolean(options?.regenerate),
+  };
+  return requestWithAuth<SchemaCoupleInviteResponse>("/couple-space/invite", {
     method: "POST",
-    body: JSON.stringify({ regenerate: Boolean(options?.regenerate) }),
+    body: JSON.stringify(body),
   });
 }
 
-export function bindCoupleSpace(payload: { inviteCode: string }) {
-  return requestWithAuth<CoupleSpaceResponse>("/couple-space/bind", {
+export function bindCoupleSpace(payload: SchemaBindCoupleRequest) {
+  return requestWithAuth<SchemaCoupleSpaceResponse>("/couple-space/bind", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
-export function updateCoupleSpace(payload: { anniversaryDate: string | null }) {
-  return requestWithAuth<CoupleSpaceResponse>("/couple-space", {
+export function updateCoupleSpace(payload: SchemaUpdateCoupleSpaceRequest) {
+  return requestWithAuth<SchemaCoupleSpaceResponse>("/couple-space", {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
 }
 
 export function unbindCoupleSpace() {
-  return requestWithAuth<{ message: string }>("/couple-space/bind", {
+  return requestWithAuth<SchemaMessageOnlyResponse>("/couple-space/bind", {
     method: "DELETE",
   });
 }

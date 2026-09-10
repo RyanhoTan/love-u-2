@@ -1,22 +1,10 @@
 import { requestWithAuth } from "@/lib/api";
-import type { CoupleSummary } from "@/lib/api";
+import type { SchemaUser, SchemaUserInfoResponse } from "@/api/schemas";
 
-export type UserProfile = {
-  id: number;
-  username: string;
-  nickname: string | null;
-  avatar: string | null;
-  signature: string | null;
-  couple: CoupleSummary;
-};
-
-type UserInfoResponse = {
-  message: string;
-  user: UserProfile;
-};
+export type UserProfile = SchemaUser;
 
 export function getUserInfo() {
-  return requestWithAuth<UserInfoResponse>("/userinfo", {
+  return requestWithAuth<SchemaUserInfoResponse>("/userinfo", {
     method: "GET",
   });
 }

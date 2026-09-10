@@ -1,28 +1,25 @@
 import { request } from "../lib/api";
+import type {
+  SchemaAuthCredentials,
+  SchemaLoginResponse,
+  SchemaRegisterResponse,
+} from "@/api/schemas";
 
-export type LoginResponse = {
-  message: string;
-  token: string;
-  user: {
-    id: number;
-    username: string;
-  };
-};
-
-export type RegisterResponse = {
-  message: string;
-};
+export type LoginResponse = SchemaLoginResponse;
+export type RegisterResponse = SchemaRegisterResponse;
 
 export function login(username: string, password: string) {
-  return request<LoginResponse>("/user/login", {
+  const body: SchemaAuthCredentials = { username, password };
+  return request<SchemaLoginResponse>("/user/login", {
     method: "POST",
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify(body),
   });
 }
 
 export function register(username: string, password: string) {
-  return request<RegisterResponse>("/user/register", {
+  const body: SchemaAuthCredentials = { username, password };
+  return request<SchemaRegisterResponse>("/user/register", {
     method: "POST",
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify(body),
   });
 }

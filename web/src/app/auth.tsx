@@ -11,7 +11,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { login } from "./auth-api";
 import { getUserInfo } from "./user-api";
 import {
-  emptyCoupleSummary,
+  emptyAuthUser,
   readAuthSession,
   writeAuthSession,
   type AuthSession,
@@ -30,24 +30,6 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-function toAuthUser(profile: {
-  id: number;
-  username: string;
-  nickname: string | null;
-  avatar: string | null;
-  signature: string | null;
-  couple?: AuthUser["couple"];
-}): AuthUser {
-  return {
-    id: profile.id,
-    username: profile.username,
-    nickname: profile.nickname,
-    avatar: profile.avatar,
-    signature: profile.signature,
-    couple: profile.couple ?? emptyCoupleSummary(),
-  };
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(readAuthSession);
@@ -68,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const response = await getUserInfo();
-    const user = toAuthUser(response.user);
+    const user = response.user;
     applySession({ token, user });
     setProfileError("");
     setProfileStatus("ready");
@@ -112,14 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await login(username, password);
         applySession({
           token: response.token,
-          user: {
-            id: response.user.id,
-            username: response.user.username,
-            nickname: null,
-            avatar: null,
-            signature: null,
-            couple: emptyCoupleSummary(),
-          },
+          user: emptyAuthUser(response.user),
         });
       },
       signOut: () => {
