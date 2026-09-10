@@ -4,6 +4,8 @@ import { formatAnniversaryDot } from "@/features/user/api";
 import { TODAY } from "@/mocks";
 import { PageBody } from "../../components/layout/page-body";
 import { Button } from "../../components/ui/button";
+import { NextAnniversaryInsight } from "./next-anniversary";
+import { RecentMemories } from "./recent-memories";
 
 export function TodayPage() {
   const { user, profileStatus } = useAuth();
@@ -59,11 +61,12 @@ export function TodayPage() {
       </section>
 
       <section className="flex shrink-0 gap-8">
+        <NextAnniversaryInsight />
         {TODAY.insights.map((insight) => (
           <Link
             key={insight.kicker}
             to={insight.to}
-            className="flex min-w-0 flex-1 flex-col gap-1.5 rounded-control py-0.5 transition-transform duration-100 ease-out active:scale-[0.99]"
+            className="flex min-w-0 flex-1 flex-col gap-1.5 rounded-control py-0.5 transition-transform duration-100 ease-out active:scale-[0.99] motion-reduce:active:scale-100"
           >
             <p className="text-xs font-medium text-fg-muted">{insight.kicker}</p>
             <p className="text-xl font-semibold tracking-[-0.3px] text-fg">
@@ -74,24 +77,7 @@ export function TodayPage() {
         ))}
       </section>
 
-      <section className="flex shrink-0 flex-col gap-3.5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold text-fg">最近的回忆</h2>
-          <Button variant="ghost" to="/photos">
-            查看全部
-          </Button>
-        </div>
-        <div className="grid grid-cols-4 gap-2.5">
-          {TODAY.memories.map((photo) => (
-            <img
-              key={photo.alt}
-              src={photo.src}
-              alt={photo.alt}
-              className="h-37 w-full rounded-xl object-cover"
-            />
-          ))}
-        </div>
-      </section>
+      <RecentMemories />
     </PageBody>
   );
 }

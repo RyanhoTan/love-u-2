@@ -24020,6 +24020,2193 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "MWVQY",
+      "x": 10640,
+      "y": 382,
+      "name": "Web / Today · Loading",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$app",
+      "cornerRadius": "$radius-window",
+      "children": [
+        {
+          "type": "frame",
+          "id": "FEu3t",
+          "name": "Sidebar",
+          "width": 232,
+          "height": "fill_container",
+          "fill": "$sidebar",
+          "stroke": "$border",
+          "strokeWidth": {
+            "right": 1
+          },
+          "effect": {
+            "type": "background_blur",
+            "radius": 24
+          },
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            28,
+            14,
+            18,
+            14
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "frame",
+              "id": "p5kLm",
+              "name": "Sidebar Top",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "a2mde3",
+                  "name": "Brand",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Uo52U",
+                      "name": "Mark",
+                      "width": 28,
+                      "height": 28,
+                      "fill": "$accent",
+                      "cornerRadius": 8,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "Wm7B1",
+                          "name": "Mark Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "heart",
+                          "library": "lucide",
+                          "fill": "$text-inverse"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "q9Lzw",
+                      "name": "Wordmark",
+                      "fill": "$text-primary",
+                      "content": "Love U 2",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "600",
+                      "letterSpacing": -0.3
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "A3gggd",
+                  "name": "Nav",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "id": "oya0l",
+                      "type": "ref",
+                      "ref": "xAlfe",
+                      "name": "Nav/今天",
+                      "width": "fill_container",
+                      "descendants": {
+                        "U65if": {
+                          "icon": "home"
+                        },
+                        "neKV1": {
+                          "content": "今天"
+                        }
+                      }
+                    },
+                    {
+                      "id": "BpEy6",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/对话",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "message-circle"
+                        },
+                        "Jogxr": {
+                          "content": "对话"
+                        }
+                      }
+                    },
+                    {
+                      "id": "XP1H4",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/相册",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "image"
+                        },
+                        "Jogxr": {
+                          "content": "相册"
+                        }
+                      }
+                    },
+                    {
+                      "id": "aZX6x",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/心愿",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "gift"
+                        },
+                        "Jogxr": {
+                          "content": "心愿"
+                        }
+                      }
+                    },
+                    {
+                      "id": "JsLhS",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/纪念日",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "calendar"
+                        },
+                        "Jogxr": {
+                          "content": "纪念日"
+                        }
+                      }
+                    },
+                    {
+                      "id": "g4DTs",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/我的",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "user"
+                        },
+                        "Jogxr": {
+                          "content": "我的"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TbxdK",
+              "name": "Couple Footer",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 12,
+              "gap": 10,
+              "padding": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "TGTHJ",
+                  "name": "Couple Avatars",
+                  "gap": -8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "w0SWb",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1648817976768-a2fdcba20f9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU1OTV8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      }
+                    },
+                    {
+                      "id": "xnxmF",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Lin",
+                      "width": 28,
+                      "height": 28,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU1OTZ8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "B2haY",
+                  "name": "Couple Meta",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RNgc4",
+                      "name": "Couple Names",
+                      "fill": "$text-primary",
+                      "content": "Ryan 与 Lin",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "m3P6RQ",
+                      "name": "Couple Days",
+                      "fill": "$text-muted",
+                      "content": "428 天",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "T5aKmV",
+          "name": "Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface-soft",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Uax4q",
+              "name": "Toolbar",
+              "width": "fill_container",
+              "height": 56,
+              "fill": "#FBF8F5CC",
+              "effect": {
+                "type": "background_blur",
+                "radius": 20
+              },
+              "padding": [
+                0,
+                32
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "i51QK",
+                  "name": "Toolbar Title",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "IPl54",
+                      "name": "Page Title",
+                      "fill": "$text-primary",
+                      "content": "今天",
+                      "fontFamily": "$font",
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "letterSpacing": -0.4
+                    },
+                    {
+                      "type": "text",
+                      "id": "S6hqlZ",
+                      "name": "Page Date",
+                      "fill": "$text-muted",
+                      "content": "9月8日 星期二",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "CqMoZ",
+                  "name": "Toolbar Actions",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "Cq8jL",
+                      "type": "ref",
+                      "ref": "lyeBP",
+                      "name": "Button/Search",
+                      "descendants": {
+                        "rpthj": {
+                          "icon": "search"
+                        }
+                      }
+                    },
+                    {
+                      "id": "boqHU",
+                      "type": "ref",
+                      "ref": "lyeBP",
+                      "name": "Button/Notify",
+                      "descendants": {
+                        "rpthj": {
+                          "icon": "bell"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qJLQB",
+              "name": "Body",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 36,
+              "padding": [
+                28,
+                48,
+                40,
+                48
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "tYihr",
+                  "name": "Hero",
+                  "width": "fill_container",
+                  "gap": 56,
+                  "justifyContent": "space_between",
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "l09Phm",
+                      "name": "Hero Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "VVmhe",
+                          "name": "Eyebrow",
+                          "fill": "$text-secondary",
+                          "content": "我们在一起",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "500",
+                          "letterSpacing": 0.4
+                        },
+                        {
+                          "type": "frame",
+                          "id": "TCQ1U",
+                          "name": "Days Row",
+                          "gap": 10,
+                          "alignItems": "end",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "OxJHd",
+                              "name": "Days Value",
+                              "fill": "$accent",
+                              "content": "428",
+                              "lineHeight": 0.95,
+                              "fontFamily": "$font",
+                              "fontSize": 88,
+                              "fontWeight": "700",
+                              "letterSpacing": -2.4
+                            },
+                            {
+                              "type": "text",
+                              "id": "exv4c",
+                              "name": "Days Unit",
+                              "fill": "$accent",
+                              "content": "天",
+                              "fontFamily": "$font",
+                              "fontSize": 22,
+                              "fontWeight": "600",
+                              "letterSpacing": -0.3
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "mLuty",
+                          "name": "Since Date",
+                          "fill": "$text-muted",
+                          "content": "从 2025.07.12 开始",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "iEu4J",
+                      "name": "Hero Photo",
+                      "metadata": {
+                        "type": "unsplash",
+                        "username": "profepix",
+                        "link": "https://unsplash.com/@profepix",
+                        "author": "Yuriy Bogdanov"
+                      },
+                      "clip": true,
+                      "width": 280,
+                      "height": 360,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1780818244691-16209b3b3e82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU0ODh8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 16,
+                      "effect": [
+                        {
+                          "type": "shadow",
+                          "shadowType": "outer",
+                          "color": "#00000008",
+                          "offset": {
+                            "x": 0,
+                            "y": 1
+                          },
+                          "blur": 3
+                        },
+                        {
+                          "type": "shadow",
+                          "shadowType": "outer",
+                          "color": "#0000000a",
+                          "offset": {
+                            "x": 0,
+                            "y": 4
+                          },
+                          "blur": 12
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "DUCEz",
+                  "name": "Insights",
+                  "width": "fill_container",
+                  "gap": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "zPThs",
+                      "name": "Insight/下一个纪念日",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "hImol",
+                          "name": "Kicker",
+                          "fill": "$text-muted",
+                          "content": "下一个纪念日",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "u1KD1",
+                          "name": "Skeleton/Title",
+                          "width": 132,
+                          "height": 22,
+                          "fill": "$border",
+                          "cornerRadius": 6
+                        },
+                        {
+                          "type": "frame",
+                          "id": "SY9vk",
+                          "name": "Skeleton/Detail",
+                          "width": 188,
+                          "height": 12,
+                          "fill": "$border",
+                          "cornerRadius": 4
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ee4cj",
+                      "name": "Insight/今日状态",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "woRTl",
+                          "name": "Kicker",
+                          "fill": "$text-muted",
+                          "content": "今日状态",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "A552S",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "想你",
+                          "fontFamily": "$font",
+                          "fontSize": 20,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.3
+                        },
+                        {
+                          "type": "text",
+                          "id": "AXTa0",
+                          "name": "Detail",
+                          "fill": "$text-secondary",
+                          "content": "10:24 更新",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "h3vuB",
+                      "name": "Insight/一句话",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "fx6Ra",
+                          "name": "Kicker",
+                          "fill": "$text-muted",
+                          "content": "一句话",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "KoMnb",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "晚饭想吃拉面",
+                          "fontFamily": "$font",
+                          "fontSize": 20,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.3
+                        },
+                        {
+                          "type": "text",
+                          "id": "lV25n",
+                          "name": "Detail",
+                          "fill": "$text-secondary",
+                          "content": "Lin · 1 小时前",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "uEron",
+                  "name": "Memories",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "zueGg",
+                      "name": "Memories Header",
+                      "width": "fill_container",
+                      "height": 36,
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "bLD9B",
+                          "name": "Memories Title",
+                          "fill": "$text-primary",
+                          "content": "最近的回忆",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "clE2b",
+                      "name": "Memories Grid",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "SgcUF",
+                          "name": "Skeleton/Memory",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "shootdelicious",
+                            "link": "https://unsplash.com/@shootdelicious",
+                            "author": "Eiliv Aceron"
+                          },
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": 148,
+                          "fill": "$border",
+                          "cornerRadius": 12
+                        },
+                        {
+                          "type": "frame",
+                          "id": "v21aK",
+                          "name": "Skeleton/Memory",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "sfhashemi",
+                            "link": "https://unsplash.com/@sfhashemi",
+                            "author": "Syed F Hashemi"
+                          },
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": 148,
+                          "fill": "$border",
+                          "cornerRadius": 12
+                        },
+                        {
+                          "type": "frame",
+                          "id": "nfIoy",
+                          "name": "Skeleton/Memory",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "anniespratt",
+                            "link": "https://unsplash.com/@anniespratt",
+                            "author": "Annie Spratt"
+                          },
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": 148,
+                          "fill": "$border",
+                          "cornerRadius": 12
+                        },
+                        {
+                          "type": "frame",
+                          "id": "J1E2ny",
+                          "name": "Skeleton/Memory",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "lyndseydulfer",
+                            "link": "https://unsplash.com/@lyndseydulfer",
+                            "author": "Lyndsey Dulfer"
+                          },
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": 148,
+                          "fill": "$border",
+                          "cornerRadius": 12
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "F5gr8",
+      "x": 12160,
+      "y": 382,
+      "name": "Web / Today · Empty",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$app",
+      "cornerRadius": "$radius-window",
+      "children": [
+        {
+          "type": "frame",
+          "id": "CfdKa",
+          "name": "Sidebar",
+          "width": 232,
+          "height": "fill_container",
+          "fill": "$sidebar",
+          "stroke": "$border",
+          "strokeWidth": {
+            "right": 1
+          },
+          "effect": {
+            "type": "background_blur",
+            "radius": 24
+          },
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            28,
+            14,
+            18,
+            14
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "frame",
+              "id": "difsV",
+              "name": "Sidebar Top",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "jg9D7",
+                  "name": "Brand",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ncdGq",
+                      "name": "Mark",
+                      "width": 28,
+                      "height": 28,
+                      "fill": "$accent",
+                      "cornerRadius": 8,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "PUsje",
+                          "name": "Mark Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "heart",
+                          "library": "lucide",
+                          "fill": "$text-inverse"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "xlez7",
+                      "name": "Wordmark",
+                      "fill": "$text-primary",
+                      "content": "Love U 2",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "600",
+                      "letterSpacing": -0.3
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Oabpn",
+                  "name": "Nav",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "id": "G8awsi",
+                      "type": "ref",
+                      "ref": "xAlfe",
+                      "name": "Nav/今天",
+                      "width": "fill_container",
+                      "descendants": {
+                        "U65if": {
+                          "icon": "home"
+                        },
+                        "neKV1": {
+                          "content": "今天"
+                        }
+                      }
+                    },
+                    {
+                      "id": "iKYWe",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/对话",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "message-circle"
+                        },
+                        "Jogxr": {
+                          "content": "对话"
+                        }
+                      }
+                    },
+                    {
+                      "id": "Ud66y",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/相册",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "image"
+                        },
+                        "Jogxr": {
+                          "content": "相册"
+                        }
+                      }
+                    },
+                    {
+                      "id": "E884Aw",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/心愿",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "gift"
+                        },
+                        "Jogxr": {
+                          "content": "心愿"
+                        }
+                      }
+                    },
+                    {
+                      "id": "G5Xj4",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/纪念日",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "calendar"
+                        },
+                        "Jogxr": {
+                          "content": "纪念日"
+                        }
+                      }
+                    },
+                    {
+                      "id": "QnsJm",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/我的",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "user"
+                        },
+                        "Jogxr": {
+                          "content": "我的"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "a2OOn",
+              "name": "Couple Footer",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 12,
+              "gap": 10,
+              "padding": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "px0Qt",
+                  "name": "Couple Avatars",
+                  "gap": -8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "k4JVu",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1648817976768-a2fdcba20f9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU1OTV8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      }
+                    },
+                    {
+                      "id": "uppTE",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Lin",
+                      "width": 28,
+                      "height": 28,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU1OTZ8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "YK2d5",
+                  "name": "Couple Meta",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "NlWHY",
+                      "name": "Couple Names",
+                      "fill": "$text-primary",
+                      "content": "Ryan 与 Lin",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "CrAY6",
+                      "name": "Couple Days",
+                      "fill": "$text-muted",
+                      "content": "428 天",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "R4xfoQ",
+          "name": "Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface-soft",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "mK0Hs",
+              "name": "Toolbar",
+              "width": "fill_container",
+              "height": 56,
+              "fill": "#FBF8F5CC",
+              "effect": {
+                "type": "background_blur",
+                "radius": 20
+              },
+              "padding": [
+                0,
+                32
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "h2iTs",
+                  "name": "Toolbar Title",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ghOjs",
+                      "name": "Page Title",
+                      "fill": "$text-primary",
+                      "content": "今天",
+                      "fontFamily": "$font",
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "letterSpacing": -0.4
+                    },
+                    {
+                      "type": "text",
+                      "id": "NoJtv",
+                      "name": "Page Date",
+                      "fill": "$text-muted",
+                      "content": "9月8日 星期二",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "m957A",
+                  "name": "Toolbar Actions",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "pDnHh",
+                      "type": "ref",
+                      "ref": "lyeBP",
+                      "name": "Button/Search",
+                      "descendants": {
+                        "rpthj": {
+                          "icon": "search"
+                        }
+                      }
+                    },
+                    {
+                      "id": "f2igTa",
+                      "type": "ref",
+                      "ref": "lyeBP",
+                      "name": "Button/Notify",
+                      "descendants": {
+                        "rpthj": {
+                          "icon": "bell"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sMarV",
+              "name": "Body",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 36,
+              "padding": [
+                28,
+                48,
+                40,
+                48
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "GRJVV",
+                  "name": "Hero",
+                  "width": "fill_container",
+                  "gap": 56,
+                  "justifyContent": "space_between",
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "l9q33Q",
+                      "name": "Hero Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Giegv",
+                          "name": "Eyebrow",
+                          "fill": "$text-secondary",
+                          "content": "我们在一起",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "500",
+                          "letterSpacing": 0.4
+                        },
+                        {
+                          "type": "frame",
+                          "id": "se6wl",
+                          "name": "Days Row",
+                          "gap": 10,
+                          "alignItems": "end",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ZkNLW",
+                              "name": "Days Value",
+                              "fill": "$accent",
+                              "content": "428",
+                              "lineHeight": 0.95,
+                              "fontFamily": "$font",
+                              "fontSize": 88,
+                              "fontWeight": "700",
+                              "letterSpacing": -2.4
+                            },
+                            {
+                              "type": "text",
+                              "id": "p2sxC",
+                              "name": "Days Unit",
+                              "fill": "$accent",
+                              "content": "天",
+                              "fontFamily": "$font",
+                              "fontSize": 22,
+                              "fontWeight": "600",
+                              "letterSpacing": -0.3
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "aFmW4",
+                          "name": "Since Date",
+                          "fill": "$text-muted",
+                          "content": "从 2025.07.12 开始",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "mDsw3",
+                      "name": "Hero Photo",
+                      "metadata": {
+                        "type": "unsplash",
+                        "username": "profepix",
+                        "link": "https://unsplash.com/@profepix",
+                        "author": "Yuriy Bogdanov"
+                      },
+                      "clip": true,
+                      "width": 280,
+                      "height": 360,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1780818244691-16209b3b3e82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU0ODh8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 16,
+                      "effect": [
+                        {
+                          "type": "shadow",
+                          "shadowType": "outer",
+                          "color": "#00000008",
+                          "offset": {
+                            "x": 0,
+                            "y": 1
+                          },
+                          "blur": 3
+                        },
+                        {
+                          "type": "shadow",
+                          "shadowType": "outer",
+                          "color": "#0000000a",
+                          "offset": {
+                            "x": 0,
+                            "y": 4
+                          },
+                          "blur": 12
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "OU3SG",
+                  "name": "Insights",
+                  "width": "fill_container",
+                  "gap": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "n5RIlW",
+                      "name": "Insight/下一个纪念日",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "z6Leba",
+                          "name": "Kicker",
+                          "fill": "$text-muted",
+                          "content": "下一个纪念日",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "BxX09",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "添加一个纪念日",
+                          "fontFamily": "$font",
+                          "fontSize": 20,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.3
+                        },
+                        {
+                          "type": "text",
+                          "id": "gclmM",
+                          "name": "Detail",
+                          "fill": "$text-secondary",
+                          "content": "生日、恋爱日，到日子前会轻轻提醒",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "id": "FKR7J",
+                          "type": "ref",
+                          "ref": "z7BtBB",
+                          "name": "Button/AddAnniversary",
+                          "descendants": {
+                            "eArlH": {
+                              "content": "去添加"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "OxctQ",
+                      "name": "Insight/今日状态",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "W30aux",
+                          "name": "Kicker",
+                          "fill": "$text-muted",
+                          "content": "今日状态",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "b6n3f",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "想你",
+                          "fontFamily": "$font",
+                          "fontSize": 20,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.3
+                        },
+                        {
+                          "type": "text",
+                          "id": "u2yck",
+                          "name": "Detail",
+                          "fill": "$text-secondary",
+                          "content": "10:24 更新",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "xhiOk",
+                      "name": "Insight/一句话",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "PsXaz",
+                          "name": "Kicker",
+                          "fill": "$text-muted",
+                          "content": "一句话",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "L7U64s",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "晚饭想吃拉面",
+                          "fontFamily": "$font",
+                          "fontSize": 20,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.3
+                        },
+                        {
+                          "type": "text",
+                          "id": "O2EQCj",
+                          "name": "Detail",
+                          "fill": "$text-secondary",
+                          "content": "Lin · 1 小时前",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "isqLV",
+                  "name": "Memories",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "RMLf2",
+                      "name": "Memories Header",
+                      "width": "fill_container",
+                      "height": 36,
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Mz5Wm",
+                          "name": "Memories Title",
+                          "fill": "$text-primary",
+                          "content": "最近的回忆",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Z5ljII",
+                      "name": "Memories/Empty",
+                      "width": "fill_container",
+                      "height": 148,
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": [
+                        8,
+                        0
+                      ],
+                      "justifyContent": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rp42H",
+                          "name": "Empty Title",
+                          "fill": "$text-primary",
+                          "content": "还没有照片",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.2
+                        },
+                        {
+                          "type": "text",
+                          "id": "B4KcV",
+                          "name": "Empty Detail",
+                          "fill": "$text-secondary",
+                          "content": "把你们的第一张回忆存进来",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "id": "Almmt",
+                          "type": "ref",
+                          "ref": "b8UmxM",
+                          "name": "Button/UploadPhotos",
+                          "descendants": {
+                            "mqh79": {
+                              "content": "上传照片"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "xWPlw",
+      "x": 13680,
+      "y": 382,
+      "name": "Web / Today · Error",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$app",
+      "cornerRadius": "$radius-window",
+      "children": [
+        {
+          "type": "frame",
+          "id": "N1xO3",
+          "name": "Sidebar",
+          "width": 232,
+          "height": "fill_container",
+          "fill": "$sidebar",
+          "stroke": "$border",
+          "strokeWidth": {
+            "right": 1
+          },
+          "effect": {
+            "type": "background_blur",
+            "radius": 24
+          },
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            28,
+            14,
+            18,
+            14
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "frame",
+              "id": "HkrvV",
+              "name": "Sidebar Top",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "tXoRx",
+                  "name": "Brand",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "gVOzn",
+                      "name": "Mark",
+                      "width": 28,
+                      "height": 28,
+                      "fill": "$accent",
+                      "cornerRadius": 8,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "Ue70T",
+                          "name": "Mark Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "heart",
+                          "library": "lucide",
+                          "fill": "$text-inverse"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "E3mdL",
+                      "name": "Wordmark",
+                      "fill": "$text-primary",
+                      "content": "Love U 2",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "600",
+                      "letterSpacing": -0.3
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "qux23",
+                  "name": "Nav",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "id": "WQl2x",
+                      "type": "ref",
+                      "ref": "xAlfe",
+                      "name": "Nav/今天",
+                      "width": "fill_container",
+                      "descendants": {
+                        "U65if": {
+                          "icon": "home"
+                        },
+                        "neKV1": {
+                          "content": "今天"
+                        }
+                      }
+                    },
+                    {
+                      "id": "m3YjJl",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/对话",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "message-circle"
+                        },
+                        "Jogxr": {
+                          "content": "对话"
+                        }
+                      }
+                    },
+                    {
+                      "id": "unhJp",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/相册",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "image"
+                        },
+                        "Jogxr": {
+                          "content": "相册"
+                        }
+                      }
+                    },
+                    {
+                      "id": "JgiDT",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/心愿",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "gift"
+                        },
+                        "Jogxr": {
+                          "content": "心愿"
+                        }
+                      }
+                    },
+                    {
+                      "id": "xAI1w",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/纪念日",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "calendar"
+                        },
+                        "Jogxr": {
+                          "content": "纪念日"
+                        }
+                      }
+                    },
+                    {
+                      "id": "RTYSo",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/我的",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "user"
+                        },
+                        "Jogxr": {
+                          "content": "我的"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "npSi8",
+              "name": "Couple Footer",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 12,
+              "gap": 10,
+              "padding": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "vaLUK",
+                  "name": "Couple Avatars",
+                  "gap": -8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "zU6SG",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1648817976768-a2fdcba20f9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU1OTV8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      }
+                    },
+                    {
+                      "id": "JPAJ7",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Lin",
+                      "width": 28,
+                      "height": 28,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU1OTZ8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "O11Jc",
+                  "name": "Couple Meta",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "iLwx1",
+                      "name": "Couple Names",
+                      "fill": "$text-primary",
+                      "content": "Ryan 与 Lin",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "IQ21o",
+                      "name": "Couple Days",
+                      "fill": "$text-muted",
+                      "content": "428 天",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "b3icSd",
+          "name": "Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface-soft",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "dkocM",
+              "name": "Toolbar",
+              "width": "fill_container",
+              "height": 56,
+              "fill": "#FBF8F5CC",
+              "effect": {
+                "type": "background_blur",
+                "radius": 20
+              },
+              "padding": [
+                0,
+                32
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "rD9LW",
+                  "name": "Toolbar Title",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "fggp7",
+                      "name": "Page Title",
+                      "fill": "$text-primary",
+                      "content": "今天",
+                      "fontFamily": "$font",
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "letterSpacing": -0.4
+                    },
+                    {
+                      "type": "text",
+                      "id": "yN2FY",
+                      "name": "Page Date",
+                      "fill": "$text-muted",
+                      "content": "9月8日 星期二",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "SfuJl",
+                  "name": "Toolbar Actions",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "Afagw",
+                      "type": "ref",
+                      "ref": "lyeBP",
+                      "name": "Button/Search",
+                      "descendants": {
+                        "rpthj": {
+                          "icon": "search"
+                        }
+                      }
+                    },
+                    {
+                      "id": "q7GaJT",
+                      "type": "ref",
+                      "ref": "lyeBP",
+                      "name": "Button/Notify",
+                      "descendants": {
+                        "rpthj": {
+                          "icon": "bell"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "St5Lz",
+              "name": "Body",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 36,
+              "padding": [
+                28,
+                48,
+                40,
+                48
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "pR6AU",
+                  "name": "Hero",
+                  "width": "fill_container",
+                  "gap": 56,
+                  "justifyContent": "space_between",
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "uLUFc",
+                      "name": "Hero Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "n3Sjt2",
+                          "name": "Eyebrow",
+                          "fill": "$text-secondary",
+                          "content": "我们在一起",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "500",
+                          "letterSpacing": 0.4
+                        },
+                        {
+                          "type": "frame",
+                          "id": "C08jj",
+                          "name": "Days Row",
+                          "gap": 10,
+                          "alignItems": "end",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "mrP8P",
+                              "name": "Days Value",
+                              "fill": "$accent",
+                              "content": "428",
+                              "lineHeight": 0.95,
+                              "fontFamily": "$font",
+                              "fontSize": 88,
+                              "fontWeight": "700",
+                              "letterSpacing": -2.4
+                            },
+                            {
+                              "type": "text",
+                              "id": "tC93r",
+                              "name": "Days Unit",
+                              "fill": "$accent",
+                              "content": "天",
+                              "fontFamily": "$font",
+                              "fontSize": 22,
+                              "fontWeight": "600",
+                              "letterSpacing": -0.3
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "rQ5Ra",
+                          "name": "Since Date",
+                          "fill": "$text-muted",
+                          "content": "从 2025.07.12 开始",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "OiQjN",
+                      "name": "Hero Photo",
+                      "metadata": {
+                        "type": "unsplash",
+                        "username": "profepix",
+                        "link": "https://unsplash.com/@profepix",
+                        "author": "Yuriy Bogdanov"
+                      },
+                      "clip": true,
+                      "width": 280,
+                      "height": 360,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1780818244691-16209b3b3e82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU0ODh8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 16,
+                      "effect": [
+                        {
+                          "type": "shadow",
+                          "shadowType": "outer",
+                          "color": "#00000008",
+                          "offset": {
+                            "x": 0,
+                            "y": 1
+                          },
+                          "blur": 3
+                        },
+                        {
+                          "type": "shadow",
+                          "shadowType": "outer",
+                          "color": "#0000000a",
+                          "offset": {
+                            "x": 0,
+                            "y": 4
+                          },
+                          "blur": 12
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ftVWI",
+                  "name": "Insights",
+                  "width": "fill_container",
+                  "gap": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "TYNOW",
+                      "name": "Insight/下一个纪念日",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "j05ml",
+                          "name": "Kicker",
+                          "fill": "$text-muted",
+                          "content": "下一个纪念日",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "q65YR",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "暂时打不开",
+                          "fontFamily": "$font",
+                          "fontSize": 20,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.3
+                        },
+                        {
+                          "type": "text",
+                          "id": "l1tzqH",
+                          "name": "Detail",
+                          "fill": "$text-secondary",
+                          "content": "网络有点问题",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "id": "BDOcH",
+                          "type": "ref",
+                          "ref": "z7BtBB",
+                          "name": "Button/RetryAnniversary",
+                          "descendants": {
+                            "eArlH": {
+                              "content": "重试"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "r25YP9",
+                      "name": "Insight/今日状态",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "N15SMd",
+                          "name": "Kicker",
+                          "fill": "$text-muted",
+                          "content": "今日状态",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "SOFnd",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "想你",
+                          "fontFamily": "$font",
+                          "fontSize": 20,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.3
+                        },
+                        {
+                          "type": "text",
+                          "id": "SagSH",
+                          "name": "Detail",
+                          "fill": "$text-secondary",
+                          "content": "10:24 更新",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "jqIOg",
+                      "name": "Insight/一句话",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ZtodW",
+                          "name": "Kicker",
+                          "fill": "$text-muted",
+                          "content": "一句话",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "b3rtQ",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "晚饭想吃拉面",
+                          "fontFamily": "$font",
+                          "fontSize": 20,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.3
+                        },
+                        {
+                          "type": "text",
+                          "id": "bWl6d",
+                          "name": "Detail",
+                          "fill": "$text-secondary",
+                          "content": "Lin · 1 小时前",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "mAqTx",
+                  "name": "Memories",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "PTIgx",
+                      "name": "Memories Header",
+                      "width": "fill_container",
+                      "height": 36,
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "EQP0p",
+                          "name": "Memories Title",
+                          "fill": "$text-primary",
+                          "content": "最近的回忆",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "e4Ubrf",
+                      "name": "Memories/Error",
+                      "width": "fill_container",
+                      "height": 148,
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": [
+                        8,
+                        0
+                      ],
+                      "justifyContent": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ApTrB",
+                          "name": "Error Title",
+                          "fill": "$text-primary",
+                          "content": "回忆加载失败",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.2
+                        },
+                        {
+                          "type": "text",
+                          "id": "MeYDT",
+                          "name": "Error Detail",
+                          "fill": "$text-secondary",
+                          "content": "请检查网络后重试",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "id": "MJ0E1",
+                          "type": "ref",
+                          "ref": "qnqoO",
+                          "name": "Button/RetryMemories",
+                          "descendants": {
+                            "UyJSw": {
+                              "content": "重试"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "note",
+      "id": "bfI8F",
+      "x": 10640,
+      "y": 1322,
+      "name": "Today Data States Notes",
+      "width": 420,
+      "height": 320,
+      "content": "Phase 2｜首页真数据状态\n\n范围：仅「下一个纪念日」+「最近的回忆」。Hero 天数与对方已在 Phase 1；今日状态 / 一句话仍 mock。\n\n加载：骨架对齐真实版式（kicker 保留、标题/详情/四格照片占位），避免 spinner 造成跳动。查看全部在加载时隐藏。\n\n空：同一槽位高度，文案引导行动；纪念日去添加，回忆上传照片。单主操作。\n\n失败：可重试；文案克制，不用大卡片。两块独立请求，可分别失败。\n\n动效落地：骨架交叉淡入内容（reduced-motion）；重试按钮 pointer-down 即时反馈。"
     }
   ],
   "variables": {

@@ -3,12 +3,6 @@ export const TODAY = {
     "https://images.unsplash.com/photo-1780818244691-16209b3b3e82?auto=format&fit=crop&w=800&q=80",
   insights: [
     {
-      kicker: "下一个纪念日",
-      title: "相识 1000 天",
-      detail: "还剩 12 天 · 2026.09.20",
-      to: "/days",
-    },
-    {
       kicker: "今日状态",
       title: "想你",
       detail: "10:24 更新",
@@ -19,24 +13,6 @@ export const TODAY = {
       title: "晚饭想吃拉面",
       detail: "1 小时前",
       to: "/sentence",
-    },
-  ],
-  memories: [
-    {
-      alt: "拿铁",
-      src: "https://images.unsplash.com/photo-1667592496907-e4167cf2a1f1?auto=format&fit=crop&w=640&q=80",
-    },
-    {
-      alt: "海边日落",
-      src: "https://images.unsplash.com/photo-1686848515543-1a8ad4622dcc?auto=format&fit=crop&w=640&q=80",
-    },
-    {
-      alt: "晚餐",
-      src: "https://images.unsplash.com/photo-1543209731-86f712718a40?auto=format&fit=crop&w=640&q=80",
-    },
-    {
-      alt: "山间湖泊",
-      src: "https://images.unsplash.com/photo-1608820980073-0a946a135983?auto=format&fit=crop&w=640&q=80",
     },
   ],
 } as const;
