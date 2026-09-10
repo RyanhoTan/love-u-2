@@ -7,6 +7,8 @@ import { LoginPage } from "@/pages/login-page";
 import { MessagesPage } from "@/pages/messages-page";
 import { PhotosPage } from "@/pages/photos-page";
 import { WishesPage } from "@/pages/wishes-page";
+import { WishNewPage } from "@/pages/wishes-page/new-page";
+import { WishDetailPage } from "@/pages/wishes-page/detail-page";
 import { DaysPage } from "@/pages/days-page";
 import { DayEditPage, DayNewPage } from "@/pages/days-page/form-page";
 import { MePage } from "@/pages/me-page";
@@ -117,7 +119,7 @@ export const router = createBrowserRouter([
             handle: {
               navId: "wishes",
               title: "心愿",
-              meta: "3 件进行中",
+              meta: "你们的心愿",
               actions: [{ kind: "primary", label: "添加心愿", to: "/wishes/new" }],
               placeholder: "心愿",
               bodyClassName: body.wishes,
@@ -126,28 +128,32 @@ export const router = createBrowserRouter([
           },
           {
             path: "wishes/new",
-            ...page({
+            handle: {
               navId: "wishes",
               title: "添加心愿",
               backTo: "/wishes",
-              actions: [{ kind: "primary", label: "添加" }],
+              actions: [
+                { kind: "primary", label: "保存", form: "wish-new-form" },
+              ],
               placeholder: "添加心愿",
               bodyClassName: body.nested,
-            }),
+            } satisfies RouteHandle,
+            Component: WishNewPage,
           },
           {
             path: "wishes/:id",
-            ...page({
+            handle: {
               navId: "wishes",
               title: "心愿详情",
               backTo: "/wishes",
               actions: [
-                { kind: "ghost", label: "标记完成" },
-                { kind: "primary", label: "记一笔" },
+                { kind: "ghost", label: "标记完成", to: "?done=1" },
+                { kind: "primary", label: "记一笔", to: "?record=1" },
               ],
               placeholder: "心愿详情",
               bodyClassName: body.nested,
-            }),
+            } satisfies RouteHandle,
+            Component: WishDetailPage,
           },
           {
             path: "days",
