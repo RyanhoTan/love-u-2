@@ -1,5 +1,4 @@
-import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -7,35 +6,64 @@ const webRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const input = join(webRoot, "openapi.json");
 const output = join(webRoot, "src/api/schemas.d.ts");
 
-function resolveCli() {
-  // Resolve via package.json: openapi-typescript's exports map remaps
-  // `*.js` → `*.mjs`, so require.resolve(".../bin/cli.js") looks for a
-  // non-existent cli.mjs and falsely reports the package as missing.
-  const require = createRequire(join(webRoot, "package.json"));
-  const pkgPath = require.resolve("openapi-typescript/package.json");
-  const { bin } = require(pkgPath);
-  const binEntry =
-    typeof bin === "string" ? bin : bin?.["openapi-typescript"];
-  if (!binEntry) {
-    throw new Error("openapi-typescript package.json has no bin entry");
+/**
+ * Apidog OpenAPI 3.1 exports encode nullable $refs as:
+ *   { allOf: [{ $ref }], type: "null" }
+ * openapi-typescript turns that into `null & T` (effectively unusable).
+ * Normalize to oneOf[$ref, null] so generated types become `T | null`.
+ * Leaves the on-disk Apidog export untouched.
+ */
+function normalizeApidogNullableRefs(node) {
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      normalizeApidogNullableRefs(item);
+    }
+    return;
   }
-  return join(dirname(pkgPath), binEntry);
+  if (!node || typeof node !== "object") {
+    return;
+  }
+
+  if (
+    node.type === "null" &&
+    Array.isArray(node.allOf) &&
+    node.allOf.length === 1 &&
+    node.allOf[0] &&
+    typeof node.allOf[0] === "object" &&
+    "$ref" in node.allOf[0]
+  ) {
+    const ref = node.allOf[0];
+    delete node.allOf;
+    delete node.type;
+    node.oneOf = [ref, { type: "null" }];
+  }
+
+  for (const value of Object.values(node)) {
+    normalizeApidogNullableRefs(value);
+  }
 }
 
-let cli;
-try {
-  cli = resolveCli();
-} catch {
-  console.error(
-    "openapi-typescript is not installed. Run: pnpm --dir web add -D openapi-typescript",
-  );
+async function main() {
+  let openapiTS;
+  let astToString;
+  try {
+    ({ default: openapiTS, astToString } = await import("openapi-typescript"));
+  } catch {
+    console.error(
+      "openapi-typescript is not installed. Run: pnpm --dir web add -D openapi-typescript",
+    );
+    process.exit(1);
+  }
+
+  const schema = JSON.parse(readFileSync(input, "utf8"));
+  normalizeApidogNullableRefs(schema);
+
+  const ast = await openapiTS(schema, { rootTypes: true });
+  writeFileSync(output, astToString(ast), "utf8");
+  console.log(`✨ openapi-typescript → ${output}`);
+}
+
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
   process.exit(1);
-}
-
-const result = spawnSync(
-  process.execPath,
-  [cli, input, "-o", output, "--root-types"],
-  { stdio: "inherit", cwd: webRoot },
-);
-
-process.exit(result.status ?? 1);
+});
