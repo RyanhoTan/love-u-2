@@ -1,6 +1,6 @@
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState, type AnimationEvent, type ReactNode } from "react";
-import type { AnniversaryRepeatType } from "@/features/anniversary/api";
+import type { AnniversaryRepeatType } from "@/api/anniversary";
 import { Button } from "@/components/ui/button";
 import { cx } from "@/lib/cx";
 import { DAY_REPEAT_OPTIONS } from "./types";

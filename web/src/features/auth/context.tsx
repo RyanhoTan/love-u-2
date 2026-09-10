@@ -8,8 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { login } from "./api";
-import { getUserInfo } from "@/features/user/api";
+import { login } from "@/api/auth";
+import { getUserInfo } from "@/api/user";
 import { emptyAuthUser } from "./session-user";
 import {
   readAuthSession,

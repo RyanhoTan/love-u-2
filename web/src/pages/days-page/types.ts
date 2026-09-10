@@ -4,7 +4,7 @@ import type {
   AnniversaryPayload,
   AnniversaryRepeatType,
   AnniversaryType,
-} from "@/features/anniversary/api";
+} from "@/api/anniversary";
 
 export const DAY_TYPE_OPTIONS: { value: AnniversaryType; label: string }[] = [
   { value: "birthday", label: "生日" },

@@ -1,10 +1,7 @@
 import { Heart, Calendar, ChevronRight } from "lucide-react";
 import type { CoupleSpace } from "./types";
-import {
-  displayName,
-  formatAnniversaryDot,
-  type UserProfile,
-} from "@/features/user/api";
+import type { UserProfile } from "@/api/user";
+import { displayName, formatAnniversaryDot } from "@/lib/user";
 import { Avatar } from "@/components/ui/avatar";
 
 export function BoundView({

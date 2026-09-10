@@ -9,7 +9,7 @@ import {
   getAnniversaries,
   updateAnniversary,
   type AnniversaryPayload,
-} from "./api";
+} from "@/api/anniversary";
 
 export const daysKeys = {
   all: ["anniversaries"] as const,

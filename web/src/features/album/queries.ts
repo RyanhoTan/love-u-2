@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAlbumMedia } from "./api";
+import { getAlbumMedia } from "@/api/album";
 
 export const albumKeys = {
   media: ["album", "media"] as const,

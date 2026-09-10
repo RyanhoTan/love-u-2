@@ -1,7 +1,7 @@
 import { Bell, ChevronLeft, Ellipsis, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/context";
-import { displayName } from "@/features/user/api";
+import { displayName } from "@/lib/user";
 import { useRouteHandle } from "@/routes/use-route-handle";
 import { formatToolbarDate } from "../../lib/date";
 import { Avatar } from "../ui/avatar";

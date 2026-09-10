@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
-import type { AnniversaryItem } from "@/features/anniversary/api";
+import type { AnniversaryItem } from "@/api/anniversary";
 import {
   errorMessage,
   useAnniversariesQuery,

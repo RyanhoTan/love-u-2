@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/context";
-import { displayName } from "@/features/user/api";
+import { displayName } from "@/lib/user";
 import { PageBody } from "@/components/layout/page-body";
 import { Avatar } from "@/components/ui/avatar";
 

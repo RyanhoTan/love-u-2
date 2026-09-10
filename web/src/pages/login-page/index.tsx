@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/context";
-import { register } from "@/features/auth/api";
+import { register } from "@/api/auth";
 import { TODAY } from "@/mocks";
 import { Button } from "@/components/ui/button";
 

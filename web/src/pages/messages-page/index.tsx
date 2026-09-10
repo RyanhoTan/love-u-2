@@ -1,5 +1,5 @@
 import { useAuth } from "@/features/auth/context";
-import { displayName } from "@/features/user/api";
+import { displayName } from "@/lib/user";
 import { MESSAGES } from "@/mocks";
 import { Composer } from "../../components/layout/composer";
 import { Avatar } from "../../components/ui/avatar";

@@ -6,8 +6,8 @@ import {
   getCoupleSpace,
   updateCoupleSpace,
   unbindCoupleSpace,
-} from "@/features/couple/api";
-import type { UserProfile } from "@/features/user/api";
+} from "@/api/couple";
+import type { UserProfile } from "@/api/user";
 import { emptyAuthUser } from "@/features/auth/session-user";
 import { PageBody } from "@/components/layout/page-body";
 import { Button } from "@/components/ui/button";
