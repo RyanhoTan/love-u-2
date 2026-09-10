@@ -10,13 +10,13 @@ import {
 import { Navigate, Outlet } from "react-router-dom";
 import { login } from "./api";
 import { getUserInfo } from "@/features/user/api";
+import { emptyAuthUser } from "./session-user";
 import {
-  emptyAuthUser,
   readAuthSession,
   writeAuthSession,
   type AuthSession,
   type AuthUser,
-} from "@/api/client";
+} from "@/api/session";
 
 type AuthContextValue = {
   user: AuthUser | null;

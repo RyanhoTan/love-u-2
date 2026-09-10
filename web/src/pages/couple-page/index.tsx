@@ -8,7 +8,7 @@ import {
   unbindCoupleSpace,
 } from "@/features/couple/api";
 import type { UserProfile } from "@/features/user/api";
-import { emptyAuthUser } from "@/api/client";
+import { emptyAuthUser } from "@/features/auth/session-user";
 import { PageBody } from "@/components/layout/page-body";
 import { Button } from "@/components/ui/button";
 import { BoundView } from "./bound-view";
