@@ -1,25 +1,51 @@
+import { useEffect, useRef } from "react";
 import { useAuth } from "@/features/auth/context";
 import { displayName } from "@/lib/user";
 import { MESSAGES } from "@/mocks";
-import { Composer } from "../../components/layout/composer";
 import { Avatar } from "../../components/ui/avatar";
 import { Button } from "../../components/ui/button";
 import { cx } from "../../lib/cx";
+import { MessagesComposer } from "./composer";
 
 export function MessagesPage() {
-  const { user, profileStatus } = useAuth();
+  const { user } = useAuth();
   const partner = user?.couple.isBound ? user.couple.partner : null;
   const partnerName = partner ? displayName(partner) : "";
+  const selfName = user ? displayName(user) : "";
+  const threadRef = useRef<HTMLDivElement>(null);
 
-  if (profileStatus === "loading") {
-    return (
-      <div className="flex min-h-0 flex-1 items-center justify-center">
-        <p className="text-sm text-fg-muted">加载中…</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const thread = threadRef.current;
+    if (!thread) {
+      return;
+    }
 
-  if (!partner) {
+    const stickToBottom = { current: true };
+
+    function onScroll() {
+      if (!thread) {
+        return;
+      }
+      const distance =
+        thread.scrollHeight - thread.scrollTop - thread.clientHeight;
+      stickToBottom.current = distance < 24;
+    }
+
+    const observer = new ResizeObserver(() => {
+      if (stickToBottom.current) {
+        thread.scrollTop = thread.scrollHeight;
+      }
+    });
+
+    thread.addEventListener("scroll", onScroll, { passive: true });
+    observer.observe(thread);
+    return () => {
+      thread.removeEventListener("scroll", onScroll);
+      observer.disconnect();
+    };
+  }, [partner, user]);
+
+  if (!partner || !user) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-8">
         <p className="text-sm text-fg-secondary">绑定情侣后即可开始对话</p>
@@ -30,7 +56,10 @@ export function MessagesPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-18 py-7">
+      <div
+        ref={threadRef}
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto px-18 py-7"
+      >
         <div className="flex min-h-full flex-col justify-end gap-4">
           {MESSAGES.map((message, index) => {
             if (message.kind === "stamp") {
@@ -67,8 +96,8 @@ export function MessagesPage() {
               <div
                 key={index}
                 className={cx(
-                  "flex gap-2",
-                  incoming ? "items-end" : "justify-end",
+                  "flex items-end gap-2",
+                  incoming ? "" : "justify-end",
                 )}
               >
                 {incoming ? (
@@ -96,12 +125,20 @@ export function MessagesPage() {
                   </p>
                   <p className="text-[11px] text-fg-muted">{message.time}</p>
                 </div>
+                {/* TODO: 头像应该也存在本地 */}
+                {incoming ? null : (
+                  <Avatar
+                    src={user.avatar ?? undefined}
+                    alt={selfName}
+                    size={28}
+                  />
+                )}
               </div>
             );
           })}
         </div>
       </div>
-      <Composer />
+      <MessagesComposer />
     </div>
   );
 }

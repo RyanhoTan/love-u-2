@@ -688,7 +688,7 @@
       "name": "Motion Notes",
       "width": 400,
       "height": 720,
-      "content": "Apple motion\n\nButton/Primary: highlight on pointer-down, scale 0.97, 100ms. Never wait for click.\n\nLogin / Register: field focus ring is instant on pointer-down; error appears inline under the fields, no modal. Mode switch (登录 ↔ 注册) is a text action — no second primary button. Submit label swaps to 登录中 / 注册中 without locking the field. Prefer reduced-motion: keep color/opacity, drop scale.\n\nCouple / Unbound: copy invite → brief checkmark swap on the primary label (已复制), spring settle damping 1.0 / response 0.3. Bind submit → 绑定中 without locking the code field. Inline error under the input (expired / self / missing) — no modal.\n\nCouple / Bound: days number is the dominant region; anniversary row opens an edit sheet from the row (transform-origin = row). Unbind uses a confirm dialog: scrim materializes (blur+opacity together), dialog springs from 0.96→1, interruptible.\n\nSheets and drawers: spring damping 1.0, response 0.3. Interruptible from the live transform.\n\nPhoto grid: rubber-band at edges; project flick with d=0.998 then spring.\n\nChat: 1:1 with the pointer while dragging the thread; bounce only after a flick.\n\nMessages:\nThread scrolls with 1:1 finger tracking; bounce only after flick (d≈0.998 then spring).\nComposer: highlight attach/send on pointer-down, scale 0.97 / 100ms.\nBubble enter: opacity+translateY from live value, damping 1.0 / response 0.3 — interruptible.\nSheets (Info / Attach): spring from trigger, transform-origin = toolbar button / attach button; scrim materializes blur+opacity together.\nStatus labels (发送中/已读/对方离线/失败) are metadata under the bubble — never block input.\nFailed retry: tap the failed meta to resend; no modal. History stays visible — never replace the thread with an error page.\nUnbound: one card, one primary CTA. Connection loss keeps history on screen; no dedicated empty or error screens.\nReduced motion: cross-fade bubbles and sheets; drop bounce and scale.\n\nMessages · Attach: + opens a bottom-left sheet (照片/视频 only). Voice is NOT in this sheet.\nMessages · Voice: Mic on composer switches to Voice Idle (键盘 + 按住说话). Hold → Recording (松开发送). Slide up past cancel threshold → Cancel (松开取消, danger). Release in cancel discards; release in record sends. Keyboard returns to text. Interruptible at every step."
+      "content": "Apple motion\n\nButton/Primary: highlight on pointer-down, scale 0.97, 100ms. Never wait for click.\n\nLogin / Register: field focus ring is instant on pointer-down; error appears inline under the fields, no modal. Mode switch (登录 ↔ 注册) is a text action — no second primary button. Submit label swaps to 登录中 / 注册中 without locking the field. Prefer reduced-motion: keep color/opacity, drop scale.\n\nCouple / Unbound: copy invite → brief checkmark swap on the primary label (已复制), spring settle damping 1.0 / response 0.3. Bind submit → 绑定中 without locking the code field. Inline error under the input (expired / self / missing) — no modal.\n\nCouple / Bound: days number is the dominant region; anniversary row opens an edit sheet from the row (transform-origin = row). Unbind uses a confirm dialog: scrim materializes (blur+opacity together), dialog springs from 0.96→1, interruptible.\n\nSheets and drawers: spring damping 1.0, response 0.3. Interruptible from the live transform.\n\nPhoto grid: rubber-band at edges; project flick with d=0.998 then spring.\n\nChat: 1:1 with the pointer while dragging the thread; bounce only after a flick.\n\nMessages:\nThread scrolls with 1:1 finger tracking; bounce only after flick (d≈0.998 then spring).\nComposer: text state is menu + input + send. No keyboard icon while already on the keyboard. Voice state is keyboard + menu + hold/recording. No send button in voice.\nBubble enter: opacity+translateY from live value, damping 1.0 / response 0.3 — interruptible.\nSheets (Info / Menu): spring from trigger, transform-origin = toolbar button / menu button; scrim materializes blur+opacity together.\nStatus labels (发送中/已读/对方离线/失败) are metadata under the bubble — never block input.\nFailed retry: tap the failed meta to resend; no modal. History stays visible — never replace the thread with an error page.\nUnbound: one card, one primary CTA. Connection loss keeps history on screen; no dedicated empty or error screens.\nReduced motion: cross-fade bubbles and sheets; drop bounce and scale.\n\nMessages · Menu: + opens a menu above the button (语音 / 照片 / 视频). Open state swaps the icon to x. Selecting 语音 enters Voice Idle. Selecting 照片/视频 picks from the album. Interruptible.\nMessages · Voice: menu 语音 enters Voice Idle (键盘 + 菜单 + 按住说话, no send). Hold → Recording (松开发送). Slide up past cancel threshold → Cancel (松开取消, danger). Release in cancel discards; release in record sends. Keyboard returns to text. Interruptible at every step."
     },
     {
       "type": "frame",
@@ -6357,7 +6357,9 @@
                   "id": "Gf1Pj",
                   "name": "Message/Out",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
+                  "alignItems": "end",
                   "children": [
                     {
                       "type": "frame",
@@ -6408,6 +6410,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "e9P1yk",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 },
@@ -6455,7 +6465,9 @@
                   "id": "IFzJn",
                   "name": "Message/Out",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
+                  "alignItems": "end",
                   "children": [
                     {
                       "type": "frame",
@@ -6506,6 +6518,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "Sy0go",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 }
@@ -6533,7 +6553,7 @@
                   "id": "mhJcL",
                   "type": "ref",
                   "ref": "lyeBP",
-                  "name": "Button/Attach",
+                  "name": "Button/Menu",
                   "descendants": {
                     "rpthj": {
                       "icon": "plus"
@@ -7060,7 +7080,9 @@
                   "id": "ryRbx",
                   "name": "Message/Out",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
+                  "alignItems": "end",
                   "children": [
                     {
                       "type": "frame",
@@ -7111,6 +7133,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "xSPUP",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 },
@@ -7158,7 +7188,9 @@
                   "id": "mmvnf",
                   "name": "Message/Out",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
+                  "alignItems": "end",
                   "children": [
                     {
                       "type": "frame",
@@ -7209,6 +7241,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "yorZK",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 }
@@ -7236,10 +7276,21 @@
                   "id": "z7pyN",
                   "type": "ref",
                   "ref": "lyeBP",
-                  "name": "Button/Attach",
+                  "name": "Button/Menu",
                   "descendants": {
                     "rpthj": {
                       "icon": "plus"
+                    }
+                  }
+                },
+                {
+                  "id": "JMCTH",
+                  "type": "ref",
+                  "ref": "lyeBP",
+                  "name": "Button/Mic",
+                  "descendants": {
+                    "rpthj": {
+                      "icon": "mic"
                     }
                   }
                 },
@@ -7344,7 +7395,9 @@
                   "ref": "dI7ui",
                   "name": "Avatar/Lin",
                   "width": 64,
-                  "height": 64
+                  "height": 64,
+                  "stroke": "$surface",
+                  "strokeWidth": 0
                 },
                 {
                   "type": "text",
@@ -7411,7 +7464,7 @@
       "id": "DHTxE",
       "x": 3040,
       "y": 2342,
-      "name": "Web / Messages · Attach",
+      "name": "Web / Messages · Menu",
       "clip": true,
       "width": 1440,
       "height": 900,
@@ -7858,7 +7911,9 @@
                   "id": "lxWOj",
                   "name": "Message/Out",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
+                  "alignItems": "end",
                   "children": [
                     {
                       "type": "frame",
@@ -7909,6 +7964,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "ZRMEg",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 },
@@ -7956,7 +8019,9 @@
                   "id": "zR0eW",
                   "name": "Message/Out",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
+                  "alignItems": "end",
                   "children": [
                     {
                       "type": "frame",
@@ -8007,6 +8072,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "bJMxp",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 }
@@ -8034,10 +8107,10 @@
                   "id": "BfCpd",
                   "type": "ref",
                   "ref": "lyeBP",
-                  "name": "Button/Attach",
+                  "name": "Button/MenuOpen",
                   "descendants": {
                     "rpthj": {
-                      "icon": "plus"
+                      "icon": "x"
                     }
                   }
                 },
@@ -8133,7 +8206,7 @@
             {
               "type": "frame",
               "id": "rXuzc",
-              "name": "Sheet/Attach",
+              "name": "Menu/More",
               "width": 320,
               "fill": "$surface",
               "cornerRadius": 20,
@@ -8154,12 +8227,27 @@
                 {
                   "type": "text",
                   "id": "i6Kjvi",
-                  "name": "Sheet Title",
+                  "name": "Menu Title",
                   "fill": "$text-primary",
-                  "content": "添加附件",
+                  "content": "更多",
                   "fontFamily": "$font",
                   "fontSize": 16,
                   "fontWeight": "600"
+                },
+                {
+                  "id": "GVO0V",
+                  "type": "ref",
+                  "ref": "aCh1t",
+                  "name": "Row/语音",
+                  "width": "fill_container",
+                  "descendants": {
+                    "P7ANy": {
+                      "icon": "mic"
+                    },
+                    "v2KJcq": {
+                      "content": "语音"
+                    }
+                  }
                 },
                 {
                   "id": "l8xsVZ",
@@ -8172,7 +8260,7 @@
                       "icon": "image"
                     },
                     "v2KJcq": {
-                      "content": "照片 · 从相册选一张"
+                      "content": "照片"
                     }
                   }
                 },
@@ -8187,21 +8275,9 @@
                       "icon": "video"
                     },
                     "v2KJcq": {
-                      "content": "视频 · 选一段短视频"
+                      "content": "视频"
                     }
                   }
-                },
-                {
-                  "type": "text",
-                  "id": "OFw4d",
-                  "name": "Sheet Hint",
-                  "fill": "$text-muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "语音请点输入栏旁的麦克风",
-                  "fontFamily": "$font",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
                 }
               ]
             }
@@ -39171,7 +39247,9 @@
                   "id": "G1aLpE",
                   "name": "Message/Out",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
+                  "alignItems": "end",
                   "children": [
                     {
                       "type": "frame",
@@ -39222,6 +39300,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "GWM7P",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 },
@@ -39230,7 +39316,9 @@
                   "id": "cGMvU",
                   "name": "Message/Out",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
+                  "alignItems": "end",
                   "children": [
                     {
                       "type": "frame",
@@ -39281,6 +39369,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "Ueg0L",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 },
@@ -39289,7 +39385,9 @@
                   "id": "cXgma",
                   "name": "Message/Out",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
+                  "alignItems": "end",
                   "children": [
                     {
                       "type": "frame",
@@ -39340,6 +39438,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "fYRRB",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 },
@@ -39348,7 +39454,9 @@
                   "id": "i8s6i",
                   "name": "Message/Out",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
+                  "alignItems": "end",
                   "children": [
                     {
                       "type": "frame",
@@ -39399,6 +39507,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "cai41",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 }
@@ -39426,10 +39542,21 @@
                   "id": "RtTlg",
                   "type": "ref",
                   "ref": "lyeBP",
-                  "name": "Button/Attach",
+                  "name": "Button/Menu",
                   "descendants": {
                     "rpthj": {
                       "icon": "plus"
+                    }
+                  }
+                },
+                {
+                  "id": "npdGl",
+                  "type": "ref",
+                  "ref": "lyeBP",
+                  "name": "Button/Mic",
+                  "descendants": {
+                    "rpthj": {
+                      "icon": "mic"
                     }
                   }
                 },
@@ -40126,6 +40253,7 @@
                   "id": "MaOWh",
                   "name": "Message/Out Voice",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
                   "alignItems": "end",
                   "children": [
@@ -40337,6 +40465,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "NEI4E",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 },
@@ -40587,6 +40723,17 @@
               "alignItems": "center",
               "children": [
                 {
+                  "id": "n3qhW",
+                  "type": "ref",
+                  "ref": "lyeBP",
+                  "name": "Button/Menu",
+                  "descendants": {
+                    "rpthj": {
+                      "icon": "plus"
+                    }
+                  }
+                },
+                {
                   "id": "ocGoy",
                   "type": "ref",
                   "ref": "lyeBP",
@@ -40628,31 +40775,6 @@
                       "fontFamily": "$font",
                       "fontSize": 14,
                       "fontWeight": "600"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "EOY6u",
-                  "name": "Button/Send Idle",
-                  "width": 36,
-                  "height": 36,
-                  "fill": "$surface",
-                  "cornerRadius": 18,
-                  "stroke": "$border",
-                  "strokeWidth": 1,
-                  "justifyContent": "center",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "NbxYE",
-                      "name": "Send Icon",
-                      "width": 16,
-                      "height": 16,
-                      "icon": "arrow-up",
-                      "library": "lucide",
-                      "fill": "$text-muted"
                     }
                   ]
                 }
@@ -41275,6 +41397,7 @@
                   "id": "Y76hd",
                   "name": "Message/Out Voice",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
                   "alignItems": "end",
                   "children": [
@@ -41486,6 +41609,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "ZOFvc",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 },
@@ -41774,16 +41905,6 @@
                       "fontWeight": "600"
                     }
                   ]
-                },
-                {
-                  "type": "text",
-                  "id": "O1JO3j",
-                  "name": "Send Guide Text",
-                  "fill": "$text-muted",
-                  "content": "松手发送这条语音",
-                  "fontFamily": "$font",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
                 }
               ]
             },
@@ -41798,6 +41919,7 @@
                 "type": "background_blur",
                 "radius": 24
               },
+              "gap": 10,
               "padding": [
                 12,
                 24
@@ -41805,6 +41927,28 @@
               "justifyContent": "center",
               "alignItems": "center",
               "children": [
+                {
+                  "id": "bNnbX",
+                  "type": "ref",
+                  "ref": "lyeBP",
+                  "name": "Button/Menu",
+                  "descendants": {
+                    "rpthj": {
+                      "icon": "plus"
+                    }
+                  }
+                },
+                {
+                  "id": "U5vCIN",
+                  "type": "ref",
+                  "ref": "lyeBP",
+                  "name": "Button/Keyboard",
+                  "descendants": {
+                    "rpthj": {
+                      "icon": "keyboard"
+                    }
+                  }
+                },
                 {
                   "type": "frame",
                   "id": "h7vsp",
@@ -42617,6 +42761,7 @@
                   "id": "SGcer",
                   "name": "Message/Out Voice",
                   "width": "fill_container",
+                  "gap": 8,
                   "justifyContent": "end",
                   "alignItems": "end",
                   "children": [
@@ -42828,6 +42973,14 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    },
+                    {
+                      "id": "WHd06",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
                     }
                   ]
                 },
@@ -43070,6 +43223,7 @@
                 "type": "background_blur",
                 "radius": 24
               },
+              "gap": 10,
               "padding": [
                 12,
                 24
@@ -43077,6 +43231,28 @@
               "justifyContent": "center",
               "alignItems": "center",
               "children": [
+                {
+                  "id": "D3xoN",
+                  "type": "ref",
+                  "ref": "lyeBP",
+                  "name": "Button/Menu",
+                  "descendants": {
+                    "rpthj": {
+                      "icon": "plus"
+                    }
+                  }
+                },
+                {
+                  "id": "CkKqq",
+                  "type": "ref",
+                  "ref": "lyeBP",
+                  "name": "Button/Keyboard",
+                  "descendants": {
+                    "rpthj": {
+                      "icon": "keyboard"
+                    }
+                  }
+                },
                 {
                   "type": "frame",
                   "id": "um7R6",

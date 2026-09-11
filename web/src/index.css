@@ -78,6 +78,16 @@
   }
 }
 
+@keyframes recording-wave {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
 @keyframes sheet-fall {
   from {
     opacity: 1;
