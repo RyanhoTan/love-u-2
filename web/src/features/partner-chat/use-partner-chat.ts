@@ -7,6 +7,7 @@ import type {
   SchemaPartnerChatServerReadReceipt,
   SchemaPartnerChatServerReady,
 } from "@/api/schemas";
+import { uploadMedia } from "@/api/upload";
 
 export type PartnerChatStatus =
   | "idle"
@@ -23,6 +24,7 @@ export type PartnerChatMessage = {
   text: string;
   messageType: PartnerChatMessageType;
   audioUrl?: string;
+  audioDurationSeconds?: number;
   sentAt: string;
   isSelf: boolean;
   status?: "sending" | "sent" | "partner_offline" | "read" | "failed";
@@ -70,6 +72,9 @@ function isPartnerChatMessage(value: unknown): value is PartnerChatMessage {
     typeof message.text === "string" &&
     (message.messageType === "text" || message.messageType === "audio") &&
     (message.audioUrl === undefined || typeof message.audioUrl === "string") &&
+    (message.audioDurationSeconds === undefined ||
+      (typeof message.audioDurationSeconds === "number" &&
+        Number.isFinite(message.audioDurationSeconds))) &&
     typeof message.sentAt === "string" &&
     typeof message.isSelf === "boolean"
   );
@@ -129,9 +134,12 @@ function readHistory(storageKey: string) {
 
 function writeHistory(storageKey: string, messages: PartnerChatMessage[]) {
   try {
+    const persistable = messages.filter(
+      (message) => !message.audioUrl?.startsWith("blob:"),
+    );
     localStorage.setItem(
       storageKey,
-      JSON.stringify(messages.slice(-MAX_LOCAL_HISTORY_MESSAGES)),
+      JSON.stringify(persistable.slice(-MAX_LOCAL_HISTORY_MESSAGES)),
     );
   } catch {
     // Ignore quota / private-mode failures; live chat still works.
@@ -228,20 +236,22 @@ export function usePartnerChat(
           ? (payload.clientMessageId ?? payload.id)
           : payload.id;
 
-        setMessages((current) =>
-          mergeMessages(current, [
+        setMessages((current) => {
+          const existing = current.find((message) => message.id === nextId);
+          return mergeMessages(current, [
             {
               id: nextId,
               serverMessageId: payload.id,
               text: payload.text,
               messageType: payload.messageType,
               audioUrl: payload.audioUrl,
+              audioDurationSeconds: existing?.audioDurationSeconds,
               sentAt: payload.sentAt,
               isSelf,
               status: "sent",
             },
-          ]),
-        );
+          ]);
+        });
 
         if (isVisibleRef.current && !isSelf) {
           sendReadEvent();
@@ -392,47 +402,83 @@ export function usePartnerChat(
     return true;
   }, []);
 
-  const sendAudioMessage = useCallback((audioUrl: string) => {
-    const trimmedAudioUrl = audioUrl.trim();
-    if (!trimmedAudioUrl) {
-      return false;
-    }
+  const sendAudioMessage = useCallback(
+    (file: File, durationSeconds: number) => {
+      if (file.size <= 0) {
+        return false;
+      }
 
-    const clientMessageId = createClientMessageId();
-    const nextMessage: PartnerChatMessage = {
-      id: clientMessageId,
-      text: "",
-      messageType: "audio",
-      audioUrl: trimmedAudioUrl,
-      sentAt: new Date().toISOString(),
-      isSelf: true,
-      status: "sending",
-    };
-
-    setMessages((current) => [...current, nextMessage]);
-
-    const socket = socketRef.current;
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      setMessages((current) =>
-        current.map((message) =>
-          message.id === clientMessageId
-            ? { ...message, status: "failed" }
-            : message,
-        ),
-      );
-      return false;
-    }
-
-    socket.send(
-      JSON.stringify({
-        type: "message",
+      const clientMessageId = createClientMessageId();
+      const localUrl = URL.createObjectURL(file);
+      const audioDurationSeconds =
+        Number.isFinite(durationSeconds) && durationSeconds > 0
+          ? durationSeconds
+          : undefined;
+      const nextMessage: PartnerChatMessage = {
+        id: clientMessageId,
+        text: "",
         messageType: "audio",
-        audioUrl: trimmedAudioUrl,
-        clientMessageId,
-      }),
-    );
-    return true;
-  }, []);
+        audioUrl: localUrl,
+        audioDurationSeconds,
+        sentAt: new Date().toISOString(),
+        isSelf: true,
+        status: "sending",
+      };
+
+      setMessages((current) => [...current, nextMessage]);
+
+      void (async () => {
+        try {
+          const uploaded = await uploadMedia(file, "interact");
+          const remoteUrl = uploaded.url.trim();
+          if (!remoteUrl) {
+            throw new Error("upload failed");
+          }
+
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === clientMessageId
+                ? { ...message, audioUrl: remoteUrl }
+                : message,
+            ),
+          );
+          queueMicrotask(() => URL.revokeObjectURL(localUrl));
+
+          const socket = socketRef.current;
+          if (!socket || socket.readyState !== WebSocket.OPEN) {
+            setMessages((current) =>
+              current.map((message) =>
+                message.id === clientMessageId
+                  ? { ...message, status: "failed" }
+                  : message,
+              ),
+            );
+            return;
+          }
+
+          socket.send(
+            JSON.stringify({
+              type: "message",
+              messageType: "audio",
+              audioUrl: remoteUrl,
+              clientMessageId,
+            }),
+          );
+        } catch {
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === clientMessageId
+                ? { ...message, status: "failed" }
+                : message,
+            ),
+          );
+        }
+      })();
+
+      return true;
+    },
+    [],
+  );
 
   const isConnected = status === "connected";
 

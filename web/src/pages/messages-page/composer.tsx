@@ -17,7 +17,6 @@ import {
   type PointerEvent,
   type ReactNode,
 } from "react";
-import { uploadMedia } from "@/api/upload";
 import { IconButton } from "@/components/ui/button";
 import { cx } from "@/lib/cx";
 
@@ -31,7 +30,7 @@ type VoicePhase = "idle" | "recording" | "cancel";
 type MessagesComposerProps = {
   disabled?: boolean;
   onSendText: (text: string) => boolean;
-  onSendAudio: (audioUrl: string) => boolean;
+  onSendAudio: (file: File, durationSeconds: number) => boolean;
 };
 
 function pickRecorderMimeType() {
@@ -71,7 +70,6 @@ export function MessagesComposer({
   const [menuOpen, setMenuOpen] = useState(false);
   const [voicePhase, setVoicePhase] = useState<VoicePhase>("idle");
   const [elapsed, setElapsed] = useState(0);
-  const [voiceBusy, setVoiceBusy] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const startY = useRef(0);
   const startedAt = useRef(0);
@@ -197,7 +195,7 @@ export function MessagesComposer({
   }
 
   async function onHoldPointerDown(event: PointerEvent<HTMLButtonElement>) {
-    if (disabled || voiceBusy) {
+    if (disabled || voicePhaseRef.current !== "idle") {
       return;
     }
 
@@ -249,24 +247,16 @@ export function MessagesComposer({
       return;
     }
 
-    setVoiceBusy(true);
     setVoiceError(null);
+    const mimeType = blob.type || "audio/webm";
+    const file = new File(
+      [blob],
+      `voice.${extensionForMimeType(mimeType)}`,
+      { type: mimeType },
+    );
 
-    try {
-      const mimeType = blob.type || "audio/webm";
-      const file = new File(
-        [blob],
-        `voice.${extensionForMimeType(mimeType)}`,
-        { type: mimeType },
-      );
-      const uploaded = await uploadMedia(file, "interact");
-      if (!onSendAudio(uploaded.url)) {
-        setVoiceError("发送失败，请重试");
-      }
-    } catch (caught) {
-      setVoiceError(caught instanceof Error ? caught.message : "语音发送失败");
-    } finally {
-      setVoiceBusy(false);
+    if (!onSendAudio(file, durationMs / 1000)) {
+      setVoiceError("发送失败，请重试");
     }
   }
 
@@ -353,8 +343,7 @@ export function MessagesComposer({
           <HoldToTalk
             phase={voicePhase}
             elapsed={elapsed}
-            busy={voiceBusy}
-            disabled={disabled || voiceBusy}
+            disabled={disabled}
             onPointerDown={(event) => {
               void onHoldPointerDown(event);
             }}
@@ -401,7 +390,6 @@ function CancelSendHint() {
 function HoldToTalk({
   phase,
   elapsed,
-  busy,
   disabled,
   onPointerDown,
   onPointerMove,
@@ -410,7 +398,6 @@ function HoldToTalk({
 }: {
   phase: VoicePhase;
   elapsed: number;
-  busy: boolean;
   disabled: boolean;
   onPointerDown: (event: PointerEvent<HTMLButtonElement>) => void;
   onPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
@@ -436,9 +423,7 @@ function HoldToTalk({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
     >
-      {busy && phase === "idle" ? (
-        <span className="font-semibold">发送中…</span>
-      ) : phase === "idle" ? (
+      {phase === "idle" ? (
         <>
           <Mic className="size-4" strokeWidth={2} />
           按住说话
