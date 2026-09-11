@@ -25,6 +25,7 @@ interface PartnerChatMessage {
   text: string | null;
   message_type: "text" | "audio";
   audio_url: string | null;
+  audio_duration_seconds: number | null;
   client_message_id: string | null;
   sent_at: Date | string;
 }
@@ -60,6 +61,7 @@ const incomingPayloadSchema = z.discriminatedUnion("type", [
       type: z.literal("message"),
       messageType: z.literal("audio"),
       audioUrl: z.string().trim().min(1).max(2048),
+      audioDurationSeconds: z.number().positive().max(600).optional(),
       clientMessageId: z.string().trim().max(100).optional(),
     }),
   ]),
@@ -150,6 +152,25 @@ function ensurePartnerChatSchema() {
           `
             ALTER TABLE partner_chat_messages
             ADD COLUMN audio_url VARCHAR(2048) NULL AFTER message_type
+          `
+        );
+      }
+
+      const [audioDurationRows] = await db.query<ColumnExistsRow[]>(
+        `
+          SELECT COUNT(*) AS column_exists
+          FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'partner_chat_messages'
+            AND COLUMN_NAME = 'audio_duration_seconds'
+        `
+      );
+
+      if ((audioDurationRows[0]?.column_exists ?? 0) === 0) {
+        await db.execute(
+          `
+            ALTER TABLE partner_chat_messages
+            ADD COLUMN audio_duration_seconds DOUBLE NULL AFTER audio_url
           `
         );
       }
@@ -252,6 +273,14 @@ function toIsoString(value: Date | string) {
 }
 
 function createMessagePayload(message: PartnerChatMessage) {
+  const audioDurationSeconds =
+    message.message_type === "audio" &&
+    message.audio_duration_seconds != null &&
+    Number.isFinite(message.audio_duration_seconds) &&
+    message.audio_duration_seconds > 0
+      ? message.audio_duration_seconds
+      : undefined;
+
   return {
     type: "message",
     id: String(message.id),
@@ -260,6 +289,7 @@ function createMessagePayload(message: PartnerChatMessage) {
     text: message.text ?? "",
     messageType: message.message_type,
     audioUrl: message.audio_url ?? undefined,
+    audioDurationSeconds,
     clientMessageId: message.client_message_id ?? undefined,
     sentAt: toIsoString(message.sent_at),
   };
@@ -269,7 +299,12 @@ async function saveMessage(
   connection: PartnerChatConnection,
   payload:
     | { messageType: "text"; text: string; clientMessageId?: string }
-    | { messageType: "audio"; audioUrl: string; clientMessageId?: string }
+    | {
+        messageType: "audio";
+        audioUrl: string;
+        audioDurationSeconds?: number;
+        clientMessageId?: string;
+      }
 ) {
   await ensurePartnerChatSchema();
 
@@ -283,10 +318,11 @@ async function saveMessage(
         text,
         message_type,
         audio_url,
+        audio_duration_seconds,
         client_message_id,
         sent_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
     `,
     [
@@ -296,6 +332,9 @@ async function saveMessage(
       payload.messageType === "text" ? payload.text : null,
       payload.messageType,
       payload.messageType === "audio" ? payload.audioUrl : null,
+      payload.messageType === "audio"
+        ? (payload.audioDurationSeconds ?? null)
+        : null,
       payload.clientMessageId ?? null,
       sentAt,
     ]
@@ -311,6 +350,7 @@ async function saveMessage(
         text,
         message_type,
         audio_url,
+        audio_duration_seconds,
         client_message_id,
         sent_at
       FROM partner_chat_messages
@@ -356,6 +396,7 @@ async function deliverPendingMessages(connection: PartnerChatConnection) {
         text,
         message_type,
         audio_url,
+        audio_duration_seconds,
         client_message_id,
         sent_at
       FROM partner_chat_messages
@@ -522,6 +563,7 @@ async function handleIncomingPayload(connection: PartnerChatConnection, rawData:
         : {
             messageType: "audio",
             audioUrl: parsed.data.audioUrl,
+            audioDurationSeconds: parsed.data.audioDurationSeconds,
             clientMessageId: parsed.data.clientMessageId,
           }
     );

@@ -238,6 +238,13 @@ export function usePartnerChat(
 
         setMessages((current) => {
           const existing = current.find((message) => message.id === nextId);
+          const audioDurationSeconds =
+            typeof payload.audioDurationSeconds === "number" &&
+            Number.isFinite(payload.audioDurationSeconds) &&
+            payload.audioDurationSeconds > 0
+              ? payload.audioDurationSeconds
+              : existing?.audioDurationSeconds;
+
           return mergeMessages(current, [
             {
               id: nextId,
@@ -245,7 +252,7 @@ export function usePartnerChat(
               text: payload.text,
               messageType: payload.messageType,
               audioUrl: payload.audioUrl,
-              audioDurationSeconds: existing?.audioDurationSeconds,
+              audioDurationSeconds,
               sentAt: payload.sentAt,
               isSelf,
               status: "sent",
@@ -461,6 +468,7 @@ export function usePartnerChat(
               type: "message",
               messageType: "audio",
               audioUrl: remoteUrl,
+              audioDurationSeconds,
               clientMessageId,
             }),
           );

@@ -3676,6 +3676,11 @@
             "minLength": 1,
             "maxLength": 2048
           },
+          "audioDurationSeconds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 600
+          },
           "clientMessageId": {
             "type": "string",
             "maxLength": 100
@@ -3765,6 +3770,11 @@
           },
           "audioUrl": {
             "type": "string"
+          },
+          "audioDurationSeconds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 600
           },
           "clientMessageId": {
             "type": "string"

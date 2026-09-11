@@ -858,6 +858,7 @@ export interface components {
             /** @enum {string} */
             messageType: "audio";
             audioUrl: string;
+            audioDurationSeconds?: number;
             clientMessageId?: string;
         };
         PartnerChatClientRead: {
@@ -882,6 +883,7 @@ export interface components {
             /** @enum {string} */
             messageType: "text" | "audio";
             audioUrl?: string;
+            audioDurationSeconds?: number;
             clientMessageId?: string;
             sentAt: components["schemas"]["IsoDateTime"];
         };

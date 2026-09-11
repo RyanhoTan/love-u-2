@@ -230,7 +230,7 @@ export function VoiceBubble({
           incoming ? "text-fg-secondary" : "text-inverse",
         )}
       >
-        {formatDuration(duration ?? 0)}
+        {duration == null ? "…" : formatDuration(duration)}
       </span>
     </button>
   );
