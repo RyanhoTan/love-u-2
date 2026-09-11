@@ -10,37 +10,116 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
+import { uploadMedia } from "@/api/upload";
 import { IconButton } from "@/components/ui/button";
 import { cx } from "@/lib/cx";
 
 const CANCEL_THRESHOLD = 48;
+const MIN_VOICE_MS = 500;
 const WAVE_HEIGHTS = [8, 14, 18, 10, 16, 12, 18, 9, 15];
 
 type Mode = "text" | "voice";
 type VoicePhase = "idle" | "recording" | "cancel";
 
-export function MessagesComposer() {
+type MessagesComposerProps = {
+  disabled?: boolean;
+  onSendText: (text: string) => boolean;
+  onSendAudio: (audioUrl: string) => boolean;
+};
+
+function pickRecorderMimeType() {
+  const candidates = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4",
+    "audio/ogg;codecs=opus",
+  ];
+
+  return (
+    candidates.find((type) =>
+      typeof MediaRecorder !== "undefined"
+        ? MediaRecorder.isTypeSupported(type)
+        : false,
+    ) ?? ""
+  );
+}
+
+function extensionForMimeType(mimeType: string) {
+  if (mimeType.includes("mp4")) return "m4a";
+  if (mimeType.includes("ogg")) return "ogg";
+  return "webm";
+}
+
+function stopStream(stream: MediaStream | null) {
+  stream?.getTracks().forEach((track) => track.stop());
+}
+
+export function MessagesComposer({
+  disabled = false,
+  onSendText,
+  onSendAudio,
+}: MessagesComposerProps) {
   const [mode, setMode] = useState<Mode>("text");
+  const [draft, setDraft] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [voicePhase, setVoicePhase] = useState<VoicePhase>("idle");
   const [elapsed, setElapsed] = useState(0);
+  const [voiceBusy, setVoiceBusy] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const startY = useRef(0);
+  const startedAt = useRef(0);
+  const voicePhaseRef = useRef<VoicePhase>("idle");
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
   const photoRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
+
+  function setPhase(next: VoicePhase) {
+    voicePhaseRef.current = next;
+    setVoicePhase(next);
+  }
+
+  function handleSend() {
+    if (disabled) {
+      return;
+    }
+
+    const text = draft.trim();
+    if (!text) {
+      return;
+    }
+
+    if (onSendText(text)) {
+      setDraft("");
+    }
+  }
 
   useEffect(() => {
     if (voicePhase === "idle") {
       return;
     }
 
-    const startedAt = Date.now();
     const timer = window.setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startedAt) / 1000));
+      setElapsed(Math.floor((Date.now() - startedAt.current) / 1000));
     }, 200);
 
     return () => window.clearInterval(timer);
   }, [voicePhase]);
+
+  useEffect(() => {
+    return () => {
+      mediaRecorderRef.current?.stop();
+      stopStream(streamRef.current);
+    };
+  }, []);
 
   function closeMenu() {
     setMenuOpen(false);
@@ -48,28 +127,147 @@ export function MessagesComposer() {
 
   function switchMode(next: Mode) {
     setMode(next);
-    setVoicePhase("idle");
+    setPhase("idle");
     setMenuOpen(false);
+    setVoiceError(null);
   }
 
-  function onHoldPointerDown(event: PointerEvent<HTMLButtonElement>) {
+  async function startRecording() {
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.mediaDevices?.getUserMedia ||
+      typeof MediaRecorder === "undefined"
+    ) {
+      throw new Error("当前浏览器不支持录音");
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    if (voicePhaseRef.current === "idle") {
+      stopStream(stream);
+      return;
+    }
+
+    const mimeType = pickRecorderMimeType();
+    const recorder = mimeType
+      ? new MediaRecorder(stream, { mimeType })
+      : new MediaRecorder(stream);
+
+    chunksRef.current = [];
+    streamRef.current = stream;
+    mediaRecorderRef.current = recorder;
+
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        chunksRef.current.push(event.data);
+      }
+    };
+
+    recorder.start();
+  }
+
+  function finishRecording() {
+    return new Promise<Blob | null>((resolve) => {
+      const recorder = mediaRecorderRef.current;
+      const stream = streamRef.current;
+
+      if (!recorder || recorder.state === "inactive") {
+        stopStream(stream);
+        streamRef.current = null;
+        mediaRecorderRef.current = null;
+        resolve(null);
+        return;
+      }
+
+      recorder.onstop = () => {
+        const type = recorder.mimeType || "audio/webm";
+        const blob =
+          chunksRef.current.length > 0
+            ? new Blob(chunksRef.current, { type })
+            : null;
+        chunksRef.current = [];
+        stopStream(stream);
+        streamRef.current = null;
+        mediaRecorderRef.current = null;
+        resolve(blob && blob.size > 0 ? blob : null);
+      };
+
+      recorder.stop();
+    });
+  }
+
+  async function onHoldPointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (disabled || voiceBusy) {
+      return;
+    }
+
     event.currentTarget.setPointerCapture(event.pointerId);
     startY.current = event.clientY;
+    startedAt.current = Date.now();
     setElapsed(0);
-    setVoicePhase("recording");
+    setVoiceError(null);
+    setPhase("recording");
+
+    try {
+      await startRecording();
+    } catch (caught) {
+      setPhase("idle");
+      setVoiceError(
+        caught instanceof Error ? caught.message : "无法使用麦克风",
+      );
+    }
   }
 
   function onHoldPointerMove(event: PointerEvent<HTMLButtonElement>) {
-    if (voicePhase === "idle") {
+    if (voicePhaseRef.current === "idle") {
       return;
     }
 
     const lifted = startY.current - event.clientY;
-    setVoicePhase(lifted > CANCEL_THRESHOLD ? "cancel" : "recording");
+    setPhase(lifted > CANCEL_THRESHOLD ? "cancel" : "recording");
   }
 
-  function onHoldPointerUp() {
-    setVoicePhase("idle");
+  async function onHoldPointerUp() {
+    if (voicePhaseRef.current === "idle") {
+      return;
+    }
+
+    const cancelled = voicePhaseRef.current === "cancel";
+    const durationMs = Date.now() - startedAt.current;
+    setPhase("idle");
+
+    const blob = await finishRecording();
+
+    if (cancelled || !blob || durationMs < MIN_VOICE_MS) {
+      if (!cancelled && durationMs < MIN_VOICE_MS) {
+        setVoiceError("说话时间太短");
+      }
+      return;
+    }
+
+    if (disabled) {
+      return;
+    }
+
+    setVoiceBusy(true);
+    setVoiceError(null);
+
+    try {
+      const mimeType = blob.type || "audio/webm";
+      const file = new File(
+        [blob],
+        `voice.${extensionForMimeType(mimeType)}`,
+        { type: mimeType },
+      );
+      const uploaded = await uploadMedia(file, "interact");
+      if (!onSendAudio(uploaded.url)) {
+        setVoiceError("发送失败，请重试");
+      }
+    } catch (caught) {
+      setVoiceError(caught instanceof Error ? caught.message : "语音发送失败");
+    } finally {
+      setVoiceBusy(false);
+    }
   }
 
   return (
@@ -81,6 +279,12 @@ export function MessagesComposer() {
           onPhoto={() => photoRef.current?.click()}
           onVideo={() => videoRef.current?.click()}
         />
+      ) : null}
+
+      {voiceError ? (
+        <p className="px-6 pb-1 text-center text-[12px] text-danger" role="alert">
+          {voiceError}
+        </p>
       ) : null}
 
       <div
@@ -123,13 +327,24 @@ export function MessagesComposer() {
           <>
             <input
               type="text"
-              placeholder="发消息…"
-              className="h-10 min-w-0 flex-1 rounded-[20px] border border-border bg-surface px-4 text-sm text-fg outline-none placeholder:text-fg-muted"
+              value={draft}
+              disabled={disabled}
+              placeholder={disabled ? "连接中…" : "发消息…"}
+              className="h-10 min-w-0 flex-1 rounded-[20px] border border-border bg-surface px-4 text-sm text-fg outline-none placeholder:text-fg-muted disabled:opacity-60"
+              onChange={(event) => setDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                  event.preventDefault();
+                  handleSend();
+                }
+              }}
             />
             <button
               type="button"
               aria-label="发送"
-              className="inline-flex size-9 shrink-0 items-center justify-center rounded-[18px] bg-accent text-inverse transition-[background-color,transform] duration-100 ease-out hover:bg-accent-pressed active:scale-[0.97] motion-reduce:active:scale-100"
+              disabled={disabled || !draft.trim()}
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-[18px] bg-accent text-inverse transition-[background-color,transform] duration-100 ease-out hover:bg-accent-pressed active:scale-[0.97] motion-reduce:active:scale-100 disabled:opacity-40"
+              onClick={handleSend}
             >
               <ArrowUp className="size-4" strokeWidth={2.5} />
             </button>
@@ -138,10 +353,18 @@ export function MessagesComposer() {
           <HoldToTalk
             phase={voicePhase}
             elapsed={elapsed}
-            onPointerDown={onHoldPointerDown}
+            busy={voiceBusy}
+            disabled={disabled || voiceBusy}
+            onPointerDown={(event) => {
+              void onHoldPointerDown(event);
+            }}
             onPointerMove={onHoldPointerMove}
-            onPointerUp={onHoldPointerUp}
-            onPointerCancel={onHoldPointerUp}
+            onPointerUp={() => {
+              void onHoldPointerUp();
+            }}
+            onPointerCancel={() => {
+              void onHoldPointerUp();
+            }}
           />
         )}
       </div>
@@ -178,6 +401,8 @@ function CancelSendHint() {
 function HoldToTalk({
   phase,
   elapsed,
+  busy,
+  disabled,
   onPointerDown,
   onPointerMove,
   onPointerUp,
@@ -185,6 +410,8 @@ function HoldToTalk({
 }: {
   phase: VoicePhase;
   elapsed: number;
+  busy: boolean;
+  disabled: boolean;
   onPointerDown: (event: PointerEvent<HTMLButtonElement>) => void;
   onPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
   onPointerUp: () => void;
@@ -195,10 +422,11 @@ function HoldToTalk({
   return (
     <button
       type="button"
+      disabled={disabled && phase === "idle"}
       className={cx(
         "flex h-12 min-w-0 flex-1 items-center rounded-[24px] px-4 text-sm select-none touch-none",
         phase === "idle"
-          ? "justify-center gap-2 bg-accent-soft text-fg"
+          ? "justify-center gap-2 bg-accent-soft text-fg disabled:opacity-60"
           : cancelling
             ? "justify-between gap-3 bg-[#F8E6E6] text-danger"
             : "justify-between gap-3 border border-accent bg-surface text-fg",
@@ -208,7 +436,9 @@ function HoldToTalk({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
     >
-      {phase === "idle" ? (
+      {busy && phase === "idle" ? (
+        <span className="font-semibold">发送中…</span>
+      ) : phase === "idle" ? (
         <>
           <Mic className="size-4" strokeWidth={2} />
           按住说话

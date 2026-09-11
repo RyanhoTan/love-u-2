@@ -88,27 +88,3 @@ export const WISHES = [
     src: "https://images.unsplash.com/photo-1719560042123-ebf4f17566d5?auto=format&fit=crop&w=800&q=80",
   },
 ] as const;
-
-export const MESSAGES = [
-  { kind: "stamp", text: "今天 10:21" },
-  {
-    kind: "in",
-    text: "今晚想去江边走走吗？",
-    time: "10:21",
-  },
-  {
-    kind: "out",
-    text: "好，我六点半下班。",
-    time: "10:22",
-  },
-  {
-    kind: "photo",
-    src: "https://images.unsplash.com/photo-1567108986089-678f178e0bb6?auto=format&fit=crop&w=640&q=80",
-    alt: "江边",
-  },
-  {
-    kind: "out",
-    text: "那家拉面也一起？",
-    time: "10:24",
-  },
-] as const;
