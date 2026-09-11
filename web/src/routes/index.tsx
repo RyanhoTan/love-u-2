@@ -93,7 +93,7 @@ export const router = createBrowserRouter([
             handle: {
               navId: "photos",
               title: "相册",
-              meta: "1,284 项",
+              meta: "共同相册",
               actions: [
                 { kind: "search" },
                 { kind: "primary", label: "上传", to: "/photos/upload" },
