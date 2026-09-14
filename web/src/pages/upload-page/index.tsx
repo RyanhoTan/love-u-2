@@ -47,6 +47,7 @@ const SELECTED_FILES: SelectedFile[] = [
 export function UploadPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedFiles, setSelectedFiles] = useState(SELECTED_FILES);
+  const [previewFile, setPreviewFile] = useState<SelectedFile | null>(null);
 
   function addFiles(fileList: FileList | null) {
     if (!fileList) return;
@@ -144,17 +145,64 @@ export function UploadPage() {
                 />
               </div>
             )}
+            {file.kind === "image" || file.kind === "video" ? (
+              <button
+                type="button"
+                aria-label={`放大查看${file.kind === "video" ? "视频" : "图片"}${file.name}`}
+                onClick={() => setPreviewFile(file)}
+                className="absolute inset-0 cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+              />
+            ) : null}
             <button
               type="button"
               aria-label={`移除${file.name}`}
               onClick={() => handleRemove(file.id)}
-              className="absolute right-2 top-2 grid size-6 place-items-center rounded-full bg-black/80 text-white opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/90 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
+              className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-black/80 text-white opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/90 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
             >
               <X className="size-3.5" strokeWidth={2.2} />
             </button>
           </div>
         ))}
       </div>
+
+      {previewFile && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6 backdrop-blur-[8px]"
+          onClick={() => setPreviewFile(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`预览${previewFile.name}`}
+        >
+          <div
+            className="flex max-h-full max-w-full items-center justify-center"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {previewFile.kind === "video" && previewFile.objectUrl ? (
+              <video
+                src={previewFile.src}
+                aria-label={previewFile.name}
+                className="max-h-[calc(100vh-3rem)] max-w-[calc(100vw-3rem)] object-contain"
+                controls
+                playsInline
+              />
+            ) : (
+              <img
+                src={previewFile.src}
+                alt={previewFile.name}
+                className="max-h-[calc(100vh-3rem)] max-w-[calc(100vw-3rem)] object-contain"
+              />
+            )}
+          </div>
+          <button
+            type="button"
+            aria-label="关闭预览"
+            onClick={() => setPreviewFile(null)}
+            className="absolute right-6 top-6 grid size-9 place-items-center rounded-full bg-black/65 text-white transition-colors hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <X className="size-5" strokeWidth={2} />
+          </button>
+        </div>
+      )}
     </PageBody>
   );
 }
