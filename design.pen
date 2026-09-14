@@ -4765,6 +4765,17 @@
                       }
                     },
                     {
+                      "id": "ePhtEd",
+                      "type": "ref",
+                      "ref": "qnqoO",
+                      "name": "Button/EditPhotos",
+                      "descendants": {
+                        "UyJSw": {
+                          "content": "编辑"
+                        }
+                      }
+                    },
+                    {
                       "id": "h8kTg",
                       "type": "ref",
                       "ref": "b8UmxM",
@@ -44379,6 +44390,921 @@
           "fontSize": 12,
           "fontWeight": "500",
           "textAlign": "center"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "PhtEd0",
+      "x": 7600,
+      "y": 1362,
+      "name": "Web / Photos · Edit",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$app",
+      "cornerRadius": "$radius-window",
+      "children": [
+        {
+          "type": "frame",
+          "id": "PhtEdSide",
+          "name": "Sidebar",
+          "width": 232,
+          "height": "fill_container",
+          "fill": "$sidebar",
+          "stroke": "$border",
+          "strokeWidth": {
+            "right": 1
+          },
+          "effect": {
+            "type": "background_blur",
+            "radius": 24
+          },
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            28,
+            14,
+            18,
+            14
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "frame",
+              "id": "PhtEdSideTop",
+              "name": "Sidebar Top",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "PhtEdBrand",
+                  "name": "Brand",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "PhtEdMark",
+                      "name": "Mark",
+                      "width": 28,
+                      "height": 28,
+                      "fill": "$accent",
+                      "cornerRadius": 8,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "PhtEdHeart",
+                          "name": "Mark Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "heart",
+                          "library": "lucide",
+                          "fill": "$text-inverse"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "PhtEdWordmark",
+                      "name": "Wordmark",
+                      "fill": "$text-primary",
+                      "content": "Love U 2",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "600",
+                      "letterSpacing": -0.3
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PhtEdNav",
+                  "name": "Nav",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "id": "PhtEdNavToday",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/今天",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "home"
+                        },
+                        "Jogxr": {
+                          "content": "今天"
+                        }
+                      }
+                    },
+                    {
+                      "id": "PhtEdNavChat",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/对话",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "message-circle"
+                        },
+                        "Jogxr": {
+                          "content": "对话"
+                        }
+                      }
+                    },
+                    {
+                      "id": "PhtEdNavAlbum",
+                      "type": "ref",
+                      "ref": "xAlfe",
+                      "name": "Nav/相册",
+                      "width": "fill_container",
+                      "descendants": {
+                        "U65if": {
+                          "icon": "image"
+                        },
+                        "neKV1": {
+                          "content": "相册"
+                        }
+                      }
+                    },
+                    {
+                      "id": "PhtEdNavWish",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/心愿",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "gift"
+                        },
+                        "Jogxr": {
+                          "content": "心愿"
+                        }
+                      }
+                    },
+                    {
+                      "id": "PhtEdNavDays",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/纪念日",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "calendar"
+                        },
+                        "Jogxr": {
+                          "content": "纪念日"
+                        }
+                      }
+                    },
+                    {
+                      "id": "PhtEdNavMe",
+                      "type": "ref",
+                      "ref": "o0Zz8",
+                      "name": "Nav/我的",
+                      "width": "fill_container",
+                      "descendants": {
+                        "ketI2": {
+                          "icon": "user"
+                        },
+                        "Jogxr": {
+                          "content": "我的"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "PhtEdCouple",
+              "name": "Couple Footer",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 12,
+              "gap": 10,
+              "padding": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "PhtEdAvatars",
+                  "name": "Couple Avatars",
+                  "gap": -8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "PhtEdRyan",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Ryan",
+                      "width": 28,
+                      "height": 28
+                    },
+                    {
+                      "id": "PhtEdLin",
+                      "type": "ref",
+                      "ref": "dI7ui",
+                      "name": "Avatar/Lin",
+                      "width": 28,
+                      "height": 28
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PhtEdCoupleMeta",
+                  "name": "Couple Meta",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PhtEdCoupleNames",
+                      "name": "Couple Names",
+                      "fill": "$text-primary",
+                      "content": "Ryan 与 Lin",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "PhtEdCoupleDays",
+                      "name": "Couple Days",
+                      "fill": "$text-muted",
+                      "content": "428 天",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "PhtEdMain",
+          "name": "Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface-soft",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "PhtEdToolbar",
+              "name": "Edit Toolbar",
+              "width": "fill_container",
+              "height": 56,
+              "fill": "#FBF8F5CC",
+              "effect": {
+                "type": "background_blur",
+                "radius": 20
+              },
+              "padding": [
+                0,
+                32
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "PhtEdToolbarLeft",
+                  "name": "Toolbar Left",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "PhtEdExit",
+                      "type": "ref",
+                      "ref": "z7BtBB",
+                      "name": "Button/ExitEdit",
+                      "descendants": {
+                        "eArlH": {
+                          "content": "退出"
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PhtEdTitle",
+                      "name": "Toolbar Title",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "PhtEdTitleText",
+                          "name": "Page Title",
+                          "fill": "$text-primary",
+                          "content": "编辑照片",
+                          "fontFamily": "$font",
+                          "fontSize": 22,
+                          "fontWeight": "600",
+                          "letterSpacing": -0.4
+                        },
+                        {
+                          "type": "text",
+                          "id": "PhtEdSelectionMeta",
+                          "name": "Selection Meta",
+                          "fill": "$accent",
+                          "content": "已选择 2 张",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PhtEdToolbarActions",
+                  "name": "Toolbar Actions",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "PhtEdSelectAll",
+                      "type": "ref",
+                      "ref": "qnqoO",
+                      "name": "Button/SelectAll",
+                      "descendants": {
+                        "UyJSw": {
+                          "content": "全选"
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PhtEdDelete",
+                      "name": "Button/DeleteSelected",
+                      "height": 36,
+                      "fill": "$danger",
+                      "cornerRadius": "$radius-control",
+                      "gap": 6,
+                      "padding": [
+                        0,
+                        16
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "PhtEdTrash",
+                          "name": "Delete Icon",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "trash-2",
+                          "library": "lucide",
+                          "fill": "$text-inverse"
+                        },
+                        {
+                          "type": "text",
+                          "id": "PhtEdDeleteLabel",
+                          "name": "Label",
+                          "fill": "$text-inverse",
+                          "content": "删除 2 张",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "PhtEdBody",
+              "name": "Body",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                20,
+                32,
+                28,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "PhtEdHint",
+                  "name": "Selection Hint",
+                  "width": "fill_container",
+                  "height": 36,
+                  "fill": "$accent-soft",
+                  "cornerRadius": "$radius-control",
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "PhtEdInfo",
+                      "name": "Info Icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "info",
+                      "library": "lucide",
+                      "fill": "$accent"
+                    },
+                    {
+                      "type": "text",
+                      "id": "PhtEdHintText",
+                      "name": "Hint",
+                      "fill": "$text-secondary",
+                      "content": "已选择 2 张照片，可以删除或继续选择",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PhtEdGrid",
+                  "name": "Photo Grid",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "PhtEdRow1",
+                      "name": "Photo Row",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto1",
+                          "name": "Photo/tokyo street",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1683993662295-93debc656a21?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU1OTd8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto1Shade",
+                              "layoutPosition": "absolute",
+                              "x": 0,
+                              "y": 0,
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "fill": "#1C141850"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto1Check",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "$accent",
+                              "cornerRadius": 12,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "PhtEdPhoto1CheckIcon",
+                                  "name": "Check",
+                                  "width": 14,
+                                  "height": 14,
+                                  "icon": "check",
+                                  "library": "lucide",
+                                  "fill": "$text-inverse"
+                                }
+                              ]
+                            }
+                          ],
+                          "stroke": "$accent",
+                          "strokeWidth": 3
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto2",
+                          "name": "Photo/ramen bowl",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1645123986577-dfc9359e982b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU1OTh8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto2Shade",
+                              "layoutPosition": "absolute",
+                              "x": 0,
+                              "y": 0,
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "fill": "#1C141850"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto2Check",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "$accent",
+                              "cornerRadius": 12,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "PhtEdPhoto2CheckIcon",
+                                  "name": "Check",
+                                  "width": 14,
+                                  "height": 14,
+                                  "icon": "check",
+                                  "library": "lucide",
+                                  "fill": "$text-inverse"
+                                }
+                              ]
+                            }
+                          ],
+                          "stroke": "$accent",
+                          "strokeWidth": 3
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto3",
+                          "name": "Photo/train window",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1615384698544-85742d5d2279?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU1OTh8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto3Select",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Not Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#1C14186B",
+                              "cornerRadius": 12,
+                              "stroke": "#FFFFFFB8",
+                              "strokeWidth": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto4",
+                          "name": "Photo/cherry blossom",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1522547902298-51566e4fb383?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU1OTl8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto4Select",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Not Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#1C14186B",
+                              "cornerRadius": 12,
+                              "stroke": "#FFFFFFB8",
+                              "strokeWidth": 1
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PhtEdRow2",
+                      "name": "Photo Row",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto5",
+                          "name": "Photo/ocean cliff",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1555702152-8ca6cbc49c6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU2MDB8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto5Select",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Not Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#1C14186B",
+                              "cornerRadius": 12,
+                              "stroke": "#FFFFFFB8",
+                              "strokeWidth": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto6",
+                          "name": "Photo/night city",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1628755847299-20f509e81973?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU2MDB8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto6Select",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Not Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#1C14186B",
+                              "cornerRadius": 12,
+                              "stroke": "#FFFFFFB8",
+                              "strokeWidth": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto7",
+                          "name": "Photo/old camera",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1551818014-8279462338b2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU2MDF8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto7Select",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Not Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#1C14186B",
+                              "cornerRadius": 12,
+                              "stroke": "#FFFFFFB8",
+                              "strokeWidth": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto8",
+                          "name": "Photo/sunflower field",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1721059050925-1bcf0a93c81f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU2MDJ8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto8Select",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Not Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#1C14186B",
+                              "cornerRadius": 12,
+                              "stroke": "#FFFFFFB8",
+                              "strokeWidth": 1
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PhtEdRow3",
+                      "name": "Photo Row",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto9",
+                          "name": "Photo/cat window",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1655880095392-eebe6c878073?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU2MDJ8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto9Select",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Not Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#1C14186B",
+                              "cornerRadius": 12,
+                              "stroke": "#FFFFFFB8",
+                              "strokeWidth": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto10",
+                          "name": "Photo/pastry plate",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1788172406580-7a0417c9e53b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU2MDN8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto10Select",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Not Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#1C14186B",
+                              "cornerRadius": 12,
+                              "stroke": "#FFFFFFB8",
+                              "strokeWidth": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto11",
+                          "name": "Photo/forest path",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1592842390139-6273d4cf6f57?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU2MDN8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto11Select",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Not Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#1C14186B",
+                              "cornerRadius": 12,
+                              "stroke": "#FFFFFFB8",
+                              "strokeWidth": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PhtEdPhoto12",
+                          "name": "Photo/hands coffee",
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1575301095327-7be508b9435b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzU2MDV8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PhtEdPhoto12Select",
+                              "layoutPosition": "absolute",
+                              "x": 12,
+                              "y": 12,
+                              "name": "Not Selected",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#1C14186B",
+                              "cornerRadius": 12,
+                              "stroke": "#FFFFFFB8",
+                              "strokeWidth": 1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     }

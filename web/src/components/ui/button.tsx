@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cx } from "../../lib/cx";
 
-type ButtonVariant = "primary" | "secondary" | "ghost";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const variantClass: Record<ButtonVariant, string> = {
   primary:
@@ -10,6 +10,7 @@ const variantClass: Record<ButtonVariant, string> = {
   secondary:
     "border border-border bg-surface text-fg hover:bg-surface-soft",
   ghost: "text-accent hover:bg-accent-soft",
+  danger: "bg-danger text-inverse hover:bg-danger/90",
 };
 
 type ButtonProps = {

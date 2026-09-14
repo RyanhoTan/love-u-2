@@ -80,7 +80,11 @@ export function Toolbar() {
 }
 
 function actionKey(action: ToolbarAction) {
-  if (action.kind === "primary" || action.kind === "ghost") {
+  if (
+    action.kind === "primary" ||
+    action.kind === "danger" ||
+    action.kind === "ghost"
+  ) {
     return `${action.kind}-${action.label}`;
   }
   return action.kind;
@@ -114,6 +118,14 @@ function ToolbarActionButton({ action }: { action: ToolbarAction }) {
   if (action.kind === "ghost") {
     return (
       <Button variant="ghost" to={action.to} form={action.form} type={action.form ? "submit" : "button"}>
+        {action.label}
+      </Button>
+    );
+  }
+
+  if (action.kind === "danger") {
+    return (
+      <Button variant="danger" to={action.to} form={action.form} type={action.form ? "submit" : "button"}>
         {action.label}
       </Button>
     );

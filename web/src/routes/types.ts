@@ -5,6 +5,7 @@ export type ToolbarAction =
   | { kind: "notify" }
   | { kind: "info" }
   | { kind: "primary"; label: string; to?: string; form?: string }
+  | { kind: "danger"; label: string; to?: string; form?: string }
   | { kind: "ghost"; label: string; to?: string; form?: string };
 
 export type RouteHandle = {

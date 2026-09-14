@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { TodayPage } from "@/pages/today-page";
 import { LoginPage } from "@/pages/login-page";
 import { MessagesPage } from "@/pages/messages-page";
-import { PhotosPage } from "@/pages/photos-page";
+import { PhotosEditPage, PhotosPage } from "@/pages/photos-page";
 import { UploadPage } from "@/pages/upload-page";
 import { WishesPage } from "@/pages/wishes-page";
 import { WishNewPage } from "@/pages/wishes-page/new-page";
@@ -98,12 +98,29 @@ export const router = createBrowserRouter([
               meta: "共同相册",
               actions: [
                 { kind: "search" },
+                { kind: "ghost", label: "编辑", to: "/photos/edit" },
                 { kind: "primary", label: "上传", to: "/photos/upload" },
               ],
               placeholder: "相册",
               bodyClassName: body.photos,
             } satisfies RouteHandle,
             Component: PhotosPage,
+          },
+          {
+            path: "photos/edit",
+            handle: {
+              navId: "photos",
+              title: "编辑照片",
+              meta: "已选择 2 张",
+              backTo: "/photos",
+              actions: [
+                { kind: "ghost", label: "全选" },
+                { kind: "danger", label: "删除 2 张" },
+              ],
+              placeholder: "编辑照片",
+              bodyClassName: body.photos,
+            } satisfies RouteHandle,
+            Component: PhotosEditPage,
           },
           {
             path: "photos/upload",
