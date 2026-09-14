@@ -1,6 +1,10 @@
-import { Bell, ChevronLeft, Ellipsis, Search } from "lucide-react";
+import { Bell, ChevronLeft, Ellipsis, Search, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/context";
+import {
+  usePhotoEditContext,
+  type PhotoEditController,
+} from "@/features/album/photo-edit-context";
 import { displayName } from "@/lib/user";
 import { useRouteHandle } from "@/routes/use-route-handle";
 import { formatToolbarDate } from "../../lib/date";
@@ -11,8 +15,14 @@ import type { ToolbarAction } from "@/routes/types";
 export function Toolbar() {
   const handle = useRouteHandle();
   const { user, profileStatus } = useAuth();
+  const { controller } = usePhotoEditContext();
+  const isPhotoEditPage = handle.title === "编辑照片";
   const meta =
-    handle.meta === "today-date" ? formatToolbarDate() : handle.meta;
+    isPhotoEditPage && controller
+      ? `已选择 ${controller.selectedCount} 张`
+      : handle.meta === "today-date"
+        ? formatToolbarDate()
+        : handle.meta;
 
   const partner = user?.couple.isBound ? user.couple.partner : null;
   const partnerName = partner ? displayName(partner) : "";
@@ -50,9 +60,7 @@ export function Toolbar() {
                 对话
               </h1>
               <p className="text-xs text-fg-muted">
-                {profileStatus === "loading"
-                  ? "加载中…"
-                  : "绑定情侣后即可对话"}
+                {profileStatus === "loading" ? "加载中…" : "绑定情侣后即可对话"}
               </p>
             </div>
           )
@@ -61,14 +69,14 @@ export function Toolbar() {
             <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
               {handle.title}
             </h1>
-            {meta ? (
-              <p className="text-xs text-fg-muted">{meta}</p>
-            ) : null}
+            {meta ? <p className="text-xs text-fg-muted">{meta}</p> : null}
           </div>
         )}
       </div>
 
-      {handle.actions?.length ? (
+      {isPhotoEditPage ? (
+        <PhotoEditToolbarActions controller={controller} />
+      ) : handle.actions?.length ? (
         <div className="flex items-center gap-2">
           {handle.actions.map((action) => (
             <ToolbarActionButton key={actionKey(action)} action={action} />
@@ -76,6 +84,37 @@ export function Toolbar() {
         </div>
       ) : null}
     </header>
+  );
+}
+
+function PhotoEditToolbarActions({
+  controller,
+}: {
+  controller: PhotoEditController | null;
+}) {
+  if (!controller) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="ghost"
+        disabled={controller.totalCount === 0}
+        onClick={controller.toggleAll}
+      >
+        {controller.allSelected ? "取消全选" : "全选"}
+      </Button>
+      <Button
+        variant="danger"
+        className="disabled:opacity-60"
+        disabled={controller.selectedCount === 0}
+        onClick={controller.requestDelete}
+      >
+        <Trash2 className="size-4" strokeWidth={2} />
+        删除 {controller.selectedCount} 张
+      </Button>
+    </div>
   );
 }
 
@@ -117,7 +156,12 @@ function ToolbarActionButton({ action }: { action: ToolbarAction }) {
 
   if (action.kind === "ghost") {
     return (
-      <Button variant="ghost" to={action.to} form={action.form} type={action.form ? "submit" : "button"}>
+      <Button
+        variant="ghost"
+        to={action.to}
+        form={action.form}
+        type={action.form ? "submit" : "button"}
+      >
         {action.label}
       </Button>
     );
@@ -125,7 +169,12 @@ function ToolbarActionButton({ action }: { action: ToolbarAction }) {
 
   if (action.kind === "danger") {
     return (
-      <Button variant="danger" to={action.to} form={action.form} type={action.form ? "submit" : "button"}>
+      <Button
+        variant="danger"
+        to={action.to}
+        form={action.form}
+        type={action.form ? "submit" : "button"}
+      >
         {action.label}
       </Button>
     );

@@ -1,10 +1,8 @@
-import { Check, Image, Info, Play, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check, Image, Info, Play, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import type { AlbumMediaItem } from "@/api/album";
-import {
-  errorMessage,
-  useAlbumMediaQuery,
-} from "@/features/album/queries";
+import { usePhotoEditContext } from "@/features/album/photo-edit-context";
+import { errorMessage, useAlbumMediaQuery } from "@/features/album/queries";
 import { PageBody } from "@/components/layout/page-body";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -276,7 +274,78 @@ export function PhotosEditPage() {
   const items = (query.data?.media ?? []).filter(
     (media) => media.mediaType === "image",
   );
-  const selectedIds = new Set(items.slice(0, 2).map((media) => media.id));
+
+  if (items.length === 0) {
+    return (
+      <PageBody className="items-center justify-center gap-3 text-center">
+        <div className="flex size-14 items-center justify-center rounded-[16px] bg-accent-soft">
+          <Image className="size-[26px] text-accent" />
+        </div>
+        <h2 className="text-[17px] font-semibold tracking-[-0.2px] text-fg">
+          还没有可编辑的照片
+        </h2>
+        <p className="text-sm text-fg-secondary">先上传照片，再回来管理</p>
+      </PageBody>
+    );
+  }
+
+  return <PhotoEditContent initialItems={items} />;
+}
+
+function PhotoEditContent({
+  initialItems,
+}: {
+  initialItems: AlbumMediaItem[];
+}) {
+  const { register } = usePhotoEditContext();
+  const [items, setItems] = useState(initialItems);
+  const [selectedIds, setSelectedIds] = useState(
+    () => new Set(initialItems.slice(0, 2).map((media) => media.id)),
+  );
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const allSelected = items.length > 0 && selectedIds.size === items.length;
+
+  useEffect(() => {
+    register({
+      selectedCount: selectedIds.size,
+      totalCount: items.length,
+      allSelected,
+      toggleAll: () => {
+        setSelectedIds(
+          allSelected ? new Set() : new Set(items.map((media) => media.id)),
+        );
+      },
+      requestDelete: () => {
+        if (selectedIds.size > 0) {
+          setConfirmDelete(true);
+        }
+      },
+    });
+
+    return () => register(null);
+  }, [allSelected, items, register, selectedIds]);
+
+  function toggleSelected(id: number) {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+
+      return next;
+    });
+  }
+
+  function deleteSelected() {
+    setItems((current) =>
+      current.filter((media) => !selectedIds.has(media.id)),
+    );
+    setSelectedIds(new Set());
+    setConfirmDelete(false);
+  }
 
   if (items.length === 0) {
     return (
@@ -293,49 +362,136 @@ export function PhotosEditPage() {
   }
 
   return (
-    <PageBody scroll={false} className="gap-4">
-      <div className="flex shrink-0 items-center gap-2 rounded-control bg-accent-soft px-3 py-2 text-xs font-medium text-fg-secondary">
-        <Info className="size-4 shrink-0 text-accent" strokeWidth={2} />
-        <span>
-          已选择 {selectedIds.size} 张照片，可以删除或继续选择
-        </span>
-      </div>
+    <>
+      <PageBody scroll={false} className="gap-4">
+        <div className="flex shrink-0 items-center gap-2 rounded-control bg-accent-soft px-3 py-2 text-xs font-medium text-fg-secondary">
+          <Info className="size-4 shrink-0 text-accent" strokeWidth={2} />
+          <span>
+            {selectedIds.size > 0
+              ? `已选择 ${selectedIds.size} 张照片，可以删除或继续选择`
+              : "请选择照片后进行删除"}
+          </span>
+        </div>
 
-      <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-4 content-start gap-2 overflow-y-auto">
-        {items.map((media) => {
-          const caption = mediaCaption(media);
-          const selected = selectedIds.has(media.id);
+        <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-4 content-start gap-2 overflow-y-auto">
+          {items.map((media) => {
+            const caption = mediaCaption(media);
+            const selected = selectedIds.has(media.id);
 
-          return (
-            <div
-              key={media.id}
-              className={`group relative aspect-square overflow-hidden rounded-control bg-avatar ${
-                selected ? "ring-2 ring-inset ring-accent" : ""
-              }`}
-              title={caption || undefined}
-            >
-              <img
-                src={mediaSrc(media)}
-                alt={caption}
-                className="size-full object-cover"
-              />
-              {selected ? (
-                <span className="pointer-events-none absolute inset-0 bg-black/30" />
-              ) : null}
-              <span
-                className={`pointer-events-none absolute left-3 top-3 grid size-6 place-items-center rounded-full ${
-                  selected
-                    ? "bg-accent text-inverse"
-                    : "bg-black/40 text-transparent ring-1 ring-inset ring-white/75"
+            return (
+              <button
+                key={media.id}
+                type="button"
+                className={`group relative aspect-square overflow-hidden rounded-control bg-avatar text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  selected ? "ring-2 ring-inset ring-accent" : ""
                 }`}
-                aria-hidden="true"
+                title={caption || undefined}
+                aria-label={`${selected ? "取消选择" : "选择"}${caption || "照片"}`}
+                aria-pressed={selected}
+                onClick={() => toggleSelected(media.id)}
               >
-                {selected ? <Check className="size-3.5" strokeWidth={2.5} /> : null}
-              </span>
-            </div>
-          );
-        })}
+                <img
+                  src={mediaSrc(media)}
+                  alt={caption}
+                  className="size-full object-cover"
+                />
+                {selected ? (
+                  <span className="pointer-events-none absolute inset-0 bg-black/30" />
+                ) : null}
+                <span
+                  className={`pointer-events-none absolute left-3 top-3 grid size-6 place-items-center rounded-full ${
+                    selected
+                      ? "bg-accent text-inverse"
+                      : "bg-black/40 text-transparent ring-1 ring-inset ring-white/75"
+                  }`}
+                  aria-hidden="true"
+                >
+                  {selected ? (
+                    <Check className="size-3.5" strokeWidth={2.5} />
+                  ) : null}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </PageBody>
+
+      {confirmDelete ? (
+        <PhotoDeleteDialog
+          count={selectedIds.size}
+          onCancel={() => setConfirmDelete(false)}
+          onConfirm={deleteSelected}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function PhotoDeleteDialog({
+  count,
+  onCancel,
+  onConfirm,
+}: {
+  count: number;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-overlay px-6 py-6 backdrop-blur-[16px]"
+      onClick={onCancel}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          onCancel();
+        }
+      }}
+      role="presentation"
+    >
+      <div
+        className="w-full max-w-[400px] overflow-hidden rounded-[20px] bg-surface shadow-[0_12px_40px_rgb(28_20_24_/_0.1)]"
+        onClick={(event) => event.stopPropagation()}
+        role="presentation"
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-photos-title"
+          className="flex flex-col items-center gap-2 px-6 pb-6 pt-7 text-center"
+        >
+          <div className="mb-1 flex size-11 items-center justify-center rounded-full bg-danger/8">
+            <Trash2 className="size-5 text-danger" strokeWidth={2} />
+          </div>
+          <h2
+            id="delete-photos-title"
+            className="text-lg font-semibold tracking-[-0.3px] text-fg"
+          >
+            删除所选照片？
+          </h2>
+          <p className="text-sm leading-[1.45] tracking-[-0.1px] text-fg-secondary">
+            将从当前编辑视图移除 {count} 张照片。
+          </p>
+        </div>
+
+        <div className="h-px bg-border" />
+
+        <div className="flex h-[52px] items-stretch">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex flex-1 items-center justify-center text-base font-medium tracking-[-0.2px] text-fg transition-colors duration-100 ease-out hover:bg-surface-soft active:scale-[0.99]"
+          >
+            取消
+          </button>
+          <div className="w-px bg-border" />
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex flex-1 items-center justify-center text-base font-semibold tracking-[-0.2px] text-danger transition-colors duration-100 ease-out hover:bg-surface-soft active:scale-[0.99]"
+          >
+            删除
+          </button>
+        </div>
       </div>
-    </PageBody>
+    </div>
   );
 }

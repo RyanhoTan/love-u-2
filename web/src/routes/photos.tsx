@@ -29,12 +29,9 @@ export const photosRoutes = [
         handle: {
           navId: "photos",
           title: "编辑照片",
-          meta: "已选择 2 张",
+          meta: "已选择 0 张",
           backTo: "/photos",
-          actions: [
-            { kind: "ghost", label: "全选" },
-            { kind: "danger", label: "删除 2 张" },
-          ],
+          actions: [],
           placeholder: "编辑照片",
           bodyClassName: body.photos,
         } satisfies RouteHandle,
