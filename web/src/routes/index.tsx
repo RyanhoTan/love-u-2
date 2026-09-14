@@ -6,6 +6,7 @@ import { TodayPage } from "@/pages/today-page";
 import { LoginPage } from "@/pages/login-page";
 import { MessagesPage } from "@/pages/messages-page";
 import { PhotosPage } from "@/pages/photos-page";
+import { UploadPage } from "@/pages/upload-page";
 import { WishesPage } from "@/pages/wishes-page";
 import { WishNewPage } from "@/pages/wishes-page/new-page";
 import { WishDetailPage } from "@/pages/wishes-page/detail-page";
@@ -22,6 +23,7 @@ const body = {
   days: "px-12 pt-7 pb-10",
   me: "items-center px-12 pt-9 pb-10",
   nested: "px-12 pt-7 pb-10",
+  upload: "px-12 pt-6 pb-10",
 } as const;
 
 function page(handle: RouteHandle) {
@@ -105,14 +107,15 @@ export const router = createBrowserRouter([
           },
           {
             path: "photos/upload",
-            ...page({
+            handle: {
               navId: "photos",
               title: "上传",
               backTo: "/photos",
               actions: [{ kind: "primary", label: "上传 4 项" }],
               placeholder: "上传",
-              bodyClassName: body.nested,
-            }),
+              bodyClassName: body.upload,
+            } satisfies RouteHandle,
+            Component: UploadPage,
           },
           {
             path: "wishes",

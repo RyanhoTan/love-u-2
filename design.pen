@@ -5832,7 +5832,48 @@
                         "url": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODg4MzY3NzZ8&ixlib=rb-4.1.0&q=80&w=1080",
                         "mode": "fill"
                       },
-                      "cornerRadius": 10
+                      "cornerRadius": 10,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Qx7aL2",
+                          "layoutPosition": "absolute",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Hover Overlay",
+                          "width": 120,
+                          "height": 120,
+                          "fill": "#1C141899",
+                          "cornerRadius": 10
+                        },
+                        {
+                          "type": "frame",
+                          "id": "M4cP0r",
+                          "layoutPosition": "absolute",
+                          "x": 88,
+                          "y": 8,
+                          "name": "Button/RemoveSelected",
+                          "width": 24,
+                          "height": 24,
+                          "fill": "#1C1418CC",
+                          "cornerRadius": 12,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "T9vK3s",
+                              "name": "Remove Icon",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "x",
+                              "library": "lucide",
+                              "fill": "$text-inverse"
+                            }
+                          ]
+                        }
+                      ]
                     },
                     {
                       "type": "frame",
