@@ -1,8 +1,12 @@
 import { randomUUID } from "node:crypto";
 import type { Request, Response } from "express";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { getAuthenticatedUserId } from "../auth.js";
 import { config } from "../config.js";
+
+const proxyUrl = process.env.HTTPS_PROXY?.trim() || process.env.HTTP_PROXY?.trim();
 
 const r2Client = new S3Client({
   region: "auto",
@@ -11,6 +15,13 @@ const r2Client = new S3Client({
     accessKeyId: config.r2AccessKeyId,
     secretAccessKey: config.r2SecretAccessKey,
   },
+  ...(proxyUrl
+    ? {
+        requestHandler: new NodeHttpHandler({
+          httpsAgent: new HttpsProxyAgent(proxyUrl),
+        }),
+      }
+    : {}),
 });
 
 function getExtension(fileName: string) {
