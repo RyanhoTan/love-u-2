@@ -111,7 +111,7 @@ export const router = createBrowserRouter([
               navId: "photos",
               title: "上传",
               backTo: "/photos",
-              actions: [{ kind: "primary", label: "上传" }],
+              actions: [{ kind: "primary", label: "上传", form: "upload-form" }],
               placeholder: "上传",
               bodyClassName: body.upload,
             } satisfies RouteHandle,

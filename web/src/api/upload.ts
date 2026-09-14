@@ -15,7 +15,7 @@ export async function uploadMedia(file: File, folder = "album") {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": file.type || "application/octet-stream",
-        "x-file-name": file.name,
+        "x-file-name": encodeURIComponent(file.name),
       },
       body: file,
     },
