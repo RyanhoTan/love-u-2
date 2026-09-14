@@ -5737,7 +5737,7 @@
                   "name": "Button/UploadGo",
                   "descendants": {
                     "mqh79": {
-                      "content": "上传 4 项"
+                      "content": "上传"
                     }
                   }
                 }
@@ -5937,6 +5937,50 @@
                         "mode": "fill"
                       },
                       "cornerRadius": 10
+                    },
+                    {
+                      "type": "frame",
+                      "id": "V8mQ2k",
+                      "name": "File/video preview",
+                      "clip": true,
+                      "width": 120,
+                      "height": 120,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1683993662295-93debc656a21?auto=format&fit=crop&w=240&q=80",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 10,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "L3pX7a",
+                          "layoutPosition": "absolute",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Video Overlay",
+                          "width": 120,
+                          "height": 120,
+                          "fill": "#1C141866",
+                          "cornerRadius": 10,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "Y4zT9u",
+                              "name": "Play Icon",
+                              "width": 20,
+                              "height": 20,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "$text-inverse"
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 }
