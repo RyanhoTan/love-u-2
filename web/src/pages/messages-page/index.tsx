@@ -8,7 +8,6 @@ import {
 } from "@/features/partner-chat/use-partner-chat";
 import { displayName } from "@/lib/user";
 import { Avatar } from "../../components/ui/avatar";
-import { Button } from "../../components/ui/button";
 import { cx } from "../../lib/cx";
 import { MessagesComposer } from "./composer";
 import { VoiceBubble } from "./voice-bubble";
@@ -126,7 +125,7 @@ function shouldAnimateEntrance(message: PartnerChatMessage) {
 
 export function MessagesPage() {
   const { user, token } = useAuth();
-  const partner = user?.couple.isBound ? user.couple.partner : null;
+  const partner = user?.couple.partner ?? null;
   const partnerName = partner ? displayName(partner) : "";
   const selfName = user ? displayName(user) : "";
   const threadRef = useRef<HTMLDivElement>(null);
@@ -181,12 +180,7 @@ export function MessagesPage() {
   }, [threadItems]);
 
   if (!partner || !user) {
-    return (
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-8">
-        <p className="text-sm text-fg-secondary">绑定情侣后即可开始对话</p>
-        <Button to="/me/couple">去绑定</Button>
-      </div>
-    );
+    return null;
   }
 
   return (

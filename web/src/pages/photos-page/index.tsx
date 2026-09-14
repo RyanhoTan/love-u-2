@@ -1,7 +1,6 @@
 import { Check, Image, Info, Play, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AlbumMediaItem } from "@/api/album";
-import { useAuth } from "@/features/auth/context";
 import {
   errorMessage,
   useAlbumMediaQuery,
@@ -96,9 +95,7 @@ function emptyCopy(tab: Tab) {
 export function PhotosPage() {
   const [tab, setTab] = useState<Tab>("all");
   const [previewVideo, setPreviewVideo] = useState<AlbumMediaItem | null>(null);
-  const { user } = useAuth();
-  const bound = Boolean(user?.couple.isBound);
-  const query = useAlbumMediaQuery({ enabled: bound });
+  const query = useAlbumMediaQuery();
 
   const items = useMemo(() => {
     if (!query.data) {
@@ -106,15 +103,6 @@ export function PhotosPage() {
     }
     return filterMedia(query.data.media, tab);
   }, [query.data, tab]);
-
-  if (!bound) {
-    return (
-      <PageBody className="items-center justify-center gap-4">
-        <p className="text-sm text-fg-secondary">绑定情侣后即可查看共同相册</p>
-        <Button to="/me/couple">去绑定</Button>
-      </PageBody>
-    );
-  }
 
   if (query.isPending) {
     return (
@@ -253,18 +241,7 @@ export function PhotosPage() {
 }
 
 export function PhotosEditPage() {
-  const { user } = useAuth();
-  const bound = Boolean(user?.couple.isBound);
-  const query = useAlbumMediaQuery({ enabled: bound });
-
-  if (!bound) {
-    return (
-      <PageBody className="items-center justify-center gap-4">
-        <p className="text-sm text-fg-secondary">绑定情侣后即可编辑共同相册</p>
-        <Button to="/me/couple">去绑定</Button>
-      </PageBody>
-    );
-  }
+  const query = useAlbumMediaQuery();
 
   if (query.isPending) {
     return (

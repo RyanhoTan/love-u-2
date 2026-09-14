@@ -5,11 +5,10 @@ export const albumKeys = {
   media: ["album", "media"] as const,
 };
 
-export function useAlbumMediaQuery(options?: { enabled?: boolean }) {
+export function useAlbumMediaQuery() {
   return useQuery({
     queryKey: albumKeys.media,
     queryFn: getAlbumMedia,
-    enabled: options?.enabled ?? true,
   });
 }
 

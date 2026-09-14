@@ -131,3 +131,31 @@ export function RequireAuth() {
 
   return <Outlet />;
 }
+
+export function RequireCouple() {
+  const { user, profileStatus, profileError } = useAuth();
+
+  if (profileStatus === "error") {
+    return (
+      <div className="flex min-h-0 flex-1 items-center justify-center">
+        <p className="text-sm text-danger" role="alert">
+          {profileError}
+        </p>
+      </div>
+    );
+  }
+
+  if (profileStatus !== "ready") {
+    return (
+      <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-fg-muted">
+        加载中…
+      </div>
+    );
+  }
+
+  if (!user?.couple.isBound) {
+    return <Navigate to="/me/couple" replace />;
+  }
+
+  return <Outlet />;
+}
