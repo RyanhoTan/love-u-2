@@ -1,7 +1,26 @@
 import { Play, Upload, X } from "lucide-react";
-import type { ChangeEvent, DragEvent } from "react";
+import type {
+  ChangeEvent,
+  DragEvent,
+  PointerEvent as ReactPointerEvent,
+  WheelEvent as ReactWheelEvent,
+} from "react";
 import { useRef, useState } from "react";
 import { PageBody } from "@/components/layout/page-body";
+
+const MIN_IMAGE_SCALE = 0.5;
+const MAX_IMAGE_SCALE = 3;
+
+type ImageOffset = {
+  x: number;
+  y: number;
+};
+
+type ImageDrag = ImageOffset & {
+  startX: number;
+  startY: number;
+  pointerId: number;
+};
 
 type SelectedFile = {
   id: string;
@@ -48,6 +67,9 @@ export function UploadPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedFiles, setSelectedFiles] = useState(SELECTED_FILES);
   const [previewFile, setPreviewFile] = useState<SelectedFile | null>(null);
+  const [imageScale, setImageScale] = useState(MIN_IMAGE_SCALE);
+  const [imageOffset, setImageOffset] = useState<ImageOffset>({ x: 0, y: 0 });
+  const imageDragRef = useRef<ImageDrag | null>(null);
 
   function addFiles(fileList: FileList | null) {
     if (!fileList) return;
@@ -84,6 +106,67 @@ export function UploadPage() {
     if (removedFile?.objectUrl) URL.revokeObjectURL(removedFile.objectUrl);
 
     setSelectedFiles((files) => files.filter((file) => file.id !== fileId));
+  }
+
+  function handlePreview(file: SelectedFile) {
+    setPreviewFile(file);
+    setImageScale(1);
+    setImageOffset({ x: 0, y: 0 });
+  }
+
+  function handleClosePreview() {
+    setPreviewFile(null);
+    setImageScale(MIN_IMAGE_SCALE);
+    setImageOffset({ x: 0, y: 0 });
+  }
+
+  function handleImageWheel(event: ReactWheelEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const nextScale = Math.min(
+      MAX_IMAGE_SCALE,
+      Math.max(MIN_IMAGE_SCALE, imageScale - event.deltaY * 0.001),
+    );
+    setImageScale(nextScale);
+
+    if (nextScale === MIN_IMAGE_SCALE) {
+      setImageOffset({ x: 0, y: 0 });
+    }
+  }
+
+  function handleImagePointerDown(event: ReactPointerEvent<HTMLImageElement>) {
+    if (imageScale === MIN_IMAGE_SCALE) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    imageDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      x: imageOffset.x,
+      y: imageOffset.y,
+    };
+  }
+
+  function handleImagePointerMove(event: ReactPointerEvent<HTMLImageElement>) {
+    const imageDrag = imageDragRef.current;
+
+    if (!imageDrag || imageDrag.pointerId !== event.pointerId) {
+      return;
+    }
+
+    setImageOffset({
+      x: imageDrag.x + event.clientX - imageDrag.startX,
+      y: imageDrag.y + event.clientY - imageDrag.startY,
+    });
+  }
+
+  function handleImagePointerUp(event: ReactPointerEvent<HTMLImageElement>) {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    imageDragRef.current = null;
   }
 
   return (
@@ -149,7 +232,7 @@ export function UploadPage() {
               <button
                 type="button"
                 aria-label={`放大查看${file.kind === "video" ? "视频" : "图片"}${file.name}`}
-                onClick={() => setPreviewFile(file)}
+                onClick={() => handlePreview(file)}
                 className="absolute inset-0 cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
               />
             ) : null}
@@ -168,14 +251,14 @@ export function UploadPage() {
       {previewFile && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6 backdrop-blur-[8px]"
-          onClick={() => setPreviewFile(null)}
+          onClick={handleClosePreview}
           role="dialog"
           aria-modal="true"
           aria-label={`预览${previewFile.name}`}
         >
           <div
             className="flex max-h-full max-w-full items-center justify-center"
-            onClick={(event) => event.stopPropagation()}
+            onWheel={previewFile.kind === "image" ? handleImageWheel : undefined}
           >
             {previewFile.kind === "video" && previewFile.objectUrl ? (
               <video
@@ -184,19 +267,33 @@ export function UploadPage() {
                 className="max-h-[calc(100vh-3rem)] max-w-[calc(100vw-3rem)] object-contain"
                 controls
                 playsInline
+                onClick={(event) => event.stopPropagation()}
               />
             ) : (
               <img
                 src={previewFile.src}
                 alt={previewFile.name}
-                className="max-h-[calc(100vh-3rem)] max-w-[calc(100vw-3rem)] object-contain"
+                draggable={false}
+                onClick={(event) => event.stopPropagation()}
+                onPointerDown={handleImagePointerDown}
+                onPointerMove={handleImagePointerMove}
+                onPointerUp={handleImagePointerUp}
+                onPointerCancel={handleImagePointerUp}
+                className={`max-h-[calc(100vh-3rem)] max-w-[calc(100vw-3rem)] object-contain ${
+                  imageScale > MIN_IMAGE_SCALE
+                    ? "cursor-grab touch-none active:cursor-grabbing"
+                    : ""
+                }`}
+                style={{
+                  transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${imageScale})`,
+                }}
               />
             )}
           </div>
           <button
             type="button"
             aria-label="关闭预览"
-            onClick={() => setPreviewFile(null)}
+            onClick={handleClosePreview}
             className="absolute right-6 top-6 grid size-9 place-items-center rounded-full bg-black/65 text-white transition-colors hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
             <X className="size-5" strokeWidth={2} />
