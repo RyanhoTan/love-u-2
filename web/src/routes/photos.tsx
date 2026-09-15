@@ -1,5 +1,5 @@
 import type { RouteObject } from "react-router-dom";
-import { PhotosEditPage, PhotosPage } from "@/pages/photos-page";
+import { PhotosPage } from "@/pages/photos-page";
 import { UploadPage } from "@/pages/upload-page";
 import { body } from "./shared";
 import type { RouteHandle } from "./types";
@@ -16,15 +16,6 @@ export const photosRoutes = [
       {
         index: true,
         Component: PhotosPage,
-      },
-      {
-        path: "edit",
-        handle: {
-          navId: "photos",
-          placeholder: "编辑照片",
-          bodyClassName: body.photos,
-        } satisfies RouteHandle,
-        Component: PhotosEditPage,
       },
       {
         path: "upload",

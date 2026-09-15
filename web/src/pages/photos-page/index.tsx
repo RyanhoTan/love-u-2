@@ -10,13 +10,11 @@ import {
 } from "lucide-react";
 import {
   useEffect,
-  useMemo,
   useRef,
   useState,
   type ReactNode,
   type UIEvent,
 } from "react";
-import { Link } from "react-router-dom";
 import type { AlbumMediaItem } from "@/api/album";
 import { useAlbumMediaQuery } from "@/features/album/queries";
 import { PageBody } from "@/components/layout/page-body";
@@ -108,17 +106,20 @@ function emptyCopy(tab: Tab) {
 }
 
 export function PhotosPage() {
+  const [isEditing, setIsEditing] = useState(false);
   const [tab, setTab] = useState<Tab>("all");
   const [previewVideo, setPreviewVideo] = useState<AlbumMediaItem | null>(null);
   const photosGridRef = useRef<HTMLDivElement>(null);
   const query = useAlbumMediaQuery();
-
-  const items = useMemo(() => {
-    if (!query.data) {
-      return [];
-    }
-    return filterMedia(query.data.media, tab);
-  }, [query.data, tab]);
+  const [editedItems, setEditedItems] = useState<AlbumMediaItem[] | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const mediaItems = editedItems ?? query.data?.media ?? [];
+  const items = filterMedia(mediaItems, tab);
+  const allSelected =
+    items.length > 0 && items.every((media) => selectedIds.has(media.id));
 
   function handlePhotosScroll(event: UIEvent<HTMLDivElement>) {
     sessionStorage.setItem(
@@ -141,7 +142,58 @@ export function PhotosPage() {
     const storageKey = `photos-scroll-top:${tab}`;
     const savedScrollTop = Number(sessionStorage.getItem(storageKey) ?? 0);
     gridElement.scrollTop = savedScrollTop;
-  }, [items.length, tab]);
+  }, [items.length, isEditing, tab]);
+
+  function startEditing() {
+    setIsEditing(true);
+    setEditedItems(null);
+    setSelectedIds(new Set());
+    setConfirmDelete(false);
+    setPreviewVideo(null);
+  }
+
+  function stopEditing() {
+    setIsEditing(false);
+    setEditedItems(null);
+    setSelectedIds(new Set());
+    setConfirmDelete(false);
+  }
+
+  function toggleSelected(id: number) {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+
+      for (const media of items) {
+        if (allSelected) {
+          next.delete(media.id);
+        } else {
+          next.add(media.id);
+        }
+      }
+
+      return next;
+    });
+  }
+
+  function deleteSelected() {
+    setEditedItems(mediaItems.filter((media) => !selectedIds.has(media.id)));
+    setSelectedIds(new Set());
+    setConfirmDelete(false);
+  }
 
   let body: ReactNode;
   const scroll = query.isError || (!query.isPending && items.length === 0);
@@ -172,7 +224,7 @@ export function PhotosPage() {
     );
   } else if (items.length === 0) {
     const copy = emptyCopy(tab);
-    const showUpload = tab !== "saved";
+    const showUpload = !isEditing && tab !== "saved";
 
     body = (
       <>
@@ -182,9 +234,11 @@ export function PhotosPage() {
             <Image className="size-[26px] text-accent" strokeWidth={2} />
           </div>
           <h2 className="text-[17px] font-semibold tracking-[-0.2px] text-fg">
-            {copy.title}
+            {isEditing ? "当前分类没有可编辑的内容" : copy.title}
           </h2>
-          <p className="text-sm text-fg-secondary">{copy.detail}</p>
+          <p className="text-sm text-fg-secondary">
+            {isEditing ? "切换分类，选择要管理的内容" : copy.detail}
+          </p>
           {showUpload ? (
             <Button variant="primary" to="/photos/upload" className="mt-1">
               上传照片
@@ -197,6 +251,16 @@ export function PhotosPage() {
     body = (
       <>
         <Segmented value={tab} onChange={setTab} options={[...TABS]} />
+        {isEditing ? (
+          <div className="flex shrink-0 items-center gap-2 rounded-control bg-accent-soft px-3 py-2 text-xs font-medium text-fg-secondary">
+            <Info className="size-4 shrink-0 text-accent" strokeWidth={2} />
+            <span>
+              {selectedIds.size > 0
+                ? `已选择 ${selectedIds.size} 项，可以删除或继续选择`
+                : "请选择照片或视频后进行删除"}
+            </span>
+          </div>
+        ) : null}
         <div
           ref={photosGridRef}
           onScroll={handlePhotosScroll}
@@ -204,6 +268,63 @@ export function PhotosPage() {
         >
           {items.map((media) => {
             const caption = mediaCaption(media);
+            const selected = selectedIds.has(media.id);
+
+            if (isEditing) {
+              return (
+                <button
+                  key={media.id}
+                  type="button"
+                  className={`group relative aspect-square overflow-hidden rounded-control bg-avatar text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    selected ? "ring-2 ring-inset ring-accent" : ""
+                  }`}
+                  title={caption || undefined}
+                  aria-label={`${selected ? "取消选择" : "选择"}${caption || "媒体"}`}
+                  aria-pressed={selected}
+                  onClick={() => toggleSelected(media.id)}
+                >
+                  {media.mediaType === "video" ? (
+                    <video
+                      src={media.url}
+                      aria-hidden="true"
+                      className="size-full object-cover"
+                      muted
+                      playsInline
+                      preload="auto"
+                    />
+                  ) : (
+                    <img
+                      src={mediaSrc(media)}
+                      alt={caption}
+                      className="size-full object-cover"
+                    />
+                  )}
+                  {media.mediaType === "video" ? (
+                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
+                      <Play
+                        className="size-8 fill-white text-white drop-shadow"
+                        strokeWidth={1.8}
+                      />
+                    </span>
+                  ) : null}
+                  {selected ? (
+                    <span className="pointer-events-none absolute inset-0 bg-black/30" />
+                  ) : null}
+                  <span
+                    className={`pointer-events-none absolute left-3 top-3 grid size-6 place-items-center rounded-full ${
+                      selected
+                        ? "bg-accent text-inverse"
+                        : "bg-black/40 text-transparent ring-1 ring-inset ring-white/75"
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {selected ? (
+                      <Check className="size-3.5" strokeWidth={2.5} />
+                    ) : null}
+                  </span>
+                </button>
+              );
+            }
 
             return (
               <div
@@ -244,7 +365,7 @@ export function PhotosPage() {
             );
           })}
         </div>
-        {previewVideo ? (
+        {previewVideo && !isEditing ? (
           <div
             className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6 backdrop-blur-[8px]"
             onClick={() => setPreviewVideo(null)}
@@ -278,197 +399,63 @@ export function PhotosPage() {
     <>
       <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
         <div className="flex min-w-0 items-center gap-2">
+          {isEditing ? (
+            <button
+              type="button"
+              onClick={stopEditing}
+              aria-label="返回"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-control text-fg transition-transform duration-100 ease-out active:scale-[0.97]"
+            >
+              <ChevronLeft className="size-4" strokeWidth={2} />
+            </button>
+          ) : null}
           <div className="flex min-w-0 flex-col gap-0.5">
             <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
-              相册
+              {isEditing ? "编辑照片" : "相册"}
             </h1>
-            <p className="text-xs text-fg-muted">共同相册</p>
+            {!isEditing ? (
+              <p className="text-xs text-fg-muted">共同相册</p>
+            ) : null}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <IconButton label="搜索">
-            <Search className="size-4" strokeWidth={2} />
-          </IconButton>
-          <Button variant="ghost" to="/photos/edit">
-            编辑
-          </Button>
-          <Button to="/photos/upload">上传</Button>
+          {isEditing ? (
+            <>
+              <Button
+                variant="ghost"
+                disabled={items.length === 0}
+                onClick={toggleAll}
+              >
+                {allSelected ? "取消全选" : "全选"}
+              </Button>
+              <Button
+                variant="danger"
+                className="disabled:opacity-60"
+                disabled={selectedIds.size === 0}
+                onClick={() => setConfirmDelete(true)}
+              >
+                <Trash2 className="size-4" strokeWidth={2} />
+                删除 {selectedIds.size} 项
+              </Button>
+            </>
+          ) : (
+            <>
+              <IconButton label="搜索">
+                <Search className="size-4" strokeWidth={2} />
+              </IconButton>
+              <Button variant="ghost" onClick={startEditing}>
+                编辑
+              </Button>
+              <Button to="/photos/upload">上传</Button>
+            </>
+          )}
         </div>
       </header>
       <PageBody scroll={scroll} className="gap-4">
         {body}
       </PageBody>
-    </>
-  );
-}
 
-export function PhotosEditPage() {
-  const query = useAlbumMediaQuery();
-  const queryItems = (query.data?.media ?? []).filter(
-    (media) => media.mediaType === "image",
-  );
-  const [editedItems, setEditedItems] = useState<AlbumMediaItem[] | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const items = editedItems ?? queryItems;
-  const allSelected = items.length > 0 && selectedIds.size === items.length;
-
-  function toggleSelected(id: number) {
-    setSelectedIds((current) => {
-      const next = new Set(current);
-
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-
-      return next;
-    });
-  }
-
-  function toggleAll() {
-    setSelectedIds(
-      allSelected ? new Set() : new Set(items.map((media) => media.id)),
-    );
-  }
-
-  function deleteSelected() {
-    setEditedItems(items.filter((media) => !selectedIds.has(media.id)));
-    setSelectedIds(new Set());
-    setConfirmDelete(false);
-  }
-
-  const showEditActions = !query.isPending && !query.isError && items.length > 0;
-  let body: ReactNode;
-  const scroll = query.isError || (!query.isPending && items.length === 0);
-
-  if (query.isPending) {
-    body = (
-      <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-4 gap-2">
-        {Array.from({ length: 12 }, (_, index) => (
-          <div
-            key={index}
-            className="aspect-square overflow-hidden rounded-control bg-border"
-          />
-        ))}
-      </div>
-    );
-  } else if (query.isError) {
-    body = (
-      <QueryError
-        className="items-start py-10 text-left"
-        onRetry={() => void query.refetch()}
-      />
-    );
-  } else if (items.length === 0) {
-    body = (
-      <div className="flex flex-col items-center justify-center gap-3 text-center">
-        <div className="flex size-14 items-center justify-center rounded-[16px] bg-accent-soft">
-          <Image className="size-[26px] text-accent" />
-        </div>
-        <h2 className="text-[17px] font-semibold tracking-[-0.2px] text-fg">
-          还没有可编辑的照片
-        </h2>
-        <p className="text-sm text-fg-secondary">先上传照片，再回来管理</p>
-      </div>
-    );
-  } else {
-    body = (
-      <>
-        <div className="flex shrink-0 items-center gap-2 rounded-control bg-accent-soft px-3 py-2 text-xs font-medium text-fg-secondary">
-          <Info className="size-4 shrink-0 text-accent" strokeWidth={2} />
-          <span>
-            {selectedIds.size > 0
-              ? `已选择 ${selectedIds.size} 张照片，可以删除或继续选择`
-              : "请选择照片后进行删除"}
-          </span>
-        </div>
-
-        <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-4 content-start gap-2 overflow-y-auto">
-          {items.map((media) => {
-            const caption = mediaCaption(media);
-            const selected = selectedIds.has(media.id);
-
-            return (
-              <button
-                key={media.id}
-                type="button"
-                className={`group relative aspect-square overflow-hidden rounded-control bg-avatar text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                  selected ? "ring-2 ring-inset ring-accent" : ""
-                }`}
-                title={caption || undefined}
-                aria-label={`${selected ? "取消选择" : "选择"}${caption || "照片"}`}
-                aria-pressed={selected}
-                onClick={() => toggleSelected(media.id)}
-              >
-                <img
-                  src={mediaSrc(media)}
-                  alt={caption}
-                  className="size-full object-cover"
-                />
-                {selected ? (
-                  <span className="pointer-events-none absolute inset-0 bg-black/30" />
-                ) : null}
-                <span
-                  className={`pointer-events-none absolute left-3 top-3 grid size-6 place-items-center rounded-full ${
-                    selected
-                      ? "bg-accent text-inverse"
-                      : "bg-black/40 text-transparent ring-1 ring-inset ring-white/75"
-                  }`}
-                  aria-hidden="true"
-                >
-                  {selected ? (
-                    <Check className="size-3.5" strokeWidth={2.5} />
-                  ) : null}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
-        <div className="flex min-w-0 items-center gap-2">
-          <Link
-            to="/photos"
-            aria-label="返回"
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-control text-fg transition-transform duration-100 ease-out active:scale-[0.97]"
-          >
-            <ChevronLeft className="size-4" strokeWidth={2} />
-          </Link>
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
-              编辑照片
-            </h1>
-          </div>
-        </div>
-        {showEditActions ? (
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={toggleAll}>
-              {allSelected ? "取消全选" : "全选"}
-            </Button>
-            <Button
-              variant="danger"
-              className="disabled:opacity-60"
-              disabled={selectedIds.size === 0}
-              onClick={() => setConfirmDelete(true)}
-            >
-              <Trash2 className="size-4" strokeWidth={2} />
-              删除 {selectedIds.size} 张
-            </Button>
-          </div>
-        ) : null}
-    </header>
-      <PageBody scroll={scroll} className="gap-4">
-        {body}
-      </PageBody>
-
-      {confirmDelete ? (
+      {isEditing && confirmDelete ? (
         <PhotoDeleteDialog
           count={selectedIds.size}
           onCancel={() => setConfirmDelete(false)}
@@ -517,10 +504,10 @@ function PhotoDeleteDialog({
             id="delete-photos-title"
             className="text-lg font-semibold tracking-[-0.3px] text-fg"
           >
-            删除所选照片？
+            删除所选内容？
           </h2>
           <p className="text-sm leading-[1.45] tracking-[-0.1px] text-fg-secondary">
-            将从当前编辑视图移除 {count} 张照片。
+            将从当前编辑视图移除 {count} 项内容。
           </p>
         </div>
 
