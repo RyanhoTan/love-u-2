@@ -8,9 +8,6 @@ export const todayRoutes = [
     index: true,
     handle: {
       navId: "today",
-      title: "今天",
-      meta: "today-date",
-      actions: [{ kind: "search" }, { kind: "notify" }],
       placeholder: "今天",
       bodyClassName: body.today,
     } satisfies RouteHandle,

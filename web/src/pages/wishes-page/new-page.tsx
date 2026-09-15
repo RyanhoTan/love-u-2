@@ -1,12 +1,13 @@
-import { Calendar, ImagePlus, MapPin, Wallet } from "lucide-react";
+import { Calendar, ChevronLeft, ImagePlus, MapPin, Wallet } from "lucide-react";
 import { useId, useRef, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { uploadWishMedia } from "@/api/wish";
 import {
   errorMessage,
   useCreateWishMutation,
 } from "@/features/wish/queries";
 import { PageBody } from "@/components/layout/page-body";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DatePickerSheet } from "@/pages/days-page/pickers";
 import { cx } from "@/lib/cx";
@@ -31,7 +32,6 @@ export function WishNewPage() {
   const [localError, setLocalError] = useState("");
 
   const pending = createMutation.isPending || uploading;
-
   async function handleCoverChange(file: File | undefined) {
     if (!file) {
       return;
@@ -93,15 +93,37 @@ export function WishNewPage() {
   }
 
   return (
-    <PageBody>
-      <form
-        id={FORM_ID}
-        className="mx-auto flex w-full max-w-[560px] flex-col gap-5 pb-10 pt-1"
-        onSubmit={(event) => {
-          event.preventDefault();
-          submit();
-        }}
-      >
+    <>
+      <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+        <div className="flex min-w-0 items-center gap-2">
+          <Link
+            to="/wishes"
+            aria-label="返回"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-control text-fg transition-transform duration-100 ease-out active:scale-[0.97]"
+          >
+            <ChevronLeft className="size-4" strokeWidth={2} />
+          </Link>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+              添加心愿
+            </h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button type="submit" form={FORM_ID}>
+            保存
+          </Button>
+        </div>
+      </header>
+      <PageBody>
+        <form
+          id={FORM_ID}
+          className="mx-auto flex w-full max-w-[560px] flex-col gap-5 pb-10 pt-1"
+          onSubmit={(event) => {
+            event.preventDefault();
+            submit();
+          }}
+        >
         <button
           type="button"
           disabled={pending}
@@ -201,7 +223,7 @@ export function WishNewPage() {
             {localError || errorMessage(createMutation.error)}
           </p>
         ) : null}
-      </form>
+        </form>
 
       {dateOpen ? (
         <DatePickerSheet
@@ -213,7 +235,8 @@ export function WishNewPage() {
           }}
         />
       ) : null}
-    </PageBody>
+      </PageBody>
+    </>
   );
 }
 

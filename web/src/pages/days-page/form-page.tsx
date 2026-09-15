@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { ChevronLeft } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import type { AnniversaryItem } from "@/api/anniversary";
@@ -35,19 +36,40 @@ export function DayNewPage() {
     mode: "onSubmit",
   });
   const values = useWatch({ control: form.control });
-
   return (
-    <PageBody>
-      <FormProvider {...form}>
-        <form
-          id={FORM_ID}
-          className="flex min-h-0 flex-1 flex-col justify-between gap-10 lg:flex-row"
-          onSubmit={form.handleSubmit((data) => {
-            createMutation.mutate(formToPayload(data), {
-              onSuccess: () => navigate("/days"),
-            });
-          })}
-        >
+    <>
+      <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+        <div className="flex min-w-0 items-center gap-2">
+          <Link
+            to="/days"
+            aria-label="返回"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-control text-fg transition-transform duration-100 ease-out active:scale-[0.97]"
+          >
+            <ChevronLeft className="size-4" strokeWidth={2} />
+          </Link>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+              添加纪念日
+            </h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button type="submit" form={FORM_ID}>
+            添加
+          </Button>
+        </div>
+      </header>
+      <PageBody>
+        <FormProvider {...form}>
+          <form
+            id={FORM_ID}
+            className="flex min-h-0 flex-1 flex-col justify-between gap-10 lg:flex-row"
+            onSubmit={form.handleSubmit((data) => {
+              createMutation.mutate(formToPayload(data), {
+                onSuccess: () => navigate("/days"),
+              });
+            })}
+          >
           <div className="flex w-full max-w-[560px] flex-col gap-4">
             <DayFormFields disabled={createMutation.isPending} />
             {createMutation.isError ? (
@@ -63,9 +85,10 @@ export function DayNewPage() {
             values={values}
             remain={previewRemainingDays(values)}
           />
-        </form>
-      </FormProvider>
-    </PageBody>
+          </form>
+        </FormProvider>
+      </PageBody>
+    </>
   );
 }
 
@@ -73,21 +96,25 @@ export function DayEditPage() {
   const { id = "" } = useParams();
   const anniversaryId = Number(id);
   const query = useAnniversariesQuery();
-
   if (!Number.isInteger(anniversaryId) || anniversaryId <= 0) {
     return <Navigate to="/days" replace />;
   }
 
+  const item =
+    query.data?.anniversaries.find((day) => day.id === anniversaryId) ?? null;
+  const canSubmit = Boolean(item && !query.isPending && !query.isError);
+
+
+  let body: ReactNode;
+
   if (query.isPending) {
-    return (
+    body = (
       <PageBody className="items-center justify-center">
         <p className="text-sm text-fg-muted">加载中…</p>
       </PageBody>
     );
-  }
-
-  if (query.isError) {
-    return (
+  } else if (query.isError) {
+    body = (
       <PageBody className="items-center justify-center gap-4">
         <p className="text-sm font-medium text-danger" role="alert">
           {errorMessage(query.error)}
@@ -100,16 +127,42 @@ export function DayEditPage() {
         </Button>
       </PageBody>
     );
+  } else {
+    if (!item) {
+      return <Navigate to="/days" replace />;
+    }
+
+    body = <DayEditForm key={item.id} item={item} />;
   }
 
-  const item =
-    query.data.anniversaries.find((day) => day.id === anniversaryId) ?? null;
-
-  if (!item) {
-    return <Navigate to="/days" replace />;
-  }
-
-  return <DayEditForm key={item.id} item={item} />;
+  return (
+    <>
+          <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+      <div className="flex min-w-0 items-center gap-2">
+        <Link
+          to="/days"
+          aria-label="返回"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-control text-fg transition-transform duration-100 ease-out active:scale-[0.97]"
+        >
+          <ChevronLeft className="size-4" strokeWidth={2} />
+        </Link>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+            编辑纪念日
+          </h1>
+        </div>
+      </div>
+      {canSubmit ? (
+        <div className="flex items-center gap-2">
+          <Button type="submit" form={FORM_ID}>
+            保存
+          </Button>
+        </div>
+      ) : null}
+    </header>
+      {body}
+    </>
+  );
 }
 
 function DayEditForm({ item }: { item: AnniversaryItem }) {
@@ -124,7 +177,6 @@ function DayEditForm({ item }: { item: AnniversaryItem }) {
   });
   const values = useWatch({ control: form.control });
   const pending = updateMutation.isPending || deleteMutation.isPending;
-
   return (
     <>
       <PageBody>

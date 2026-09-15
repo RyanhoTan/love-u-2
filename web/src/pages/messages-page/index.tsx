@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Loader2 } from "lucide-react";
+import { Ellipsis, Loader2 } from "lucide-react";
 import { useAuth } from "@/features/auth/context";
 import {
   usePartnerChat,
@@ -8,6 +8,7 @@ import {
 } from "@/features/partner-chat/use-partner-chat";
 import { displayName } from "@/lib/user";
 import { Avatar } from "../../components/ui/avatar";
+import { IconButton } from "../../components/ui/button";
 import { cx } from "../../lib/cx";
 import { MessagesComposer } from "./composer";
 import { VoiceBubble } from "./voice-bubble";
@@ -184,7 +185,28 @@ export function MessagesPage() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <>
+      <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+        <div className="flex min-w-0 items-center gap-2">
+          <Avatar
+          // 后面做个默认头像
+            src={partner.avatar ?? undefined}
+            alt={partnerName}
+            size={32}
+          />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+              {partnerName}
+            </h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <IconButton label="更多">
+            <Ellipsis className="size-4" strokeWidth={2} />
+          </IconButton>
+        </div>
+      </header>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       {hint ? (
         <p className="shrink-0 px-6 py-2 text-center text-[12px] text-fg-muted">
           {hint}
@@ -196,11 +218,13 @@ export function MessagesPage() {
         className="flex min-h-0 flex-1 flex-col overflow-y-auto px-18 py-7"
       >
         <div ref={contentRef} className="mt-auto flex flex-col gap-4">
-          {threadItems.length === 0 ? (
-            <p className="py-16 text-center text-sm text-fg-muted">
-              还没有消息，打个招呼吧
-            </p>
-          ) : (
+          {threadItems.length === 0 ? 
+          // (
+          //   <p className="py-16 text-center text-sm text-fg-muted">
+          //     还没有消息，打个招呼吧
+          //   </p>
+          // )
+         null  : (
             threadItems.map((item) => {
               if (item.kind === "stamp") {
                 return (
@@ -299,6 +323,7 @@ export function MessagesPage() {
         onSendText={chat.sendMessage}
         onSendAudio={chat.sendAudioMessage}
       />
-    </div>
+      </div>
+    </>
   );
 }

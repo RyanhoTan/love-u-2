@@ -1,10 +1,19 @@
-import { Check, Image, Info, Play, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  Check,
+  ChevronLeft,
+  Image,
+  Info,
+  Play,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import type { AlbumMediaItem } from "@/api/album";
-import { usePhotoEditContext } from "@/features/album/photo-edit-context";
 import { errorMessage, useAlbumMediaQuery } from "@/features/album/queries";
 import { PageBody } from "@/components/layout/page-body";
-import { Button } from "@/components/ui/button";
+import { Button, IconButton } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 
 const TABS = [
@@ -101,10 +110,12 @@ export function PhotosPage() {
     }
     return filterMedia(query.data.media, tab);
   }, [query.data, tab]);
+  let body: ReactNode;
+  const scroll = query.isError || (!query.isPending && items.length === 0);
 
   if (query.isPending) {
-    return (
-      <PageBody scroll={false} className="gap-4">
+    body = (
+      <>
         <Segmented value={tab} onChange={setTab} options={[...TABS]} />
         <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-4 gap-2">
           {Array.from({ length: 12 }, (_, index) => (
@@ -114,13 +125,11 @@ export function PhotosPage() {
             />
           ))}
         </div>
-      </PageBody>
+      </>
     );
-  }
-
-  if (query.isError) {
-    return (
-      <PageBody className="gap-4">
+  } else if (query.isError) {
+    body = (
+      <>
         <Segmented value={tab} onChange={setTab} options={[...TABS]} />
         <div className="flex flex-col items-start gap-3 py-10">
           <h2 className="text-[17px] font-semibold tracking-[-0.2px] text-fg">
@@ -133,16 +142,14 @@ export function PhotosPage() {
             重试
           </Button>
         </div>
-      </PageBody>
+      </>
     );
-  }
-
-  if (items.length === 0) {
+  } else if (items.length === 0) {
     const copy = emptyCopy(tab);
     const showUpload = tab !== "saved";
 
-    return (
-      <PageBody className="gap-4">
+    body = (
+      <>
         <Segmented value={tab} onChange={setTab} options={[...TABS]} />
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16">
           <div className="flex size-14 items-center justify-center rounded-[16px] bg-accent-soft">
@@ -158,172 +165,123 @@ export function PhotosPage() {
             </Button>
           ) : null}
         </div>
-      </PageBody>
+      </>
+    );
+  } else {
+    body = (
+      <>
+        <Segmented value={tab} onChange={setTab} options={[...TABS]} />
+        <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-4 content-start gap-2 overflow-y-auto">
+          {items.map((media) => {
+            const caption = mediaCaption(media);
+
+            return (
+              <div
+                key={media.id}
+                className="aspect-square overflow-hidden rounded-control bg-avatar"
+                title={caption || undefined}
+              >
+                {media.mediaType === "video" ? (
+                  <button
+                    type="button"
+                    className="relative size-full cursor-pointer"
+                    onClick={() => setPreviewVideo(media)}
+                    aria-label={`播放${caption || "视频"}`}
+                  >
+                    <video
+                      src={media.url}
+                      aria-hidden="true"
+                      className="size-full object-cover"
+                      muted
+                      playsInline
+                      preload="auto"
+                    />
+                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
+                      <Play
+                        className="size-8 fill-white text-white drop-shadow"
+                        strokeWidth={1.8}
+                      />
+                    </span>
+                  </button>
+                ) : (
+                  <img
+                    src={mediaSrc(media)}
+                    alt={caption}
+                    className="size-full object-cover"
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {previewVideo ? (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6 backdrop-blur-[8px]"
+            onClick={() => setPreviewVideo(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`预览${mediaCaption(previewVideo) || "视频"}`}
+          >
+            <video
+              src={previewVideo.url}
+              className="max-h-[calc(100vh-3rem)] max-w-[calc(100vw-3rem)] object-contain"
+              controls
+              autoPlay
+              playsInline
+              onClick={(event) => event.stopPropagation()}
+            />
+            <button
+              type="button"
+              aria-label="关闭预览"
+              onClick={() => setPreviewVideo(null)}
+              className="absolute right-6 top-6 grid size-9 place-items-center rounded-full bg-black/65 text-white transition-colors hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <X className="size-5" strokeWidth={2} />
+            </button>
+          </div>
+        ) : null}
+      </>
     );
   }
 
   return (
-    <PageBody scroll={false} className="gap-4">
-      <Segmented value={tab} onChange={setTab} options={[...TABS]} />
-      <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-4 content-start gap-2 overflow-y-auto">
-        {items.map((media) => {
-          const caption = mediaCaption(media);
-
-          return (
-            <div
-              key={media.id}
-              className="aspect-square overflow-hidden rounded-control bg-avatar"
-              title={caption || undefined}
-            >
-              {media.mediaType === "video" ? (
-                <button
-                  type="button"
-                  className="relative size-full cursor-pointer"
-                  onClick={() => setPreviewVideo(media)}
-                  aria-label={`播放${caption || "视频"}`}
-                >
-                  <video
-                    src={media.url}
-                    aria-hidden="true"
-                    className="size-full object-cover"
-                    muted
-                    playsInline
-                    preload="auto"
-                  />
-                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
-                    <Play
-                      className="size-8 fill-white text-white drop-shadow"
-                      strokeWidth={1.8}
-                    />
-                  </span>
-                </button>
-              ) : (
-                <img
-                  src={mediaSrc(media)}
-                  alt={caption}
-                  className="size-full object-cover"
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {previewVideo ? (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6 backdrop-blur-[8px]"
-          onClick={() => setPreviewVideo(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`预览${mediaCaption(previewVideo) || "视频"}`}
-        >
-          <video
-            src={previewVideo.url}
-            className="max-h-[calc(100vh-3rem)] max-w-[calc(100vw-3rem)] object-contain"
-            controls
-            autoPlay
-            playsInline
-            onClick={(event) => event.stopPropagation()}
-          />
-          <button
-            type="button"
-            aria-label="关闭预览"
-            onClick={() => setPreviewVideo(null)}
-            className="absolute right-6 top-6 grid size-9 place-items-center rounded-full bg-black/65 text-white transition-colors hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-          >
-            <X className="size-5" strokeWidth={2} />
-          </button>
+    <>
+      <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+              相册
+            </h1>
+            <p className="text-xs text-fg-muted">共同相册</p>
+          </div>
         </div>
-      ) : null}
-    </PageBody>
+        <div className="flex items-center gap-2">
+          <IconButton label="搜索">
+            <Search className="size-4" strokeWidth={2} />
+          </IconButton>
+          <Button variant="ghost" to="/photos/edit">
+            编辑
+          </Button>
+          <Button to="/photos/upload">上传</Button>
+        </div>
+      </header>
+      <PageBody scroll={scroll} className="gap-4">
+        {body}
+      </PageBody>
+    </>
   );
 }
 
 export function PhotosEditPage() {
   const query = useAlbumMediaQuery();
-
-  if (query.isPending) {
-    return (
-      <PageBody scroll={false} className="gap-4">
-        <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-4 gap-2">
-          {Array.from({ length: 12 }, (_, index) => (
-            <div
-              key={index}
-              className="aspect-square overflow-hidden rounded-control bg-border"
-            />
-          ))}
-        </div>
-      </PageBody>
-    );
-  }
-
-  if (query.isError) {
-    return (
-      <PageBody className="gap-4">
-        <div className="flex flex-col items-start gap-3 py-10">
-          <h2 className="text-[17px] font-semibold tracking-[-0.2px] text-fg">
-            相册加载失败
-          </h2>
-          <p className="text-sm text-fg-secondary" role="alert">
-            {errorMessage(query.error)}
-          </p>
-        </div>
-      </PageBody>
-    );
-  }
-
-  const items = (query.data?.media ?? []).filter(
+  const queryItems = (query.data?.media ?? []).filter(
     (media) => media.mediaType === "image",
   );
-
-  if (items.length === 0) {
-    return (
-      <PageBody className="items-center justify-center gap-3 text-center">
-        <div className="flex size-14 items-center justify-center rounded-[16px] bg-accent-soft">
-          <Image className="size-[26px] text-accent" />
-        </div>
-        <h2 className="text-[17px] font-semibold tracking-[-0.2px] text-fg">
-          还没有可编辑的照片
-        </h2>
-        <p className="text-sm text-fg-secondary">先上传照片，再回来管理</p>
-      </PageBody>
-    );
-  }
-
-  return <PhotoEditContent initialItems={items} />;
-}
-
-function PhotoEditContent({
-  initialItems,
-}: {
-  initialItems: AlbumMediaItem[];
-}) {
-  const { register } = usePhotoEditContext();
-  const [items, setItems] = useState(initialItems);
-  const [selectedIds, setSelectedIds] = useState(
-    () => new Set(initialItems.slice(0, 2).map((media) => media.id)),
-  );
+  const [editedItems, setEditedItems] = useState<AlbumMediaItem[] | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const items = editedItems ?? queryItems;
   const allSelected = items.length > 0 && selectedIds.size === items.length;
-
-  useEffect(() => {
-    register({
-      selectedCount: selectedIds.size,
-      totalCount: items.length,
-      allSelected,
-      toggleAll: () => {
-        setSelectedIds(
-          allSelected ? new Set() : new Set(items.map((media) => media.id)),
-        );
-      },
-      requestDelete: () => {
-        if (selectedIds.size > 0) {
-          setConfirmDelete(true);
-        }
-      },
-    });
-
-    return () => register(null);
-  }, [allSelected, items, register, selectedIds]);
 
   function toggleSelected(id: number) {
     setSelectedIds((current) => {
@@ -339,17 +297,47 @@ function PhotoEditContent({
     });
   }
 
-  function deleteSelected() {
-    setItems((current) =>
-      current.filter((media) => !selectedIds.has(media.id)),
+  function toggleAll() {
+    setSelectedIds(
+      allSelected ? new Set() : new Set(items.map((media) => media.id)),
     );
+  }
+
+  function deleteSelected() {
+    setEditedItems(items.filter((media) => !selectedIds.has(media.id)));
     setSelectedIds(new Set());
     setConfirmDelete(false);
   }
 
-  if (items.length === 0) {
-    return (
-      <PageBody className="items-center justify-center gap-3 text-center">
+  const showEditActions = !query.isPending && !query.isError && items.length > 0;
+  let body: ReactNode;
+  const scroll = query.isError || (!query.isPending && items.length === 0);
+
+  if (query.isPending) {
+    body = (
+      <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-4 gap-2">
+        {Array.from({ length: 12 }, (_, index) => (
+          <div
+            key={index}
+            className="aspect-square overflow-hidden rounded-control bg-border"
+          />
+        ))}
+      </div>
+    );
+  } else if (query.isError) {
+    body = (
+      <div className="flex flex-col items-start gap-3 py-10">
+        <h2 className="text-[17px] font-semibold tracking-[-0.2px] text-fg">
+          相册加载失败
+        </h2>
+        <p className="text-sm text-fg-secondary" role="alert">
+          {errorMessage(query.error)}
+        </p>
+      </div>
+    );
+  } else if (items.length === 0) {
+    body = (
+      <div className="flex flex-col items-center justify-center gap-3 text-center">
         <div className="flex size-14 items-center justify-center rounded-[16px] bg-accent-soft">
           <Image className="size-[26px] text-accent" />
         </div>
@@ -357,13 +345,11 @@ function PhotoEditContent({
           还没有可编辑的照片
         </h2>
         <p className="text-sm text-fg-secondary">先上传照片，再回来管理</p>
-      </PageBody>
+      </div>
     );
-  }
-
-  return (
-    <>
-      <PageBody scroll={false} className="gap-4">
+  } else {
+    body = (
+      <>
         <div className="flex shrink-0 items-center gap-2 rounded-control bg-accent-soft px-3 py-2 text-xs font-medium text-fg-secondary">
           <Info className="size-4 shrink-0 text-accent" strokeWidth={2} />
           <span>
@@ -414,6 +400,46 @@ function PhotoEditContent({
             );
           })}
         </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+        <div className="flex min-w-0 items-center gap-2">
+          <Link
+            to="/photos"
+            aria-label="返回"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-control text-fg transition-transform duration-100 ease-out active:scale-[0.97]"
+          >
+            <ChevronLeft className="size-4" strokeWidth={2} />
+          </Link>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+              编辑照片
+            </h1>
+          </div>
+        </div>
+        {showEditActions ? (
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={toggleAll}>
+              {allSelected ? "取消全选" : "全选"}
+            </Button>
+            <Button
+              variant="danger"
+              className="disabled:opacity-60"
+              disabled={selectedIds.size === 0}
+              onClick={() => setConfirmDelete(true)}
+            >
+              <Trash2 className="size-4" strokeWidth={2} />
+              删除 {selectedIds.size} 张
+            </Button>
+          </div>
+        ) : null}
+    </header>
+      <PageBody scroll={scroll} className="gap-4">
+        {body}
       </PageBody>
 
       {confirmDelete ? (

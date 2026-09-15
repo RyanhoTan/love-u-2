@@ -1,9 +1,11 @@
+import { Bell, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/context";
+import { formatTodayDate } from "@/lib/date";
 import { formatAnniversaryDot } from "@/lib/user";
 import { TODAY } from "@/mocks";
 import { PageBody } from "../../components/layout/page-body";
-import { Button } from "../../components/ui/button";
+import { Button, IconButton } from "../../components/ui/button";
 import { NextAnniversaryInsight } from "./next-anniversary";
 import { RecentMemories } from "./recent-memories";
 
@@ -13,9 +15,27 @@ export function TodayPage() {
   const bound = Boolean(couple?.isBound);
   const days = couple?.daysInLove;
   const since = formatAnniversaryDot(couple?.anniversaryDate);
-
   return (
-    <PageBody scroll={false} className="gap-9">
+    <>
+      <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+              今天
+            </h1>
+            <p className="text-xs text-fg-muted">{formatTodayDate()}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <IconButton label="搜索">
+            <Search className="size-4" strokeWidth={2} />
+          </IconButton>
+          <IconButton label="通知">
+            <Bell className="size-4" strokeWidth={2} />
+          </IconButton>
+        </div>
+      </header>
+      <PageBody scroll={false} className="gap-9">
       <section className="flex min-h-0 min-w-0 flex-1 items-end justify-between gap-14">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           {profileStatus === "loading" ? (
@@ -78,6 +98,7 @@ export function TodayPage() {
       </section>
 
       <RecentMemories />
-    </PageBody>
+      </PageBody>
+    </>
   );
 }

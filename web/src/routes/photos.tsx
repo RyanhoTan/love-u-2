@@ -9,13 +9,6 @@ export const photosRoutes = [
     path: "photos",
     handle: {
       navId: "photos",
-      title: "相册",
-      meta: "共同相册",
-      actions: [
-        { kind: "search" },
-        { kind: "ghost", label: "编辑", to: "/photos/edit" },
-        { kind: "primary", label: "上传", to: "/photos/upload" },
-      ],
       placeholder: "相册",
       bodyClassName: body.photos,
     } satisfies RouteHandle,
@@ -28,10 +21,6 @@ export const photosRoutes = [
         path: "edit",
         handle: {
           navId: "photos",
-          title: "编辑照片",
-          meta: "已选择 0 张",
-          backTo: "/photos",
-          actions: [],
           placeholder: "编辑照片",
           bodyClassName: body.photos,
         } satisfies RouteHandle,
@@ -41,9 +30,6 @@ export const photosRoutes = [
         path: "upload",
         handle: {
           navId: "photos",
-          title: "上传",
-          backTo: "/photos",
-          actions: [{ kind: "primary", label: "上传", form: "upload-form" }],
           placeholder: "上传",
           bodyClassName: body.upload,
         } satisfies RouteHandle,

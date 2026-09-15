@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { ChevronLeft } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/context";
 import {
   bindCoupleSpace,
@@ -86,17 +88,15 @@ export function CouplePage() {
     };
   }, []);
 
-  if (loading) {
-    return (
-      <PageBody className="items-center justify-center">
-        <p className="text-sm text-fg-muted">加载中…</p>
-      </PageBody>
-    );
-  }
+  let body: ReactNode;
+  let bodyClassName = "items-center justify-center";
 
-  if (loadError || !space) {
-    return (
-      <PageBody className="items-center justify-center gap-4">
+  if (loading) {
+    body = <p className="text-sm text-fg-muted">加载中…</p>;
+  } else if (loadError || !space) {
+    bodyClassName = "items-center justify-center gap-4";
+    body = (
+      <>
         <p className="text-sm font-medium text-danger" role="alert">
           {loadError || "request failed"}
         </p>
@@ -115,44 +115,60 @@ export function CouplePage() {
         >
           重试
         </Button>
-      </PageBody>
+      </>
+    );
+  } else {
+    const selfProfile: UserProfile =
+      user ?? emptyAuthUser({ id: 0, username: "" });
+
+    body = space.isBound && space.partner ? (
+      <BoundView
+        space={space}
+        me={selfProfile}
+        onEditAnniversary={() => setPanel("anniversary")}
+        onUnbind={() => setPanel("unbind")}
+      />
+    ) : (
+      <UnboundView
+        space={space}
+        onRefreshInvite={async () => {
+          const response = await createCoupleInvite({ regenerate: true });
+          setSpace({
+            ...space,
+            activeInvite: response.invite,
+          });
+          return response.invite;
+        }}
+        onBind={async (inviteCode) => {
+          await bindCoupleSpace({ inviteCode });
+          await loadSpace();
+          await refreshProfile();
+        }}
+      />
     );
   }
 
-  const selfProfile: UserProfile =
-    user ?? emptyAuthUser({ id: 0, username: "" });
-
   return (
     <>
-      <PageBody className="items-center justify-center">
-        {space.isBound && space.partner ? (
-          <BoundView
-            space={space}
-            me={selfProfile}
-            onEditAnniversary={() => setPanel("anniversary")}
-            onUnbind={() => setPanel("unbind")}
-          />
-        ) : (
-          <UnboundView
-            space={space}
-            onRefreshInvite={async () => {
-              const response = await createCoupleInvite({ regenerate: true });
-              setSpace({
-                ...space,
-                activeInvite: response.invite,
-              });
-              return response.invite;
-            }}
-            onBind={async (inviteCode) => {
-              await bindCoupleSpace({ inviteCode });
-              await loadSpace();
-              await refreshProfile();
-            }}
-          />
-        )}
-      </PageBody>
+      <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+        <div className="flex min-w-0 items-center gap-2">
+          <Link
+            to="/me"
+            aria-label="返回"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-control text-fg transition-transform duration-100 ease-out active:scale-[0.97]"
+          >
+            <ChevronLeft className="size-4" strokeWidth={2} />
+          </Link>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+              情侣空间
+            </h1>
+          </div>
+        </div>
+      </header>
+      <PageBody className={bodyClassName}>{body}</PageBody>
 
-      {panel === "unbind" ? (
+      {!loading && !loadError && space && panel === "unbind" ? (
         <UnbindDialog
           onCancel={() => setPanel("none")}
           onConfirm={async () => {
@@ -164,7 +180,7 @@ export function CouplePage() {
         />
       ) : null}
 
-      {panel === "anniversary" ? (
+      {!loading && !loadError && space && panel === "anniversary" ? (
         <AnniversarySheet
           initialDate={space.relationship?.anniversaryDate ?? ""}
           onClose={() => setPanel("none")}

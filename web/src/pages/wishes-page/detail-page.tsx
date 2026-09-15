@@ -1,5 +1,6 @@
-import { useEffect } from "react";
-import { Navigate, useParams, useSearchParams } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
+import { useEffect, type ReactNode } from "react";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/features/auth/context";
 import {
   errorMessage,
@@ -27,7 +28,6 @@ export function WishDetailPage() {
   const showRecord = params.get("record") === "1";
   const wish = wishQuery.data?.wish;
   const isDone = wish?.status === "done";
-
   function closeQuery(key: "done" | "record") {
     const next = new URLSearchParams(params);
     next.delete(key);
@@ -58,17 +58,18 @@ export function WishDetailPage() {
     return <Navigate to="/wishes" replace />;
   }
 
-  if (wishQuery.isPending) {
-    return (
-      <PageBody className="items-center justify-center">
-        <p className="text-sm text-fg-muted">加载中…</p>
-      </PageBody>
-    );
-  }
 
-  if (wishQuery.isError || !wish) {
-    return (
-      <PageBody className="items-center justify-center gap-4">
+
+  let body: ReactNode;
+  let bodyClassName = "gap-10 lg:flex-row lg:gap-12";
+
+  if (wishQuery.isPending) {
+    bodyClassName = "items-center justify-center";
+    body = <p className="text-sm text-fg-muted">加载中…</p>;
+  } else if (wishQuery.isError || !wish) {
+    bodyClassName = "items-center justify-center gap-4";
+    body = (
+      <>
         <p className="text-sm font-medium text-danger" role="alert">
           {errorMessage(wishQuery.error)}
         </p>
@@ -78,61 +79,91 @@ export function WishDetailPage() {
         <Button variant="ghost" to="/wishes">
           返回
         </Button>
-      </PageBody>
+      </>
+    );
+  } else {
+    const creator =
+      user && wish.createdByUserId === user.id
+        ? user
+        : user?.couple.partner &&
+            wish.createdByUserId === user.couple.partner.id
+          ? user.couple.partner
+          : null;
+
+    body = (
+      <>
+        <WishDetailInfo
+          wish={wish}
+          creator={creator}
+          onMarkDone={() => openQuery("done")}
+          onAddRecord={() => openQuery("record")}
+        />
+        <WishDetailRecords
+          records={recordsQuery.data?.records ?? []}
+          isPending={recordsQuery.isPending}
+          isError={recordsQuery.isError}
+          error={recordsQuery.error}
+          onRetry={() => void recordsQuery.refetch()}
+        />
+
+        {showDone && !isDone ? (
+          <MarkDoneDialog
+            title={wish.title}
+            pending={updateMutation.isPending}
+            error={
+              updateMutation.isError
+                ? errorMessage(updateMutation.error)
+                : undefined
+            }
+            onCancel={() => {
+              updateMutation.reset();
+              closeQuery("done");
+            }}
+            onConfirm={() => {
+              updateMutation.mutate(
+                { id: wishId, payload: { status: "done" } },
+                {
+                  onSuccess: () => closeQuery("done"),
+                },
+              );
+            }}
+          />
+        ) : null}
+
+        {showRecord ? (
+          <RecordSheet wishId={wishId} onClose={() => closeQuery("record")} />
+        ) : null}
+      </>
     );
   }
 
-  const creator =
-    user && wish.createdByUserId === user.id
-      ? user
-      : user?.couple.partner &&
-          wish.createdByUserId === user.couple.partner.id
-        ? user.couple.partner
-        : null;
-
   return (
-    <PageBody className="gap-10 lg:flex-row lg:gap-12">
-      <WishDetailInfo
-        wish={wish}
-        creator={creator}
-        onMarkDone={() => openQuery("done")}
-        onAddRecord={() => openQuery("record")}
-      />
-      <WishDetailRecords
-        records={recordsQuery.data?.records ?? []}
-        isPending={recordsQuery.isPending}
-        isError={recordsQuery.isError}
-        error={recordsQuery.error}
-        onRetry={() => void recordsQuery.refetch()}
-      />
-
-      {showDone && !isDone ? (
-        <MarkDoneDialog
-          title={wish.title}
-          pending={updateMutation.isPending}
-          error={
-            updateMutation.isError
-              ? errorMessage(updateMutation.error)
-              : undefined
-          }
-          onCancel={() => {
-            updateMutation.reset();
-            closeQuery("done");
-          }}
-          onConfirm={() => {
-            updateMutation.mutate(
-              { id: wishId, payload: { status: "done" } },
-              {
-                onSuccess: () => closeQuery("done"),
-              },
-            );
-          }}
-        />
-      ) : null}
-
-      {showRecord ? (
-        <RecordSheet wishId={wishId} onClose={() => closeQuery("record")} />
-      ) : null}
-    </PageBody>
+    <>
+          <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+      <div className="flex min-w-0 items-center gap-2">
+        <Link
+          to="/wishes"
+          aria-label="返回"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-control text-fg transition-transform duration-100 ease-out active:scale-[0.97]"
+        >
+          <ChevronLeft className="size-4" strokeWidth={2} />
+        </Link>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+            心愿详情
+          </h1>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" to="?done=1">
+          标记完成
+        </Button>
+        <Button variant="primary" to="?record=1">
+          记一笔
+        </Button>
+      </div>
+    </header>
+      <PageBody className={bodyClassName}>{body}</PageBody>
+    </>
   );
 }

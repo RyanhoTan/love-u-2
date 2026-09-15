@@ -1,4 +1,4 @@
-import { Play, Upload, X } from "lucide-react";
+import { ChevronLeft, Play, Upload, X } from "lucide-react";
 import type {
   ChangeEvent,
   DragEvent,
@@ -7,10 +7,11 @@ import type {
   WheelEvent as ReactWheelEvent,
 } from "react";
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createAlbumMedia } from "@/api/album";
 import { uploadMedia } from "@/api/upload";
 import { PageBody } from "@/components/layout/page-body";
+import { Button } from "@/components/ui/button";
 import { errorMessage } from "@/features/album/queries";
 
 const MIN_IMAGE_SCALE = 0.5;
@@ -184,12 +185,34 @@ export function UploadPage() {
   }
 
   return (
-    <PageBody scroll={false} className="gap-6">
-      <form
-        id="upload-form"
-        className="flex min-h-0 flex-1 flex-col gap-6"
-        onSubmit={handleSubmit}
-      >
+    <>
+      <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+        <div className="flex min-w-0 items-center gap-2">
+          <Link
+            to="/photos"
+            aria-label="返回"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-control text-fg transition-transform duration-100 ease-out active:scale-[0.97]"
+          >
+            <ChevronLeft className="size-4" strokeWidth={2} />
+          </Link>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+              上传
+            </h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button type="submit" form="upload-form">
+            上传
+          </Button>
+        </div>
+      </header>
+      <PageBody scroll={false} className="gap-6">
+        <form
+          id="upload-form"
+          className="flex min-h-0 flex-1 flex-col gap-6"
+          onSubmit={handleSubmit}
+        >
         <button
           type="button"
           disabled={uploading}
@@ -278,7 +301,7 @@ export function UploadPage() {
             {uploadError}
           </p>
         ) : null}
-      </form>
+        </form>
 
       {previewFile && (
         <div
@@ -332,6 +355,7 @@ export function UploadPage() {
           </button>
         </div>
       )}
-    </PageBody>
+      </PageBody>
+    </>
   );
 }

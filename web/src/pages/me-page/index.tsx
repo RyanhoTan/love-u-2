@@ -40,9 +40,18 @@ export function MePage() {
   const name = user ? displayName(user) : "";
   const signature = user?.signature?.trim() || "";
   const avatarSrc = user?.avatar ?? undefined;
-
   return (
-    <PageBody className="gap-8">
+    <>
+      <header className="flex shrink-0 items-center justify-between bg-surface-soft/80 px-8 pb-3 pt-7 backdrop-blur-[20px]">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
+              我的
+            </h1>
+          </div>
+        </div>
+      </header>
+      <PageBody className="gap-8">
       <section className="flex flex-col items-center gap-3">
         <Avatar src={avatarSrc} alt={name || "avatar"} size={88} />
         <h2 className="text-[28px] font-semibold tracking-[-0.5px] text-fg">
@@ -95,6 +104,7 @@ export function MePage() {
       >
         退出登录
       </button>
-    </PageBody>
+      </PageBody>
+    </>
   );
 }

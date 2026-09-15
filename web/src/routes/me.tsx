@@ -9,7 +9,6 @@ export const meRoutes = [
     path: "me",
     handle: {
       navId: "me",
-      title: "我的",
       placeholder: "我的",
       bodyClassName: body.me,
     } satisfies RouteHandle,
@@ -30,8 +29,6 @@ export const meRoutes = [
     path: "me/couple",
     handle: {
       navId: "me",
-      title: "情侣空间",
-      backTo: "/me",
       placeholder: "情侣空间",
       bodyClassName: body.nested,
     } satisfies RouteHandle,

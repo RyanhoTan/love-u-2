@@ -7,8 +7,6 @@ export const messagesRoutes = [
     path: "messages",
     handle: {
       navId: "messages",
-      peer: true,
-      actions: [{ kind: "info" }],
       placeholder: "对话",
       bodyClassName: "",
     } satisfies RouteHandle,
