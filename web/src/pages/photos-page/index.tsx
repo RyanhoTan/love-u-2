@@ -6,7 +6,6 @@ import {
   Play,
   Search,
   Trash2,
-  X,
 } from "lucide-react";
 import {
   useEffect,
@@ -18,6 +17,10 @@ import {
 import type { AlbumMediaItem } from "@/api/album";
 import { useAlbumMediaQuery } from "@/features/album/queries";
 import { PageBody } from "@/components/layout/page-body";
+import {
+  MediaViewer,
+  type MediaViewerItem,
+} from "@/components/media/media-viewer";
 import { QueryError } from "@/components/query-state";
 import { Button, IconButton } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -108,16 +111,22 @@ function emptyCopy(tab: Tab) {
 export function PhotosPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [tab, setTab] = useState<Tab>("all");
-  const [previewVideo, setPreviewVideo] = useState<AlbumMediaItem | null>(null);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const photosGridRef = useRef<HTMLDivElement>(null);
   const query = useAlbumMediaQuery();
   const [editedItems, setEditedItems] = useState<AlbumMediaItem[] | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(
-    () => new Set(),
-  );
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
   const [confirmDelete, setConfirmDelete] = useState(false);
   const mediaItems = editedItems ?? query.data?.media ?? [];
   const items = filterMedia(mediaItems, tab);
+  const viewerItems: MediaViewerItem[] = items.map((media) => ({
+    id: media.id,
+    src: media.url,
+    thumbnailSrc: mediaSrc(media),
+    kind: media.mediaType,
+    label: mediaCaption(media),
+    alt: mediaCaption(media),
+  }));
   const allSelected =
     items.length > 0 && items.every((media) => selectedIds.has(media.id));
 
@@ -149,7 +158,7 @@ export function PhotosPage() {
     setEditedItems(null);
     setSelectedIds(new Set());
     setConfirmDelete(false);
-    setPreviewVideo(null);
+    setPreviewIndex(null);
   }
 
   function stopEditing() {
@@ -266,7 +275,7 @@ export function PhotosPage() {
           onScroll={handlePhotosScroll}
           className="grid min-h-0 flex-1 auto-rows-max grid-cols-4 content-start gap-2 overflow-y-auto"
         >
-          {items.map((media) => {
+          {items.map((media, index) => {
             const caption = mediaCaption(media);
             const selected = selectedIds.has(media.id);
 
@@ -327,18 +336,16 @@ export function PhotosPage() {
             }
 
             return (
-              <div
+              <button
                 key={media.id}
-                className="aspect-square overflow-hidden rounded-control bg-avatar"
+                type="button"
+                className="group relative aspect-square overflow-hidden rounded-control bg-avatar text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 title={caption || undefined}
+                aria-label={`查看${caption || "媒体"}`}
+                onClick={() => setPreviewIndex(index)}
               >
                 {media.mediaType === "video" ? (
-                  <button
-                    type="button"
-                    className="relative size-full cursor-pointer"
-                    onClick={() => setPreviewVideo(media)}
-                    aria-label={`播放${caption || "视频"}`}
-                  >
+                  <span className="relative block size-full">
                     <video
                       src={media.url}
                       aria-hidden="true"
@@ -353,7 +360,7 @@ export function PhotosPage() {
                         strokeWidth={1.8}
                       />
                     </span>
-                  </button>
+                  </span>
                 ) : (
                   <img
                     src={mediaSrc(media)}
@@ -361,36 +368,10 @@ export function PhotosPage() {
                     className="size-full object-cover"
                   />
                 )}
-              </div>
+              </button>
             );
           })}
         </div>
-        {previewVideo && !isEditing ? (
-          <div
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6 backdrop-blur-[8px]"
-            onClick={() => setPreviewVideo(null)}
-            role="dialog"
-            aria-modal="true"
-            aria-label={`预览${mediaCaption(previewVideo) || "视频"}`}
-          >
-            <video
-              src={previewVideo.url}
-              className="max-h-[calc(100vh-3rem)] max-w-[calc(100vw-3rem)] object-contain"
-              controls
-              autoPlay
-              playsInline
-              onClick={(event) => event.stopPropagation()}
-            />
-            <button
-              type="button"
-              aria-label="关闭预览"
-              onClick={() => setPreviewVideo(null)}
-              className="absolute right-6 top-6 grid size-9 place-items-center rounded-full bg-black/65 text-white transition-colors hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              <X className="size-5" strokeWidth={2} />
-            </button>
-          </div>
-        ) : null}
       </>
     );
   }
@@ -460,6 +441,13 @@ export function PhotosPage() {
           count={selectedIds.size}
           onCancel={() => setConfirmDelete(false)}
           onConfirm={deleteSelected}
+        />
+      ) : null}
+      {previewIndex !== null && !isEditing ? (
+        <MediaViewer
+          items={viewerItems}
+          initialIndex={previewIndex}
+          onClose={() => setPreviewIndex(null)}
         />
       ) : null}
     </>

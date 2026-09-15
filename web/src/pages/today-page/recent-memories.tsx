@@ -1,7 +1,10 @@
-import { Play, X } from "lucide-react";
+import { Play } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import type { AlbumMediaItem } from "@/api/album";
+// import type { AlbumMediaItem } from "@/api/album";
+import {
+  MediaViewer,
+  type MediaViewerItem,
+} from "@/components/media/media-viewer";
 import { useAlbumMediaQuery } from "@/features/album/queries";
 import { QueryError } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
@@ -9,7 +12,7 @@ import { Button } from "@/components/ui/button";
 const RECENT_COUNT = 4;
 
 export function RecentMemories() {
-  const [previewVideo, setPreviewVideo] = useState<AlbumMediaItem | null>(null);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const query = useAlbumMediaQuery();
 
   if (query.isPending) {
@@ -18,10 +21,7 @@ export function RecentMemories() {
         <h2 className="text-[15px] font-semibold text-fg">最近的回忆</h2>
         <div className="grid grid-cols-4 gap-2.5">
           {Array.from({ length: RECENT_COUNT }, (_, index) => (
-            <div
-              key={index}
-              className="h-37 w-full rounded-xl bg-border"
-            />
+            <div key={index} className="h-37 w-full rounded-xl bg-border" />
           ))}
         </div>
       </section>
@@ -61,6 +61,14 @@ export function RecentMemories() {
     );
   }
 
+  const viewerItems: MediaViewerItem[] = memories.map((media) => ({
+    id: media.id,
+    src: media.url,
+    thumbnailSrc: media.thumbnailUrl || media.url,
+    kind: media.mediaType,
+    label: media.mediaType === "video" ? "视频" : "照片",
+  }));
+
   return (
     <section className="flex shrink-0 flex-col gap-3.5">
       <div className="flex h-9 items-center justify-between">
@@ -70,75 +78,47 @@ export function RecentMemories() {
         </Button>
       </div>
       <div className="grid grid-cols-4 gap-2.5">
-        {memories.map((media) => {
+        {memories.map((media, index) => {
           const src = media.thumbnailUrl || media.url;
 
-          if (media.mediaType === "video") {
-            return (
-              <button
-                key={media.id}
-                type="button"
-                className="relative block h-37 w-full cursor-pointer border-0 bg-transparent p-0 text-left"
-                onClick={() => setPreviewVideo(media)}
-                aria-label="播放视频"
-              >
-                <video
-                  src={media.url}
-                  aria-hidden="true"
-                  className="size-full object-cover"
-                  muted
-                  playsInline
-                  preload="auto"
-                />
-                <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
-                  <Play
-                    className="size-8 fill-white text-white drop-shadow"
-                    strokeWidth={1.8}
-                  />
-                </span>
-              </button>
-            );
-          }
-
           return (
-            <Link
+            <button
               key={media.id}
-              to="/photos"
-              className="block overflow-hidden rounded-xl transition-transform duration-100 ease-out active:scale-[0.99] motion-reduce:active:scale-100"
+              type="button"
+              className="group relative block h-37 w-full overflow-hidden rounded-xl border-0 bg-transparent p-0 text-left transition-transform duration-100 ease-out active:scale-[0.99] motion-reduce:active:scale-100"
+              onClick={() => setPreviewIndex(index)}
+              aria-label={`查看${media.mediaType === "video" ? "视频" : "照片"}`}
             >
-              <img
-                src={src}
-                alt=""
-                className="h-37 w-full object-cover"
-              />
-            </Link>
+              {media.mediaType === "video" ? (
+                <span className="relative block size-full">
+                  <video
+                    src={media.url}
+                    aria-hidden="true"
+                    className="size-full object-cover"
+                    muted
+                    playsInline
+                    preload="auto"
+                  />
+                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
+                    <Play
+                      className="size-8 fill-white text-white drop-shadow"
+                      strokeWidth={1.8}
+                    />
+                  </span>
+                </span>
+              ) : (
+                <img src={src} alt="" className="h-37 w-full object-cover" />
+              )}
+            </button>
           );
         })}
       </div>
-      {previewVideo ? (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6 backdrop-blur-[8px]"
-          onClick={() => setPreviewVideo(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="预览视频"
-        >
-          <video
-            src={previewVideo.url}
-            className="max-h-[calc(100vh-3rem)] max-w-[calc(100vw-3rem)] object-contain"
-            controls
-            playsInline
-            onClick={(event) => event.stopPropagation()}
-          />
-          <button
-            type="button"
-            aria-label="关闭预览"
-            onClick={() => setPreviewVideo(null)}
-            className="absolute right-6 top-6 grid size-9 place-items-center rounded-full bg-black/65 text-white transition-colors hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-          >
-            <X className="size-5" strokeWidth={2} />
-          </button>
-        </div>
+      {previewIndex !== null ? (
+        <MediaViewer
+          items={viewerItems}
+          initialIndex={previewIndex}
+          onClose={() => setPreviewIndex(null)}
+        />
       ) : null}
     </section>
   );
