@@ -8,7 +8,14 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type UIEvent,
+} from "react";
 import { Link } from "react-router-dom";
 import type { AlbumMediaItem } from "@/api/album";
 import { useAlbumMediaQuery } from "@/features/album/queries";
@@ -103,6 +110,7 @@ function emptyCopy(tab: Tab) {
 export function PhotosPage() {
   const [tab, setTab] = useState<Tab>("all");
   const [previewVideo, setPreviewVideo] = useState<AlbumMediaItem | null>(null);
+  const photosGridRef = useRef<HTMLDivElement>(null);
   const query = useAlbumMediaQuery();
 
   const items = useMemo(() => {
@@ -111,6 +119,30 @@ export function PhotosPage() {
     }
     return filterMedia(query.data.media, tab);
   }, [query.data, tab]);
+
+  function handlePhotosScroll(event: UIEvent<HTMLDivElement>) {
+    sessionStorage.setItem(
+      `photos-scroll-top:${tab}`,
+      String(event.currentTarget.scrollTop),
+    );
+  }
+
+  useEffect(() => {
+    if (items.length === 0) {
+      return;
+    }
+
+    const gridElement = photosGridRef.current;
+
+    if (gridElement === null) {
+      return;
+    }
+
+    const storageKey = `photos-scroll-top:${tab}`;
+    const savedScrollTop = Number(sessionStorage.getItem(storageKey) ?? 0);
+    gridElement.scrollTop = savedScrollTop;
+  }, [items.length, tab]);
+
   let body: ReactNode;
   const scroll = query.isError || (!query.isPending && items.length === 0);
 
@@ -165,7 +197,11 @@ export function PhotosPage() {
     body = (
       <>
         <Segmented value={tab} onChange={setTab} options={[...TABS]} />
-        <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-4 content-start gap-2 overflow-y-auto">
+        <div
+          ref={photosGridRef}
+          onScroll={handlePhotosScroll}
+          className="grid min-h-0 flex-1 auto-rows-max grid-cols-4 content-start gap-2 overflow-y-auto"
+        >
           {items.map((media) => {
             const caption = mediaCaption(media);
 
