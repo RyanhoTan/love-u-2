@@ -15,7 +15,7 @@ export function WishDetailRecords({
   onRetry: () => void;
 }) {
   return (
-    <section className="flex min-w-0 flex-1 flex-col gap-4">
+    <section className="flex min-w-0 flex-col gap-4 lg:pr-2">
       <div className="flex items-center justify-between">
         <h2 className="text-[15px] font-semibold tracking-[-0.2px] text-fg">
           记录

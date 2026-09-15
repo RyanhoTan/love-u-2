@@ -97,12 +97,14 @@ export function WishDetailPage() {
           onMarkDone={() => openQuery("done")}
           onAddRecord={() => openQuery("record")}
         />
-        <WishDetailRecords
-          records={recordsQuery.data?.records ?? []}
-          isPending={recordsQuery.isPending}
-          isError={recordsQuery.isError}
-          onRetry={() => void recordsQuery.refetch()}
-        />
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto lg:h-full">
+          <WishDetailRecords
+            records={recordsQuery.data?.records ?? []}
+            isPending={recordsQuery.isPending}
+            isError={recordsQuery.isError}
+            onRetry={() => void recordsQuery.refetch()}
+          />
+        </div>
 
         {showDone && !isDone ? (
           <MarkDoneDialog
@@ -161,7 +163,9 @@ export function WishDetailPage() {
         </Button>
       </div>
     </header>
-      <PageBody className={bodyClassName}>{body}</PageBody>
+      <PageBody scroll={false} className={`${bodyClassName} max-lg:overflow-y-auto`}>
+        {body}
+      </PageBody>
     </>
   );
 }
