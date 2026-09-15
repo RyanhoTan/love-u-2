@@ -1,20 +1,17 @@
 import type { SchemaWishRecord } from "@/api/schemas";
-import { Button } from "@/components/ui/button";
+import { QueryError } from "@/components/query-state";
 import { cx } from "@/lib/cx";
-import { errorMessage } from "@/features/wish/queries";
 import { formatBudget, isoToDotDate } from "./types";
 
 export function WishDetailRecords({
   records,
   isPending,
   isError,
-  error,
   onRetry,
 }: {
   records: SchemaWishRecord[];
   isPending: boolean;
   isError: boolean;
-  error: unknown;
   onRetry: () => void;
 }) {
   return (
@@ -29,14 +26,7 @@ export function WishDetailRecords({
       {isPending ? (
         <p className="text-sm text-fg-muted">加载记录…</p>
       ) : isError ? (
-        <div className="flex flex-col items-start gap-2">
-          <p className="text-sm text-danger" role="alert">
-            {errorMessage(error)}
-          </p>
-          <Button variant="ghost" onClick={onRetry}>
-            重试
-          </Button>
-        </div>
+        <QueryError className="items-start text-left" onRetry={onRetry} />
       ) : records.length === 0 ? (
         <div className="rounded-[12px] bg-surface px-4 py-8 text-sm text-fg-secondary">
           还没有记录。点「记一笔」留下这一路的痕迹。

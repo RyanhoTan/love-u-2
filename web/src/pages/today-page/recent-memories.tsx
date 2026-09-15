@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { AlbumMediaItem } from "@/api/album";
 import { useAlbumMediaQuery } from "@/features/album/queries";
+import { QueryError } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
 
 const RECENT_COUNT = 4;
@@ -31,21 +32,10 @@ export function RecentMemories() {
     return (
       <section className="flex shrink-0 flex-col gap-3.5">
         <h2 className="text-[15px] font-semibold text-fg">最近的回忆</h2>
-        <div className="flex h-37 flex-col justify-center gap-2">
-          <p className="text-[15px] font-semibold tracking-[-0.2px] text-fg">
-            回忆加载失败
-          </p>
-          <p className="text-[13px] text-fg-secondary" role="alert">
-            请检查网络后重试
-          </p>
-          <Button
-            variant="secondary"
-            className="self-start"
-            onClick={() => void query.refetch()}
-          >
-            重试
-          </Button>
-        </div>
+        <QueryError
+          className="h-37 items-start text-left"
+          onRetry={() => void query.refetch()}
+        />
       </section>
     );
   }

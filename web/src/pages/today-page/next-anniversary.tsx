@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAnniversariesQuery } from "@/features/anniversary/queries";
+import { QueryError } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
 
 function formatDayDate(iso: string) {
@@ -23,17 +24,10 @@ export function NextAnniversaryInsight() {
     return (
       <div className="flex min-w-0 flex-1 flex-col gap-2 py-0.5">
         <p className="text-xs font-medium text-fg-muted">下一个纪念日</p>
-        <p className="text-xl font-semibold tracking-[-0.3px] text-fg">
-          暂时打不开
-        </p>
-        <p className="text-[13px] text-fg-secondary">网络有点问题</p>
-        <Button
-          variant="ghost"
-          className="self-start px-0 hover:bg-transparent"
-          onClick={() => void query.refetch()}
-        >
-          重试
-        </Button>
+        <QueryError
+          className="items-start text-left"
+          onRetry={() => void query.refetch()}
+        />
       </div>
     );
   }

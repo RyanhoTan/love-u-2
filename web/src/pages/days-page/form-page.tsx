@@ -12,6 +12,7 @@ import {
   useUpdateAnniversaryMutation,
 } from "@/features/anniversary/queries";
 import { PageBody } from "@/components/layout/page-body";
+import { QueryError } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
 import { DeleteDayDialog } from "./delete-dialog";
 import { DayFormFields } from "./form-fields";
@@ -116,12 +117,10 @@ export function DayEditPage() {
   } else if (query.isError) {
     body = (
       <PageBody className="items-center justify-center gap-4">
-        <p className="text-sm font-medium text-danger" role="alert">
-          {errorMessage(query.error)}
-        </p>
-        <Button variant="secondary" onClick={() => void query.refetch()}>
-          重试
-        </Button>
+        <QueryError
+          className="flex-none"
+          onRetry={() => void query.refetch()}
+        />
         <Button variant="ghost" to="/days">
           返回
         </Button>

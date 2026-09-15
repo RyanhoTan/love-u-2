@@ -12,7 +12,7 @@ import {
 import type { UserProfile } from "@/api/user";
 import { emptyAuthUser } from "@/features/auth/session-user";
 import { PageBody } from "@/components/layout/page-body";
-import { Button } from "@/components/ui/button";
+import { QueryError } from "@/components/query-state";
 import { BoundView } from "./bound-view";
 import { AnniversarySheet, UnbindDialog } from "./dialogs";
 import type { CoupleSpace } from "./types";
@@ -94,28 +94,20 @@ export function CouplePage() {
   if (loading) {
     body = <p className="text-sm text-fg-muted">加载中…</p>;
   } else if (loadError || !space) {
-    bodyClassName = "items-center justify-center gap-4";
+    bodyClassName = "items-center justify-center";
     body = (
-      <>
-        <p className="text-sm font-medium text-danger" role="alert">
-          {loadError || "request failed"}
-        </p>
-        <Button
-          variant="secondary"
-          onClick={() => {
-            setLoading(true);
-            void loadSpace()
-              .catch((caught) =>
-                setLoadError(
-                  caught instanceof Error ? caught.message : "request failed",
-                ),
-              )
-              .finally(() => setLoading(false));
-          }}
-        >
-          重试
-        </Button>
-      </>
+      <QueryError
+        onRetry={() => {
+          setLoading(true);
+          void loadSpace()
+            .catch((caught) =>
+              setLoadError(
+                caught instanceof Error ? caught.message : "request failed",
+              ),
+            )
+            .finally(() => setLoading(false));
+        }}
+      />
     );
   } else {
     const selfProfile: UserProfile =

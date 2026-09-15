@@ -1,10 +1,8 @@
 import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
-import {
-  errorMessage,
-  useAnniversariesQuery,
-} from "@/features/anniversary/queries";
+import { useAnniversariesQuery } from "@/features/anniversary/queries";
 import { PageBody } from "@/components/layout/page-body";
+import { QueryError } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
 import { isoToDotDate } from "./types";
 
@@ -18,17 +16,8 @@ export function DaysPage() {
     bodyClassName = "items-center justify-center";
     body = <p className="text-sm text-fg-muted">加载中…</p>;
   } else if (query.isError) {
-    bodyClassName = "items-center justify-center gap-4";
-    body = (
-      <>
-        <p className="text-sm font-medium text-danger" role="alert">
-          {errorMessage(query.error)}
-        </p>
-        <Button variant="secondary" onClick={() => void query.refetch()}>
-          重试
-        </Button>
-      </>
-    );
+    bodyClassName = "items-center justify-center";
+    body = <QueryError onRetry={() => void query.refetch()} />;
   } else if (items.length === 0) {
     bodyClassName = "items-center justify-center gap-4";
     body = (

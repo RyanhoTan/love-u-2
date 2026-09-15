@@ -9,6 +9,7 @@ import {
   useWishRecordsQuery,
 } from "@/features/wish/queries";
 import { PageBody } from "@/components/layout/page-body";
+import { QueryError } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
 import { WishDetailInfo } from "./detail-info";
 import { WishDetailRecords } from "./detail-records";
@@ -70,12 +71,10 @@ export function WishDetailPage() {
     bodyClassName = "items-center justify-center gap-4";
     body = (
       <>
-        <p className="text-sm font-medium text-danger" role="alert">
-          {errorMessage(wishQuery.error)}
-        </p>
-        <Button variant="secondary" onClick={() => void wishQuery.refetch()}>
-          重试
-        </Button>
+        <QueryError
+          className="flex-none"
+          onRetry={() => void wishQuery.refetch()}
+        />
         <Button variant="ghost" to="/wishes">
           返回
         </Button>
@@ -102,7 +101,6 @@ export function WishDetailPage() {
           records={recordsQuery.data?.records ?? []}
           isPending={recordsQuery.isPending}
           isError={recordsQuery.isError}
-          error={recordsQuery.error}
           onRetry={() => void recordsQuery.refetch()}
         />
 

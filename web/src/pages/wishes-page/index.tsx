@@ -1,11 +1,9 @@
 import { Gift } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import {
-  errorMessage,
-  useWishesQuery,
-} from "@/features/wish/queries";
+import { useWishesQuery } from "@/features/wish/queries";
 import { PageBody } from "@/components/layout/page-body";
+import { QueryError } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cx } from "@/lib/cx";
@@ -56,17 +54,10 @@ export function WishesPage() {
     body = (
       <>
         <Segmented value={tab} onChange={setTab} options={[...WISH_TABS]} />
-        <div className="flex flex-col items-start gap-3 py-10">
-          <h2 className="text-[17px] font-semibold tracking-[-0.2px] text-fg">
-            心愿加载失败
-          </h2>
-          <p className="text-sm text-fg-secondary" role="alert">
-            {errorMessage(query.error)}
-          </p>
-          <Button variant="ghost" onClick={() => void query.refetch()}>
-            重试
-          </Button>
-        </div>
+        <QueryError
+          className="items-start py-10 text-left"
+          onRetry={() => void query.refetch()}
+        />
       </>
     );
   } else if (items.length === 0) {

@@ -11,8 +11,9 @@ import {
 import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { AlbumMediaItem } from "@/api/album";
-import { errorMessage, useAlbumMediaQuery } from "@/features/album/queries";
+import { useAlbumMediaQuery } from "@/features/album/queries";
 import { PageBody } from "@/components/layout/page-body";
+import { QueryError } from "@/components/query-state";
 import { Button, IconButton } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 
@@ -131,17 +132,10 @@ export function PhotosPage() {
     body = (
       <>
         <Segmented value={tab} onChange={setTab} options={[...TABS]} />
-        <div className="flex flex-col items-start gap-3 py-10">
-          <h2 className="text-[17px] font-semibold tracking-[-0.2px] text-fg">
-            相册加载失败
-          </h2>
-          <p className="text-sm text-fg-secondary" role="alert">
-            {errorMessage(query.error)}
-          </p>
-          <Button variant="ghost" onClick={() => void query.refetch()}>
-            重试
-          </Button>
-        </div>
+        <QueryError
+          className="items-start py-10 text-left"
+          onRetry={() => void query.refetch()}
+        />
       </>
     );
   } else if (items.length === 0) {
@@ -326,14 +320,10 @@ export function PhotosEditPage() {
     );
   } else if (query.isError) {
     body = (
-      <div className="flex flex-col items-start gap-3 py-10">
-        <h2 className="text-[17px] font-semibold tracking-[-0.2px] text-fg">
-          相册加载失败
-        </h2>
-        <p className="text-sm text-fg-secondary" role="alert">
-          {errorMessage(query.error)}
-        </p>
-      </div>
+      <QueryError
+        className="items-start py-10 text-left"
+        onRetry={() => void query.refetch()}
+      />
     );
   } else if (items.length === 0) {
     body = (
