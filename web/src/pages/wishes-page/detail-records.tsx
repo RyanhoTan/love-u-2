@@ -1,4 +1,9 @@
+import { useState } from "react";
 import type { SchemaWishRecord } from "@/api/schemas";
+import {
+  MediaViewer,
+  type MediaViewerItem,
+} from "@/components/media/media-viewer";
 import { QueryError } from "@/components/query-state";
 import { cx } from "@/lib/cx";
 import { formatBudget, isoToDotDate } from "./types";
@@ -14,6 +19,17 @@ export function WishDetailRecords({
   isError: boolean;
   onRetry: () => void;
 }) {
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const viewerItems: MediaViewerItem[] = records.flatMap((record) =>
+    record.media.map((item, mediaIndex) => ({
+      id: `${record.id}-${mediaIndex}-${item.url}`,
+      src: item.url,
+      thumbnailSrc: item.thumbnailUrl || item.url,
+      kind: item.mediaType,
+      label: `${isoToDotDate(record.recordDate)} · ${item.mediaType === "video" ? "视频" : "图片"}`,
+    })),
+  );
+
   return (
     <section className="flex min-w-0 flex-col gap-4 lg:pr-2">
       <div className="flex items-center justify-between">
@@ -65,14 +81,28 @@ export function WishDetailRecords({
                     ) : null}
                     {record.media.length > 0 ? (
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {record.media.map((item) => (
-                          <img
-                            key={`${record.id}-${item.url}`}
-                            src={item.thumbnailUrl || item.url}
-                            alt=""
-                            className="size-12 rounded-[8px] object-cover"
-                          />
-                        ))}
+                        {record.media.map((item, mediaIndex) => {
+                          const viewerItemId = `${record.id}-${mediaIndex}-${item.url}`;
+                          const viewerIndex = viewerItems.findIndex(
+                            (viewerItem) => viewerItem.id === viewerItemId,
+                          );
+
+                          return (
+                            <button
+                              key={viewerItemId}
+                              type="button"
+                              aria-label={`查看${item.mediaType === "video" ? "视频" : "图片"}`}
+                              onClick={() => setPreviewIndex(viewerIndex)}
+                              className="group size-12 cursor-zoom-in overflow-hidden rounded-[8px] border-0 bg-transparent p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                            >
+                              <img
+                                src={item.thumbnailUrl || item.url}
+                                alt=""
+                                className="size-full object-cover transition-transform duration-150 group-hover:scale-105"
+                              />
+                            </button>
+                          );
+                        })}
                       </div>
                     ) : null}
                   </div>
@@ -82,6 +112,14 @@ export function WishDetailRecords({
           })}
         </div>
       )}
+
+      {previewIndex !== null ? (
+        <MediaViewer
+          items={viewerItems}
+          initialIndex={previewIndex}
+          onClose={() => setPreviewIndex(null)}
+        />
+      ) : null}
     </section>
   );
 }
