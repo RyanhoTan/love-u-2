@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -17,6 +18,7 @@ import {
 
 const MIN_IMAGE_SCALE = 0.5;
 const MAX_IMAGE_SCALE = 3;
+const RUBBER_BAND_CONSTANT = 0.55;
 
 type ImageOffset = {
   x: number;
@@ -28,6 +30,42 @@ type ImageDrag = ImageOffset & {
   startX: number;
   startY: number;
 };
+
+type PanBounds = {
+  maxX: number;
+  maxY: number;
+  rubberBandX: number;
+  rubberBandY: number;
+};
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function rubberBand(overshoot: number, dimension: number) {
+  if (dimension === 0) {
+    return 0;
+  }
+
+  return (
+    (overshoot * dimension * RUBBER_BAND_CONSTANT) /
+    (dimension + RUBBER_BAND_CONSTANT * Math.abs(overshoot))
+  );
+}
+
+function rubberBandPosition(value: number, limit: number, dimension: number) {
+  const boundedValue = clamp(value, -limit, limit);
+  const overshoot = value - boundedValue;
+
+  return boundedValue + rubberBand(overshoot, dimension);
+}
+
+function clampImageOffset(offset: ImageOffset, bounds: PanBounds) {
+  return {
+    x: clamp(offset.x, -bounds.maxX, bounds.maxX),
+    y: clamp(offset.y, -bounds.maxY, bounds.maxY),
+  };
+}
 
 export type MediaViewerItem = {
   id: number | string;
@@ -58,8 +96,30 @@ export function MediaViewer({
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [imageScale, setImageScale] = useState(1);
   const [imageOffset, setImageOffset] = useState<ImageOffset>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const imageDragRef = useRef<ImageDrag | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
   const activeItem = items[activeIndex];
+
+  const measurePanBounds = useCallback((scale: number): PanBounds => {
+    const viewport = viewportRef.current;
+    const image = imageRef.current;
+
+    if (!viewport || !image) {
+      return { maxX: 0, maxY: 0, rubberBandX: 0, rubberBandY: 0 };
+    }
+
+    const imageWidth = image.offsetWidth * scale;
+    const imageHeight = image.offsetHeight * scale;
+
+    return {
+      maxX: Math.max(0, (imageWidth - viewport.clientWidth) / 2),
+      maxY: Math.max(0, (imageHeight - viewport.clientHeight) / 2),
+      rubberBandX: Math.min(viewport.clientWidth / 2, imageWidth / 2),
+      rubberBandY: Math.min(viewport.clientHeight / 2, imageHeight / 2),
+    };
+  }, []);
 
   useEffect(() => {
     setActiveIndex(initialIndex);
@@ -68,8 +128,35 @@ export function MediaViewer({
   useEffect(() => {
     setImageScale(1);
     setImageOffset({ x: 0, y: 0 });
+    setIsDragging(false);
     imageDragRef.current = null;
   }, [activeItem?.id]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+
+    if (!viewport || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    function keepImageInBounds() {
+      const bounds = measurePanBounds(imageScale);
+      setImageOffset((currentOffset) =>
+        clampImageOffset(currentOffset, bounds),
+      );
+    }
+
+    const resizeObserver = new ResizeObserver(keepImageInBounds);
+    resizeObserver.observe(viewport);
+
+    if (imageRef.current) {
+      resizeObserver.observe(imageRef.current);
+    }
+
+    keepImageInBounds();
+
+    return () => resizeObserver.disconnect();
+  }, [activeItem?.id, imageScale, measurePanBounds]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -116,26 +203,23 @@ export function MediaViewer({
     }
 
     event.preventDefault();
-    setImageScale((scale) => {
-      const nextScale = Math.min(
+    setImageScale((scale) =>
+      Math.min(
         MAX_IMAGE_SCALE,
         Math.max(MIN_IMAGE_SCALE, scale - event.deltaY * 0.001),
-      );
-
-      if (nextScale === MIN_IMAGE_SCALE) {
-        setImageOffset({ x: 0, y: 0 });
-      }
-
-      return nextScale;
-    });
+      ),
+    );
   }
 
   function handleImagePointerDown(event: PointerEvent<HTMLImageElement>) {
-    if (imageScale === MIN_IMAGE_SCALE) {
+    const bounds = measurePanBounds(imageScale);
+
+    if (bounds.maxX === 0 && bounds.maxY === 0) {
       return;
     }
 
     event.currentTarget.setPointerCapture(event.pointerId);
+    setIsDragging(true);
     imageDragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -152,9 +236,19 @@ export function MediaViewer({
       return;
     }
 
+    const bounds = measurePanBounds(imageScale);
+
     setImageOffset({
-      x: imageDrag.x + event.clientX - imageDrag.startX,
-      y: imageDrag.y + event.clientY - imageDrag.startY,
+      x: rubberBandPosition(
+        imageDrag.x + event.clientX - imageDrag.startX,
+        bounds.maxX,
+        bounds.rubberBandX,
+      ),
+      y: rubberBandPosition(
+        imageDrag.y + event.clientY - imageDrag.startY,
+        bounds.maxY,
+        bounds.rubberBandY,
+      ),
     });
   }
 
@@ -163,7 +257,15 @@ export function MediaViewer({
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
+    const bounds = measurePanBounds(imageScale);
+    setIsDragging(false);
+    setImageOffset((currentOffset) => clampImageOffset(currentOffset, bounds));
     imageDragRef.current = null;
+  }
+
+  function handleImageLoad() {
+    const bounds = measurePanBounds(imageScale);
+    setImageOffset((currentOffset) => clampImageOffset(currentOffset, bounds));
   }
 
   function handleBackdropClick(event: MouseEvent<HTMLDivElement>) {
@@ -242,6 +344,7 @@ export function MediaViewer({
 
         <div
           className="flex h-full min-h-0 w-full max-w-[980px] items-center justify-center overflow-hidden rounded-lg"
+          ref={viewportRef}
           onClick={handleBackdropClick}
         >
           {activeItem.kind === "video" ? (
@@ -258,10 +361,12 @@ export function MediaViewer({
             />
           ) : (
             <img
+              ref={imageRef}
               key={activeItem.id}
               src={activeItem.src}
               alt={activeItem.alt || activeItem.label || "照片"}
               draggable={false}
+              onLoad={handleImageLoad}
               onClick={(event) => event.stopPropagation()}
               onPointerDown={handleImagePointerDown}
               onPointerMove={handleImagePointerMove}
@@ -271,6 +376,10 @@ export function MediaViewer({
                 imageScale > MIN_IMAGE_SCALE
                   ? "cursor-grab touch-none active:cursor-grabbing"
                   : ""
+              } ${
+                isDragging
+                  ? "transition-none"
+                  : "transition-transform duration-200 ease-[cubic-bezier(0.2,0.9,0.2,1)] motion-reduce:transition-none"
               }`}
               style={{
                 transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${imageScale})`,
