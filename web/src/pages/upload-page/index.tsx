@@ -1,5 +1,10 @@
 import { ChevronLeft, Play, Upload, X } from "lucide-react";
-import type { ChangeEvent, DragEvent, SubmitEvent } from "react";
+import type {
+  ChangeEvent,
+  DragEvent,
+  SubmitEvent,
+  WheelEvent as ReactWheelEvent,
+} from "react";
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createAlbumMedia } from "@/api/album";
@@ -112,6 +117,12 @@ export function UploadPage() {
     setPreviewFile(null);
   }
 
+  function handleThumbnailWheel(event: ReactWheelEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.currentTarget.scrollLeft +=
+      event.deltaX !== 0 ? event.deltaX : event.deltaY;
+  }
+
   const previewItems: MediaViewerItem[] = selectedFiles.map((file) => ({
     id: file.id,
     src: file.src,
@@ -180,57 +191,62 @@ export function UploadPage() {
             onChange={handleFileChange}
           />
 
-          <div className="flex shrink-0 gap-2.5">
-            {selectedFiles.map((file) => (
-              <div
-                key={file.id}
-                className="group relative size-[120px] overflow-hidden rounded-[10px] bg-avatar"
-              >
-                {file.kind === "video" ? (
-                  <video
-                    src={file.src}
-                    aria-label={file.name}
-                    className="size-full object-cover"
-                    muted
-                    playsInline
-                  />
-                ) : (
-                  <img
-                    src={file.src}
-                    alt={file.name}
-                    className="size-full object-cover"
-                  />
-                )}
-                {file.kind !== "video" && (
-                  <div className="pointer-events-none absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-within:opacity-100" />
-                )}
-                {file.kind === "video" && (
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40">
-                    <Play
-                      className="size-5 text-white fill-current"
-                      strokeWidth={1.8}
+          <div
+            className="w-full min-w-0 shrink-0 overflow-x-auto pb-1 [scrollbar-width:thin]"
+            onWheel={handleThumbnailWheel}
+          >
+            <div className="flex w-max min-w-full gap-2.5">
+              {selectedFiles.map((file) => (
+                <div
+                  key={file.id}
+                  className="group relative size-[120px] shrink-0 overflow-hidden rounded-[10px] bg-avatar"
+                >
+                  {file.kind === "video" ? (
+                    <video
+                      src={file.src}
+                      aria-label={file.name}
+                      className="size-full object-cover"
+                      muted
+                      playsInline
                     />
-                  </div>
-                )}
-                {file.kind === "image" || file.kind === "video" ? (
+                  ) : (
+                    <img
+                      src={file.src}
+                      alt={file.name}
+                      className="size-full object-cover"
+                    />
+                  )}
+                  {file.kind !== "video" && (
+                    <div className="pointer-events-none absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-within:opacity-100" />
+                  )}
+                  {file.kind === "video" && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40">
+                      <Play
+                        className="size-5 text-white fill-current"
+                        strokeWidth={1.8}
+                      />
+                    </div>
+                  )}
+                  {file.kind === "image" || file.kind === "video" ? (
+                    <button
+                      type="button"
+                      aria-label={`放大查看${file.kind === "video" ? "视频" : "图片"}${file.name}`}
+                      onClick={() => handlePreview(file)}
+                      className="absolute inset-0 cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+                    />
+                  ) : null}
                   <button
                     type="button"
-                    aria-label={`放大查看${file.kind === "video" ? "视频" : "图片"}${file.name}`}
-                    onClick={() => handlePreview(file)}
-                    className="absolute inset-0 cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
-                  />
-                ) : null}
-                <button
-                  type="button"
-                  disabled={uploading}
-                  aria-label={`移除${file.name}`}
-                  onClick={() => handleRemove(file.id)}
-                  className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-black/80 text-white opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/90 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20 disabled:pointer-events-none"
-                >
-                  <X className="size-3.5" strokeWidth={2.2} />
-                </button>
-              </div>
-            ))}
+                    disabled={uploading}
+                    aria-label={`移除${file.name}`}
+                    onClick={() => handleRemove(file.id)}
+                    className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-black/80 text-white opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/90 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20 disabled:pointer-events-none"
+                  >
+                    <X className="size-3.5" strokeWidth={2.2} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           {uploading ? (
