@@ -51,6 +51,10 @@ PORT=3001
 The old Prisma + SQLite backend has been cleared.
 `server` is now a clean Express + TypeScript scaffold prepared for a `mysql2` rebuild.
 
+When the backend starts, it checks the required MySQL tables and columns. Missing tables
+are created, and missing columns are added with `ALTER TABLE`; existing rows are not deleted.
+The MySQL user in `MYSQL_URL` therefore needs permission to create and alter tables.
+
 Current API behavior:
 
 - `GET /health` returns basic service status

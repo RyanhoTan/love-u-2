@@ -6,6 +6,7 @@ import { WebSocket, WebSocketServer } from "ws";
 import { z } from "zod";
 import { verifyAuthToken } from "../auth.js";
 import db from "../db/index.js";
+import { ensureDatabaseSchema } from "../db/schema.js";
 
 const CHAT_PATH = "/partner-chat";
 const HEARTBEAT_INTERVAL_MS = 30_000;
@@ -31,10 +32,6 @@ interface PartnerChatMessage {
 }
 
 interface PartnerChatMessageRow extends PartnerChatMessage, RowDataPacket {}
-
-interface ColumnExistsRow extends RowDataPacket {
-  column_exists: number;
-}
 
 interface ReadReceiptRow extends RowDataPacket {
   id: number;
@@ -71,120 +68,9 @@ const incomingPayloadSchema = z.discriminatedUnion("type", [
 ]);
 
 const connectionsByUserId = new Map<number, Set<PartnerChatConnection>>();
-let schemaReadyPromise: Promise<void> | null = null;
 
 function ensurePartnerChatSchema() {
-  schemaReadyPromise ??= db
-    .execute(
-      `
-        CREATE TABLE IF NOT EXISTS partner_chat_messages (
-          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-          relationship_id BIGINT UNSIGNED NOT NULL,
-          sender_id BIGINT UNSIGNED NOT NULL,
-          receiver_id BIGINT UNSIGNED NOT NULL,
-          text VARCHAR(${MAX_MESSAGE_LENGTH}) NULL,
-          message_type VARCHAR(20) NOT NULL DEFAULT 'text',
-          audio_url VARCHAR(2048) NULL,
-          client_message_id VARCHAR(100) NULL,
-          sent_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-          delivered_at DATETIME(3) NULL,
-          read_at DATETIME(3) NULL,
-          PRIMARY KEY (id),
-          INDEX idx_partner_chat_receiver_pending (receiver_id, relationship_id, delivered_at, id),
-          INDEX idx_partner_chat_receiver_unread (receiver_id, relationship_id, read_at, id),
-          INDEX idx_partner_chat_relationship_sent (relationship_id, id),
-          UNIQUE KEY uniq_partner_chat_client_message (sender_id, client_message_id)
-        )
-      `
-    )
-    .then(async () => {
-      const [rows] = await db.query<ColumnExistsRow[]>(
-        `
-          SELECT COUNT(*) AS column_exists
-          FROM information_schema.COLUMNS
-          WHERE TABLE_SCHEMA = DATABASE()
-            AND TABLE_NAME = 'partner_chat_messages'
-            AND COLUMN_NAME = 'read_at'
-        `
-      );
-
-      if ((rows[0]?.column_exists ?? 0) === 0) {
-        await db.execute(
-          `
-            ALTER TABLE partner_chat_messages
-            ADD COLUMN read_at DATETIME(3) NULL,
-            ADD INDEX idx_partner_chat_receiver_unread (receiver_id, relationship_id, read_at, id)
-          `
-        );
-      }
-
-      const [messageTypeRows] = await db.query<ColumnExistsRow[]>(
-        `
-          SELECT COUNT(*) AS column_exists
-          FROM information_schema.COLUMNS
-          WHERE TABLE_SCHEMA = DATABASE()
-            AND TABLE_NAME = 'partner_chat_messages'
-            AND COLUMN_NAME = 'message_type'
-        `
-      );
-
-      if ((messageTypeRows[0]?.column_exists ?? 0) === 0) {
-        await db.execute(
-          `
-            ALTER TABLE partner_chat_messages
-            ADD COLUMN message_type VARCHAR(20) NOT NULL DEFAULT 'text' AFTER text
-          `
-        );
-      }
-
-      const [audioUrlRows] = await db.query<ColumnExistsRow[]>(
-        `
-          SELECT COUNT(*) AS column_exists
-          FROM information_schema.COLUMNS
-          WHERE TABLE_SCHEMA = DATABASE()
-            AND TABLE_NAME = 'partner_chat_messages'
-            AND COLUMN_NAME = 'audio_url'
-        `
-      );
-
-      if ((audioUrlRows[0]?.column_exists ?? 0) === 0) {
-        await db.execute(
-          `
-            ALTER TABLE partner_chat_messages
-            ADD COLUMN audio_url VARCHAR(2048) NULL AFTER message_type
-          `
-        );
-      }
-
-      const [audioDurationRows] = await db.query<ColumnExistsRow[]>(
-        `
-          SELECT COUNT(*) AS column_exists
-          FROM information_schema.COLUMNS
-          WHERE TABLE_SCHEMA = DATABASE()
-            AND TABLE_NAME = 'partner_chat_messages'
-            AND COLUMN_NAME = 'audio_duration_seconds'
-        `
-      );
-
-      if ((audioDurationRows[0]?.column_exists ?? 0) === 0) {
-        await db.execute(
-          `
-            ALTER TABLE partner_chat_messages
-            ADD COLUMN audio_duration_seconds DOUBLE NULL AFTER audio_url
-          `
-        );
-      }
-
-      await db.execute(
-        `
-          ALTER TABLE partner_chat_messages
-          MODIFY COLUMN text VARCHAR(${MAX_MESSAGE_LENGTH}) NULL
-        `
-      );
-    })
-    .then(() => undefined);
-
-  return schemaReadyPromise;
+  return ensureDatabaseSchema();
 }
 
 function sendJson(socket: WebSocket, payload: unknown) {
