@@ -12,6 +12,8 @@ import { login } from "@/api/auth";
 import { getUserInfo } from "@/api/user";
 import { emptyAuthUser } from "./session-user";
 import {
+  AUTH_SESSION_INVALIDATED_EVENT,
+  AUTH_STORAGE_KEY,
   readAuthSession,
   writeAuthSession,
   type AuthSession,
@@ -41,6 +43,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const applySession = useCallback((next: AuthSession | null) => {
     writeAuthSession(next);
     setSession(next);
+  }, []);
+
+  useEffect(() => {
+    const clearSession = () => {
+      setSession(null);
+      setProfileStatus("idle");
+      setProfileError("");
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === AUTH_STORAGE_KEY) {
+        setSession(readAuthSession());
+      }
+    };
+
+    window.addEventListener(AUTH_SESSION_INVALIDATED_EVENT, clearSession);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener(AUTH_SESSION_INVALIDATED_EVENT, clearSession);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   const refreshProfile = useCallback(async () => {

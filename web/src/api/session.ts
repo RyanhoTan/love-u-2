@@ -1,6 +1,7 @@
 import type { SchemaCoupleSummary, SchemaUser } from "@/api/schemas";
 
 export const AUTH_STORAGE_KEY = "love-u-auth-session";
+export const AUTH_SESSION_INVALIDATED_EVENT = "love-u-auth-session-invalidated";
 
 export type AuthUser = SchemaUser;
 export type CoupleSummary = SchemaCoupleSummary;
@@ -101,4 +102,16 @@ export function writeAuthSession(session: AuthSession | null) {
   }
 
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+}
+
+export function invalidateAuthSession(expectedToken: string) {
+  const session = readAuthSession();
+
+  // Do not let a late 401 from an older request clear a newer login session.
+  if (session?.token !== expectedToken) {
+    return;
+  }
+
+  writeAuthSession(null);
+  window.dispatchEvent(new Event(AUTH_SESSION_INVALIDATED_EVENT));
 }
