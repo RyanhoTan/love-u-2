@@ -238,6 +238,8 @@ const tableDefinitions: readonly TableDefinition[] = [
         media_type VARCHAR(20) NOT NULL,
         source_type VARCHAR(20) NOT NULL,
         source_id BIGINT UNSIGNED NULL,
+        object_key VARCHAR(2048) NULL,
+        -- Legacy column kept for existing rows; new writes use object_key.
         url VARCHAR(2048) NOT NULL,
         thumbnail_url VARCHAR(2048) NULL,
         taken_at DATE NULL,
@@ -257,6 +259,7 @@ const tableDefinitions: readonly TableDefinition[] = [
       { name: "media_type", definition: "VARCHAR(20) NOT NULL DEFAULT 'image'" },
       { name: "source_type", definition: "VARCHAR(20) NOT NULL DEFAULT 'upload'" },
       { name: "source_id", definition: "BIGINT UNSIGNED NULL" },
+      { name: "object_key", definition: "VARCHAR(2048) NULL" },
       { name: "url", definition: "VARCHAR(2048) NOT NULL DEFAULT ''" },
       { name: "thumbnail_url", definition: "VARCHAR(2048) NULL" },
       { name: "taken_at", definition: "DATE NULL" },

@@ -35,6 +35,7 @@ interface AlbumMediaRow extends RowDataPacket {
   media_type: "image" | "video";
   source_type: "wish_record" | "story" | "upload";
   source_id: number | null;
+  object_key: string | null;
   url: string;
   thumbnail_url: string | null;
   taken_at: Date | string | null;
@@ -189,6 +190,14 @@ function inferMediaType(url: string): "image" | "video" {
   return /\.(mp4|mov|m4v|webm|avi|mkv)$/i.test(url) ? "video" : "image";
 }
 
+function assertObjectKeyBelongsToUser(userId: number, objectKey: string) {
+  const segments = objectKey.split("/");
+
+  if (segments.includes("..") || !segments.includes(String(userId))) {
+    throw new HttpError(403, "media object does not belong to the current user");
+  }
+}
+
 async function findActiveRelationshipByUserId(userId: number) {
   const [rows] = await db.query<CoupleRelationshipRow[]>(
     `
@@ -248,7 +257,7 @@ async function ensureAlbumStoriesFavoriteColumn() {
   }
 }
 
-async function buildAlbumScope(userId: number) {
+export async function buildAlbumScope(userId: number) {
   const relationship = await findActiveRelationshipByUserId(userId);
 
   if (relationship) {
@@ -355,6 +364,7 @@ export async function getAlbumMedia(req: Request, res: Response) {
           media_type,
           source_type,
           source_id,
+          object_key,
           url,
           thumbnail_url,
           taken_at,
@@ -446,6 +456,7 @@ export async function getAlbumMedia(req: Request, res: Response) {
 export async function createAlbumMedia(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(req);
   const payload = parseRequestBody(createAlbumMediaSchema, req.body);
+  assertObjectKeyBelongsToUser(userId, payload.objectKey);
   const scope = await buildAlbumScope(userId);
 
   const [result] = await db.query<ResultSetHeader>(
@@ -456,6 +467,7 @@ export async function createAlbumMedia(req: Request, res: Response) {
         media_type,
         source_type,
         source_id,
+        object_key,
         url,
         thumbnail_url,
         taken_at,
@@ -463,13 +475,13 @@ export async function createAlbumMedia(req: Request, res: Response) {
         latitude,
         longitude
       )
-      VALUES (?, ?, ?, 'upload', NULL, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, 'upload', NULL, ?, '', ?, ?, ?, ?, ?)
     `,
     [
       scope.relationshipId,
       userId,
       payload.mediaType,
-      payload.url,
+      payload.objectKey,
       payload.thumbnailUrl || null,
       payload.takenAt || null,
       payload.locationName || null,
@@ -487,6 +499,7 @@ export async function createAlbumMedia(req: Request, res: Response) {
         media_type,
         source_type,
         source_id,
+        object_key,
         url,
         thumbnail_url,
         taken_at,
@@ -560,6 +573,7 @@ export async function getAlbumStory(req: Request, res: Response) {
         media_type,
         source_type,
         source_id,
+        object_key,
         url,
         thumbnail_url,
         taken_at,
@@ -618,13 +632,18 @@ export async function createAlbumStory(req: Request, res: Response) {
     let coverMediaId: number | null = null;
 
     if (payload.media.length) {
+      payload.media.forEach((media) => {
+        assertObjectKeyBelongsToUser(userId, media.objectKey);
+      });
+
       const values = payload.media.map((media) => [
         scope.relationshipId,
         userId,
         media.mediaType,
         "story",
         storyId,
-        media.url,
+        media.objectKey,
+        "",
         media.thumbnailUrl || null,
         media.takenAt || null,
         media.locationName || null,
@@ -640,6 +659,7 @@ export async function createAlbumStory(req: Request, res: Response) {
             media_type,
             source_type,
             source_id,
+            object_key,
             url,
             thumbnail_url,
             taken_at,
