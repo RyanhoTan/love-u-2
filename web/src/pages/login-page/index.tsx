@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
+import BRAND from "@brand";
 import { useAuth } from "@/features/auth/context";
 import { register } from "@/api/auth";
 import { TODAY } from "@/mocks";
@@ -90,7 +91,7 @@ export function LoginPage() {
           className="login-material relative flex w-full max-w-90 flex-col gap-6 rounded-xl p-6"
         >
           <h1 className="text-center text-[15px] font-semibold tracking-[-0.3px] text-fg">
-            Love U 2
+            {BRAND.displayName}
           </h1>
 
           <div className="flex flex-col">

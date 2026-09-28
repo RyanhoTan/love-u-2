@@ -20,7 +20,7 @@ type TableDefinition = {
   columns: readonly ColumnDefinition[];
 };
 
-const SCHEMA_LOCK_NAME = "love-u-2:schema";
+const SCHEMA_LOCK_NAME = "insync:schema";
 
 const tableDefinitions: readonly TableDefinition[] = [
   {

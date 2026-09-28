@@ -1,8 +1,9 @@
 import { existsSync, rmSync } from "node:fs";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const rootDir = process.cwd();
+const rootDirName = basename(rootDir).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const deleteFailures = [];
 
 const pathsToRemove = [
@@ -34,7 +35,7 @@ const printDeleteFailure = ({ relativePath, error }) => {
     );
     console.error("Try closing related terminals or run:");
     console.error(
-      "Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -match 'love-u-2|expo|pnpm' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }",
+      `Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -match '${rootDirName}|expo|pnpm' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }`,
     );
     return;
   }

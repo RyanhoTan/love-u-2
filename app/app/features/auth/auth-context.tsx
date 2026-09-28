@@ -6,11 +6,13 @@ import {
   useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import BRAND from "@brand";
 import { getUserInfo, type AuthSessionUser, type AuthUser } from "./api";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
-const AUTH_STORAGE_KEY = "love-u-auth-session";
+const AUTH_STORAGE_KEY = BRAND.storage.authSession;
+const LEGACY_AUTH_STORAGE_KEY = "love-u-auth-session";
 
 interface AuthSession {
   token: string;
@@ -54,26 +56,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(nextToken);
     setUser(nextUser);
     await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextSession));
+    await AsyncStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
   };
+
+  const removeStoredSession = () =>
+    AsyncStorage.multiRemove([AUTH_STORAGE_KEY, LEGACY_AUTH_STORAGE_KEY]);
 
   useEffect(() => {
     async function restoreSession() {
       try {
-        const storedSession = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
+        const storedSession =
+          (await AsyncStorage.getItem(AUTH_STORAGE_KEY)) ??
+          (await AsyncStorage.getItem(LEGACY_AUTH_STORAGE_KEY));
         if (!storedSession) {
           return;
         }
 
         const session = JSON.parse(storedSession) as AuthSession;
         if (!session?.token || !session?.user) {
-          await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+          await removeStoredSession();
           return;
         }
 
         const userInfo = await getUserInfo(session.token);
         await persistSession(session.token, userInfo.user);
       } catch {
-        await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+        await removeStoredSession();
         setToken(null);
         setUser(null);
       } finally {
@@ -88,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token || !nextUser) {
       setToken(null);
       setUser(null);
-      await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+      await removeStoredSession();
       return;
     }
 
@@ -109,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!session) {
       setToken(null);
       setUser(null);
-      await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+      await removeStoredSession();
       return;
     }
 

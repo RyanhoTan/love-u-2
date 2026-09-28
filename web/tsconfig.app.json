@@ -15,8 +15,10 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@brand": ["../brand.json"]
     },
+    "resolveJsonModule": true,
 
     /* Linting */
     "strict": true,

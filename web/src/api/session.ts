@@ -1,7 +1,10 @@
 import type { SchemaCoupleSummary, SchemaUser } from "@/api/schemas";
+import BRAND from "@brand";
 
-export const AUTH_STORAGE_KEY = "love-u-auth-session";
-export const AUTH_SESSION_INVALIDATED_EVENT = "love-u-auth-session-invalidated";
+export const AUTH_STORAGE_KEY = BRAND.storage.authSession;
+export const AUTH_SESSION_INVALIDATED_EVENT =
+  BRAND.storage.authSessionInvalidatedEvent;
+const LEGACY_AUTH_STORAGE_KEY = "love-u-auth-session";
 
 export type AuthUser = SchemaUser;
 export type CoupleSummary = SchemaCoupleSummary;
@@ -71,7 +74,9 @@ function normalizeAuthUser(raw: unknown): AuthUser | null {
 
 export function readAuthSession(): AuthSession | null {
   try {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    const raw =
+      localStorage.getItem(AUTH_STORAGE_KEY) ??
+      localStorage.getItem(LEGACY_AUTH_STORAGE_KEY);
     if (!raw) {
       return null;
     }
@@ -79,18 +84,24 @@ export function readAuthSession(): AuthSession | null {
     const session = JSON.parse(raw) as { token?: unknown; user?: unknown };
     if (typeof session?.token !== "string" || !session.token) {
       localStorage.removeItem(AUTH_STORAGE_KEY);
+      localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
       return null;
     }
 
     const user = normalizeAuthUser(session.user);
     if (!user) {
       localStorage.removeItem(AUTH_STORAGE_KEY);
+      localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
       return null;
     }
 
-    return { token: session.token, user };
+    const normalizedSession = { token: session.token, user };
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(normalizedSession));
+    localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
+    return normalizedSession;
   } catch {
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
     return null;
   }
 }
@@ -98,10 +109,12 @@ export function readAuthSession(): AuthSession | null {
 export function writeAuthSession(session: AuthSession | null) {
   if (!session) {
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
     return;
   }
 
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+  localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
 }
 
 export function invalidateAuthSession(expectedToken: string) {

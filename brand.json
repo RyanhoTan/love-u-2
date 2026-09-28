@@ -1,0 +1,15 @@
+{
+  "displayName": "合拍",
+  "englishName": "InSync",
+  "tagline": "Life, in sync.",
+  "slug": "insync",
+  "mobile": {
+    "slug": "insync-mobile",
+    "scheme": "insync",
+    "androidPackage": "com.insync.app"
+  },
+  "storage": {
+    "authSession": "insync-auth-session",
+    "authSessionInvalidatedEvent": "insync-auth-session-invalidated"
+  }
+}

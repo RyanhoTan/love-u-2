@@ -1,4 +1,5 @@
 import { ExpoConfig, ConfigContext } from "expo/config";
+import BRAND from "../brand.json";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   return {
@@ -8,10 +9,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       image: "./assets/images/splash.png",
       backgroundColor: "#ffffff",
     },
-    name: "love4u",
-    slug: "love-u-mobile",
+    name: BRAND.displayName,
+    slug: BRAND.mobile.slug,
     version: "1.0.0",
-    scheme: "loveumobile",
+    scheme: BRAND.mobile.scheme,
     orientation: "portrait",
     userInterfaceStyle: "automatic",
     plugins: [
@@ -29,7 +30,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ],
     ],
     android: {
-      package: "com.loveumobile.app",
+      package: BRAND.mobile.androidPackage,
       permissions: [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",

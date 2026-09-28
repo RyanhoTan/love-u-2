@@ -13,6 +13,7 @@
     "moduleDetection": "force",
     "noEmit": true,
     "types": ["vite/client"],
+    "resolveJsonModule": true,
 
     /* Linting */
     "strict": true,

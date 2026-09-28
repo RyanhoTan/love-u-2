@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.loveumobile.app'
+    namespace 'com.insync.app'
     defaultConfig {
-        applicationId 'com.loveumobile.app'
+        applicationId 'com.insync.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

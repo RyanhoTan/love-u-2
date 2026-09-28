@@ -318,27 +318,27 @@ function createMapHtml(center: { latitude: number; longitude: number }) {
     `  latitude: ${center.latitude},`,
     `  longitude: ${center.longitude}`,
     "};",
-    "window.__LOVEU_MAP__ = new AMap.Map('map', {",
+    "window.__INSYNC_MAP__ = new AMap.Map('map', {",
     "  viewMode: '2D',",
     "  zoom: 15,",
     "  center: [initialCenter.longitude, initialCenter.latitude],",
     "  mapStyle: 'amap://styles/normal'",
     "});",
     "function postCenter(type) {",
-    "  var mapCenter = window.__LOVEU_MAP__.getCenter();",
+    "  var mapCenter = window.__INSYNC_MAP__.getCenter();",
     "  postMessageToNative({",
     "    type: type,",
     "    latitude: mapCenter.lat,",
     "    longitude: mapCenter.lng",
     "  });",
     "}",
-    "window.__LOVEU_MAP__.on('complete', function() {",
+    "window.__INSYNC_MAP__.on('complete', function() {",
     '  postMessageToNative({ type: "mapReady" });',
     "  setTimeout(function() {",
     '    postCenter("mapMoved");',
     "  }, 200);",
     "});",
-    "window.__LOVEU_MAP__.on('moveend', function() {",
+    "window.__INSYNC_MAP__.on('moveend', function() {",
     '  postCenter("mapMoved");',
     "});",
     "window.addEventListener('message', function(event) {",
@@ -400,11 +400,11 @@ export function MapPickerModal({
     const injectedScript = `
       (function() {
         try {
-          if (!window.__LOVEU_MAP__) {
+          if (!window.__INSYNC_MAP__) {
             return;
           }
 
-          window.__LOVEU_MAP__.setCenter([${longitude}, ${latitude}]);
+          window.__INSYNC_MAP__.setCenter([${longitude}, ${latitude}]);
         } catch (error) {
           console.log(error);
         }

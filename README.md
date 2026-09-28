@@ -1,4 +1,6 @@
-# Love U 2 Full Stack Starter
+# InSync（合拍）
+
+品牌名称统一维护在根目录的 `brand.json` 中。
 
 `app + server` two-project setup:
 
@@ -42,7 +44,7 @@ EXPO_PUBLIC_API_URL=http://localhost:3001
 Backend (`server/.env`):
 
 ```env
-MYSQL_URL="mysql://root:password@127.0.0.1:3306/love_u_2"
+MYSQL_URL="mysql://root:password@127.0.0.1:3306/insync"
 PORT=3001
 ```
 

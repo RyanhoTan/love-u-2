@@ -1,8 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
+import BRAND from "@brand";
 
 const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
-const AUTH_STORAGE_KEY = "love-u-auth-session";
+const AUTH_STORAGE_KEY = BRAND.storage.authSession;
+const LEGACY_AUTH_STORAGE_KEY = "love-u-auth-session";
 
 export const API_BASE_URL =
   envApiUrl ||
@@ -37,7 +39,9 @@ export async function request<T>(path: string, init?: RequestInit) {
 }
 
 async function getStoredToken() {
-  const storedSession = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
+  const storedSession =
+    (await AsyncStorage.getItem(AUTH_STORAGE_KEY)) ??
+    (await AsyncStorage.getItem(LEGACY_AUTH_STORAGE_KEY));
 
   if (!storedSession) {
     return null;

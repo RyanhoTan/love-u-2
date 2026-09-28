@@ -1,11 +1,11 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Love-U API",
+    "title": "InSync API",
     "description": "Formal HTTP API contract derived from the current server/ implementation.\n\nSource of truth: Express routers and serialize* functions.\n\nCompatibility: OpenAPI 3.0.3 (Apifox / Swagger friendly).\nCoupleSummary (inside /userinfo) and CoupleSpace (/couple-space) are different models.\nUpload success body is { key, url } without message. Lists are not paginated.\n",
     "version": "1.0.0",
     "contact": {
-      "name": "Love-U"
+      "name": "InSync"
     }
   },
   "tags": [

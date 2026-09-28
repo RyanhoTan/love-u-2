@@ -1,4 +1,4 @@
-package com.loveumobile.app
+package com.insync.app
 
 import android.os.Build
 import android.os.Bundle
