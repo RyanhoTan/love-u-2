@@ -42,7 +42,7 @@ export function NextAnniversaryInsight() {
           添加一个纪念日
         </p>
         <p className="text-[13px] text-fg-secondary">
-          生日、恋爱日，到日子前会轻轻提醒
+          记录生日或恋爱日，查看下一次还有多久
         </p>
         <Button
           variant="ghost"

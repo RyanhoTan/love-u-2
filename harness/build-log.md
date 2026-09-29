@@ -26,6 +26,7 @@
 | 17 — Anniversary calendar date validation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 | 18 — Anniversary mutation authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 | 19 — Anniversary creation authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
+| 20 — Honest anniversary reminder copy | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/浏览器检查 | None |
 
 ## Activity
 
@@ -556,3 +557,16 @@
 - **Limitations:** 尚无真实多账号或 MySQL 竞态集成验证；提醒触发与时区行为仍未闭环。
 - **Next action:** 独立提交；继续审查其他 P0 用户可观察缺口。
 - **Evidence references:** `server/src/router_handler/anniversary.ts`、`harness/context/phase-19-anniversary-creation-authorization-context.md`、server lint/build 与静态检查输出。
+## 2026-09-29T14:49:02+08:00 — Phase 20: honest anniversary reminder copy completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-DAY-001 无通知发送闭环时，两端纪念日页面不作已生效承诺；仅修改文案。
+- **Red:** 移动端提醒开关没有未上线提示；Web 首页/空状态/表单/删除确认声称会提前通知双方或取消提醒，但服务端只持久化 `reminder_days_before`，无发送闭环。
+- **Green:** 移动/Web 在计划设置旁显示当前不会发送通知；Web 首页、列表、重复选项、预览和删除文案不再将计划视为已投递提醒；删除文案与实际逻辑删除和无恢复入口一致。
+- **Verification:** `pnpm --dir app lint`、`pnpm --dir app exec tsc --noEmit`、`pnpm --dir web lint`、`pnpm --dir web build`、目标文案搜索和 `git diff --check` 通过。Web 构建仍有既有 Zod 注释位置与 >500 kB chunk 警告。
+- **Review:** 客户端请求和 `reminderDaysBefore` 字段未改变；没有数据库、OpenAPI 或服务端语义变化。多开关映射一个提醒天数字段的 UX 不一致仍待独立处理。
+- **Operational evidence:** 未运行真机/浏览器、未访问数据库、未读取凭据、未推送或部署。
+- **Limitations:** 文案修复不等于提醒投递上线；没有通知投递、设备授权或提醒触发的集成验证。
+- **Next action:** 单独提交；继续补 PRD-DAY-001 的可编辑能力与提醒输入语义。
+- **Evidence references:** 两端纪念日页面、PRD-DAY-001、目标文案搜索与 lint/build 输出。

@@ -27,7 +27,7 @@ export function DaysPage() {
             还没有纪念日
           </h2>
           <p className="text-sm leading-[1.45] text-fg-secondary">
-            添加生日、恋爱日或节日，到日子前会轻轻提醒你们。
+            添加生日、恋爱日或节日，随时查看距离下一次还有多久。
           </p>
         </div>
         <Button variant="primary" to="/days/new">

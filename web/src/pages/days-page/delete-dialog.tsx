@@ -64,7 +64,7 @@ export function DeleteDayDialog({
             删除这个纪念日？
           </h2>
           <p className="text-sm leading-[1.45] tracking-[-0.1px] text-fg-secondary">
-            「{title}」将被永久删除，相关提醒也会一并取消。此操作无法撤销。
+            「{title}」将从列表移除，当前没有恢复入口。此操作无法在页面上撤销。
           </p>
           {error ? (
             <p className="mt-1 text-[13px] font-medium text-danger" role="alert">

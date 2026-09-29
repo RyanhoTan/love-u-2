@@ -250,7 +250,10 @@ export default function AnniversaryCreateScreen() {
         </Column>
 
         <Column gap={12}>
-          <Text style={styles.sectionTitle}>提醒</Text>
+          <Text style={styles.sectionTitle}>提醒时间计划</Text>
+          <Text style={styles.reminderNotice}>
+            仅保存计划时间；通知功能尚未上线，当前不会发送提醒。
+          </Text>
 
           {remindOptions.map((option) => (
             <Row
@@ -352,6 +355,11 @@ const styles = StyleSheet.create({
   },
   remindRow: {
     paddingVertical: 2,
+  },
+  reminderNotice: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.semantic.textSecondary,
   },
   remindText: {
     fontSize: 15,

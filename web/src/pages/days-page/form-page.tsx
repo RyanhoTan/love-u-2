@@ -196,7 +196,7 @@ function DayEditForm({ item }: { item: AnniversaryItem }) {
                 footer={
                   <div className="flex flex-col gap-2 pt-5">
                     <p className="text-[13px] text-fg-muted">
-                      删除后无法恢复，相关提醒也会一并取消。
+                      删除后将从列表移除，当前没有恢复入口。
                     </p>
                     <button
                       type="button"

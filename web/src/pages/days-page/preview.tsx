@@ -74,7 +74,7 @@ export function DayPreview({
           }
         />
         <PreviewMeta
-          label="提醒"
+          label="提醒计划（未启用）"
           value={ready && values ? remindLabel(values) : "—"}
         />
       </div>
