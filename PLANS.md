@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–38 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–39 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -52,6 +52,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 36 | Isolate client chat state by relationship | Complete | PRD-CHAT-001、Phase 33/35 | 关系 ID 变化时仅展示对应关系的本地缓存、服务端历史和实时事件，不把旧内存消息带入新会话 |
 | 37 | Retry uncertain partner text messages | Complete | PRD-CHAT-001、Phase 35/36 | 发送结果不确定的文字消息可在连接恢复后以同一 clientMessageId 重试；服务端显式拒绝的消息不提供重试 |
 | 38 | Clear invalid App auth sessions | Complete | PRD-AUTH-001 | App 收到受保护请求 401 时清除匹配的持久与内存会话；旧 token 的迟到 401 不得清除新会话 |
+| 39 | Strengthen couple invite code entropy | Complete | PRD-COUPLE-001 | 新邀请码使用 12 位密码学随机码；旧码继续兼容，新增服务端单元测试 |
 
 ## 阶段顺序
 
@@ -265,6 +266,13 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 对所有统一的 App 鉴权 API 请求，在收到 401 时清理仍与失败 token 匹配的本地会话，并通知 AuthProvider 清除内存认证态；采用串行化存储修改保护并发登录，403、网络错误与服务端错误不触发退出。详细计划见
 `harness/build/phase-38-app-auth-invalidation.md`。
+
+### Phase 39 — Strengthen couple invite code entropy
+
+新生成的邀请码改为从当前用户友好字符表中选取 12 位，并使用 Node.js 密码学随机整数；现有 6–12 位
+邀请码校验和 30 分钟有效期不变，旧的 6 位待绑定码继续兼容。新增无数据库依赖的服务端测试，验证
+字符长度、字符集与每位随机选择的上界。详细计划见
+`harness/build/phase-39-couple-invite-entropy.md`。
 
 ## 后续阶段的准入条件
 

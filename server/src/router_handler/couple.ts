@@ -3,15 +3,14 @@ import type { PoolConnection, ResultSetHeader, RowDataPacket } from "mysql2/prom
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
+import { generateInviteCode } from "../couple/invite-code.js";
 import { bindCoupleSchema, updateCoupleProfileSchema } from "../schema/couple.js";
 import { parseRequestBody } from "../validation.js";
 import { closePartnerChatConnectionsForRelationship } from "../ws/partnerChat.js";
 
 const COUPLE_INVITES_TABLE = "couple_invites";
 const COUPLE_RELATIONSHIPS_TABLE = "couple_relationships";
-const INVITE_CODE_LENGTH = 6;
 const INVITE_EXPIRES_IN_MINUTES = 30;
-const INVITE_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 interface ColumnNameRow extends RowDataPacket {
   COLUMN_NAME: string;
@@ -294,17 +293,6 @@ function getDaysInLove(anniversaryDate: Date | string | null) {
   }
 
   return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-}
-
-function generateInviteCode() {
-  let result = "";
-
-  for (let index = 0; index < INVITE_CODE_LENGTH; index += 1) {
-    const randomIndex = Math.floor(Math.random() * INVITE_CODE_ALPHABET.length);
-    result += INVITE_CODE_ALPHABET[randomIndex];
-  }
-
-  return result;
 }
 
 async function createUniqueInviteCode(executor: PoolConnection) {

@@ -987,3 +987,25 @@
 - **Limitations:** No live API/device test; no WebSocket-upgrade status detection.
 - **Next action:** Continue the PRD R1/P0 completion audit.
 - **Evidence references:** `harness/build/phase-38-app-auth-invalidation.md`, `app/app/shared/auth-session.ts`, `app/app/shared/api-client.ts`, `app/app/features/auth/auth-context.tsx`.
+
+## 2026-09-30 — Phase 39: strengthen couple invite code entropy started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-COUPLE-001 invitation security hardening; generate stronger codes without changing the bind lifecycle.
+- **Red:** The server generated 6-character invite codes with `Math.random()`. The database and request schema already permit 12 characters, and current clients handle codes as strings.
+- **Decision:** Use 12 characters from the existing 32-symbol human-friendly alphabet and Node.js `crypto.randomInt`; retain compatibility with existing 6-character invite records. Add the built-in Node test runner and deterministic pure-function tests without dependencies or DB access.
+- **Operational evidence:** Phase 38 was committed as `8ed754b`; no database, external API, credentials, or user account was accessed.
+- **Limitations:** A source search found no binding-attempt rate limiter. This phase raises entropy but does not add throttling; MySQL race behavior remains untested.
+
+## 2026-09-30 — Phase 39: strengthen couple invite code entropy completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** New invite codes are 12 characters generated with `crypto.randomInt`; the existing alphabet, invite expiry/use behavior, 6–12 bind validation, and database schema remain unchanged. Added `pnpm --dir server test`, deterministic generator tests, test-file lint coverage, and corrected test guidance in `AGENTS.md`.
+- **Verification:** Passed `pnpm --dir server test` (2 tests), `pnpm --dir server lint` (source and test files), `pnpm --dir server build`, and `git diff --check`.
+- **Review:** Static compatibility inspection confirmed existing clients accept variable-length string codes and the schema supports 12 characters. No database-backed bind lifecycle or live client integration was run.
+- **Operational evidence:** No MySQL, API, credential, external service, or user account was accessed; no push or deployment occurred.
+- **Limitations:** Binding-attempt throttling and concurrent code collision behavior remain separate gaps. Existing 6-character active invites remain valid.
+- **Next action:** Continue the PRD R1/P0 completion audit, preserving unresolved unbind data policy decisions.
+- **Evidence references:** `harness/build/phase-39-couple-invite-entropy.md`, `server/src/couple/invite-code.ts`, `server/test/couple-invite-code.test.ts`, `PRD.md` PRD-COUPLE-001.
