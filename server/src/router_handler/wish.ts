@@ -17,7 +17,7 @@ import {
   type WishStatus,
 } from "../schema/wish.js";
 import { parseRequestBody } from "../validation.js";
-import { uploadMediaBuffer } from "./upload.js";
+import { createMediaReadUrl, uploadMediaBuffer } from "./upload.js";
 
 const WISH_RETENTION_DAYS = 30;
 const WISH_CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
@@ -50,6 +50,7 @@ interface WishRow extends RowDataPacket {
   title: string;
   description: string | null;
   cover: string | null;
+  cover_object_key: string | null;
   target_date: Date | string;
   location_name: string | null;
   latitude: number | string | null;
@@ -107,14 +108,16 @@ function formatDateTime(value: Date | string | null) {
   return value.toISOString();
 }
 
-function serializeWish(row: WishRow) {
+async function serializeWish(row: WishRow) {
   return {
     id: row.id,
     relationshipId: row.relationship_id,
     createdByUserId: row.created_by_user_id,
     title: row.title,
     description: row.description || "",
-    cover: row.cover || "",
+    cover: row.cover_object_key
+      ? await createMediaReadUrl(row.cover_object_key)
+      : row.cover || "",
     targetDate: formatDateOnly(row.target_date),
     locationName: row.location_name || "",
     latitude: row.latitude === null ? null : Number(row.latitude),
@@ -374,6 +377,7 @@ const wishSelectFields = `
   title,
   description,
   cover,
+  cover_object_key,
   target_date,
   location_name,
   latitude,
@@ -468,9 +472,10 @@ export async function getWishes(req: Request, res: Response) {
     scope.values
   );
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "get wishes success",
-    wishes: rows.map(serializeWish),
+    wishes: await Promise.all(rows.map(serializeWish)),
   });
 }
 
@@ -487,9 +492,10 @@ export async function getWishById(req: Request, res: Response) {
     throw new HttpError(404, "wish not found");
   }
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "get wish success",
-    wish: serializeWish(wish),
+    wish: await serializeWish(wish),
   });
 }
 
@@ -507,9 +513,10 @@ export async function getWishRecords(req: Request, res: Response) {
   }
 
   if (!(await hasTable("wish_records"))) {
+    res.setHeader("Cache-Control", "private, no-store");
     res.status(200).json({
       message: "get wish records success",
-      wish: serializeWish(wish),
+      wish: await serializeWish(wish),
       records: [],
     });
     return;
@@ -538,9 +545,10 @@ export async function getWishRecords(req: Request, res: Response) {
   );
   const mediaByRecord = await getWishRecordMedia(rows.map((row) => row.id));
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "get wish records success",
-    wish: serializeWish(wish),
+    wish: await serializeWish(wish),
     records: rows.map((row) =>
       serializeWishRecord(row, mediaByRecord.get(row.id))
     ),
@@ -550,6 +558,13 @@ export async function getWishRecords(req: Request, res: Response) {
 export async function createWish(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(req);
   const payload = parseRequestBody(createWishSchema, req.body);
+
+  if (
+    payload.coverObjectKey &&
+    !payload.coverObjectKey.startsWith(`album/${userId}/`)
+  ) {
+    throw new HttpError(403, "cover media does not belong to the current user");
+  }
 
   await assertWishSoftDeleteColumnsReady();
   const relationship = await findActiveRelationshipByUserId(userId);
@@ -561,6 +576,7 @@ export async function createWish(req: Request, res: Response) {
         title,
         description,
         cover,
+        cover_object_key,
         target_date,
         location_name,
         latitude,
@@ -570,7 +586,7 @@ export async function createWish(req: Request, res: Response) {
         deleted_at,
         delete_expires_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'todo', NULL, NULL)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'todo', NULL, NULL)
     `,
     [
       relationship?.id ?? null,
@@ -578,6 +594,7 @@ export async function createWish(req: Request, res: Response) {
       payload.title,
       payload.description || null,
       payload.cover || null,
+      payload.coverObjectKey || null,
       payload.targetDate,
       payload.locationName || null,
       payload.latitude,
@@ -602,9 +619,10 @@ export async function createWish(req: Request, res: Response) {
     throw new HttpError(500, "failed to create wish");
   }
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(201).json({
     message: "create wish success",
-    wish: serializeWish(wish),
+    wish: await serializeWish(wish),
   });
 }
 
@@ -687,9 +705,10 @@ export async function updateWish(req: Request, res: Response) {
     }
   }
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "update wish success",
-    wish: serializeWish(wish),
+    wish: await serializeWish(wish),
   });
 }
 
@@ -783,9 +802,10 @@ export async function createWishRecord(req: Request, res: Response) {
     throw new HttpError(500, "failed to create wish record");
   }
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(201).json({
     message: "create wish record success",
-    wish: serializeWish(wish),
+    wish: await serializeWish(wish),
     record: serializeWishRecord(record, media),
   });
 }
@@ -807,9 +827,10 @@ export async function getDeletedWishes(req: Request, res: Response) {
     scope.values
   );
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "get deleted wishes success",
-    wishes: rows.map(serializeWish),
+    wishes: await Promise.all(rows.map(serializeWish)),
   });
 }
 
@@ -850,9 +871,10 @@ export async function deleteWish(req: Request, res: Response) {
     throw new HttpError(500, "failed to delete wish");
   }
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "delete wish success",
-    wish: serializeWish(deletedWish),
+    wish: await serializeWish(deletedWish),
   });
 }
 
@@ -893,9 +915,10 @@ export async function restoreWish(req: Request, res: Response) {
     throw new HttpError(500, "failed to restore wish");
   }
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "restore wish success",
-    wish: serializeWish(restoredWish),
+    wish: await serializeWish(restoredWish),
   });
 }
 

@@ -626,7 +626,7 @@ export interface components {
             title: string;
             /** @description DB null serialized as empty string */
             description: string;
-            /** @description DB null serialized as empty string */
+            /** @description Short-lived signed URL for a private object-key cover; legacy URL is returned unchanged */
             cover: string;
             targetDate: components["schemas"]["DateOnly"];
             /** @description DB null serialized as empty string */
@@ -658,11 +658,10 @@ export interface components {
             title: string;
             /** @default  */
             description: string;
-            /**
-             * @description Valid URL or empty string; default ''
-             * @default
-             */
-            cover: string;
+            /** @description Legacy URL cover, retained for backward compatibility; omitted for private object-key covers */
+            cover?: string;
+            /** @description Private uploaded album media object key; must belong to the authenticated uploader */
+            coverObjectKey?: string;
             /** @description Valid calendar date from 1000-01-01 through 9999-12-31 */
             targetDate: components["schemas"]["DateOnly"];
             /** @default  */

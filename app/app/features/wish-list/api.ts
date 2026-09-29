@@ -88,7 +88,8 @@ interface GetWishRecordsResponse {
 export interface CreateWishPayload {
   title: string;
   description: string;
-  cover: string;
+  cover?: string;
+  coverObjectKey?: string;
   targetDate: string;
   locationName: string;
   latitude: number | null;

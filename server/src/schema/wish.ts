@@ -16,6 +16,25 @@ function wishDateOnlySchema(fieldName: "targetDate" | "recordDate") {
     .refine(isValidCalendarDateOnly, `${fieldName} must be a valid calendar date`);
 }
 
+const wishCoverObjectKeySchema = z
+  .string()
+  .trim()
+  .min(1, "coverObjectKey is required")
+  .max(2048, "coverObjectKey must be at most 2048 characters")
+  .refine((value) => {
+    const segments = value.split("/");
+    return (
+      segments.length === 3 &&
+      segments[0] === "album" &&
+      /^\d+$/.test(segments[1] ?? "") &&
+      Boolean(segments[2]) &&
+      segments[2] !== "." &&
+      segments[2] !== ".." &&
+      !/[?#\\]/.test(value) &&
+      !Array.from(value).some((character) => character.charCodeAt(0) <= 31)
+    );
+  }, "coverObjectKey must be an album media object key");
+
 export const createWishSchema = z.object({
   title: z
     .string()
@@ -33,8 +52,8 @@ export const createWishSchema = z.object({
     .trim()
     .url("cover must be a valid URL")
     .optional()
-    .or(z.literal(""))
-    .default(""),
+    .or(z.literal("")),
+  coverObjectKey: wishCoverObjectKeySchema.optional(),
   targetDate: wishDateOnlySchema("targetDate"),
   locationName: z
     .string()

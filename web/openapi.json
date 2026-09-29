@@ -2847,7 +2847,7 @@
           },
           "cover": {
             "type": "string",
-            "description": "DB null serialized as empty string"
+            "description": "Short-lived signed URL for a private object-key cover; legacy URL is returned unchanged"
           },
           "targetDate": {
             "$ref": "#/components/schemas/DateOnly"
@@ -2953,8 +2953,12 @@
           },
           "cover": {
             "type": "string",
-            "description": "Valid URL or empty string; default ''",
-            "default": ""
+            "description": "Legacy URL cover, retained for backward compatibility; omitted for private object-key covers"
+          },
+          "coverObjectKey": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Private uploaded album media object key; must belong to the authenticated uploader"
           },
           "targetDate": {
             "$ref": "#/components/schemas/DateOnly",

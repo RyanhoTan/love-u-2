@@ -52,7 +52,7 @@ export default function CreateWishList() {
 
   const uploadCover = async (media: string | null) => {
     if (!media) {
-      return "";
+      return undefined;
     }
 
     const fileName = media.split("/").pop() || "cover.jpg";
@@ -61,7 +61,7 @@ export default function CreateWishList() {
       : "image/jpeg";
 
     const result = await uploadWishFile(media, fileName, contentType);
-    return result.url;
+    return result.key;
   };
 
   const menus = [
@@ -90,11 +90,11 @@ export default function CreateWishList() {
 
     try {
       setSubmitting(true);
-      const coverUrl = await uploadCover(selectedImage);
+      const coverObjectKey = await uploadCover(selectedImage);
       await createWish({
         title: title.trim(),
         description: text.trim(),
-        cover: coverUrl,
+        coverObjectKey,
         targetDate: formatLocalDateOnly(date),
         locationName: selectedLocation ? selectedLocation.name : "",
         latitude: selectedLocation ? selectedLocation.latitude : null,

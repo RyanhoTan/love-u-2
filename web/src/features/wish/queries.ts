@@ -25,6 +25,7 @@ export function useWishesQuery() {
   return useQuery({
     queryKey: wishKeys.all,
     queryFn: getWishes,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -33,6 +34,7 @@ export function useWishQuery(id: number) {
     queryKey: wishKeys.detail(id),
     queryFn: () => getWishById(id),
     enabled: Number.isInteger(id) && id > 0,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -41,6 +43,7 @@ export function useWishRecordsQuery(id: number) {
     queryKey: wishKeys.records(id),
     queryFn: () => getWishRecords(id),
     enabled: Number.isInteger(id) && id > 0,
+    refetchOnWindowFocus: true,
   });
 }
 

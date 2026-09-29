@@ -34,6 +34,7 @@
 | 25 — Wish location-name editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/设备验证 |
 | 26 — Album object-key write contract | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无 DB/R2/设备集成 |
 | 27 — Private album reads with short-lived signed URLs | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无 DB/R2/浏览器/设备集成 |
+| 28 — Wish private cover create/read | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/浏览器/设备集成 |
 
 ## Activity
 
@@ -688,3 +689,31 @@
 - **Blockers:** None。
 - **Next action:** 继续评估并迁移 Wish/Chat 媒体消费，以及对象生命周期和上传失败补偿。
 - **Evidence references:** `server/src/router_handler/album.ts`、`server/src/router_handler/media.ts`、Web PhotosPage/query、App 故事 API/页面、`web/openapi.json`、workspace 检查输出。
+
+## 2026-09-29T16:11:33+08:00 — Phase 28: private wish cover create/read started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 新建心愿封面上传与读取；不包含封面编辑/清除、心愿记录媒体、Chat 或对象回收。
+- **Red:** `/upload/media` 只返回对象 `key`，但 Web/App 心愿创建把 `url` 当作上传结果并保存到旧 `cover` 字段；新封面因此无法稳定写入，且旧 URL 列无法直接存私有对象引用。
+- **Decision:** 保留并继续读取历史 `cover` URL；新增 nullable `cover_object_key` 做向前兼容，写入时验证对象键归属当前上传者，读取授权后签发 300 秒 URL；不回填或删除旧值。
+- **Verification:** Pending。
+- **Operational evidence:** 工作树干净，当前分支为 `refactor/codex-workflow-harness`；未访问数据库、R2 或客户端。
+- **Limitations:** 新上传成功但 DB 持久化失败可能留下孤儿对象；本阶段不执行对象回收。真实 R2/DB/设备行为待集成验证。
+- **Blockers:** None。
+- **Next action:** 完成 additive schema、服务端契约与读取、Web/App 创建表单接入后验证并独立提交。
+- **Evidence references:** `server/src/router_handler/upload.ts`、`server/src/router_handler/wish.ts`、`server/src/schema/wish.ts`、`server/src/db/schema.ts`、Web/App 心愿创建表单、Phase 27 signed URL 机制。
+
+## 2026-09-29T16:21:10+08:00 — Phase 28: private wish cover create/read completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 新建心愿封面上传与读取；不包含封面编辑/清除、心愿记录媒体、Chat 或对象回收。
+- **Green:** wishes 添加 nullable `cover_object_key`；创建 schema 接受 album key 并校验结构，handler 限制当前上传者；serializer 在现有 Wish 访问授权后生成 300 秒 URL，原 `cover` URL 兼容；Wish 响应禁缓存。Web/App 创建表单改用上传 `key`，Web blob 预览只用于本地且会释放；Web 查询窗口聚焦刷新，App 现有屏幕聚焦刷新继续获取新链接。
+- **Verification:** `pnpm --dir web api`、server lint/build、Web lint/build、App lint/typecheck、`git diff --check` 均通过；7 项 schema 矩阵覆盖无封面、legacy URL、有效对象键、错误目录、路径穿越、query delimiter 和非法 URL。
+- **Review:** 所有序列化 Wish 的调用点均已 await，Wish 列表/详情/records/recycle 与创建、更新、记录创建、软删、恢复返回都设置 `Cache-Control: private, no-store`；永久删除不返回 Wish。DB 只存 object key，API `cover` 返回短期签名 URL，不返回原 key。
+- **Operational evidence:** 未连接数据库、R2、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 未验证 additive ALTER、真实上传/签名 URL/过期行为、跨用户服务端拒绝或设备预览；前台页面停留超过 300 秒时无定时续签，需重新聚焦/读取；上传成功而 DB 写入失败仍可能留下孤儿对象；Web build 保留既有 Zod 注释位置与 >500 kB chunk 警告。
+- **Blockers:** None。
+- **Next action:** 独立提交后继续 PRD R1/P0 的下一个可执行缺口。
+- **Evidence references:** `server/src/db/schema.ts`、`server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、`web/src/pages/wishes-page/new-page.tsx`、`app/app/home/wish-list/create.tsx`、schema 矩阵与 workspace 检查输出。

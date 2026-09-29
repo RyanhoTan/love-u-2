@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–27 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–28 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -41,6 +41,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 25 | Wish location-name editing | Complete | Phase 08、PRD-WISH-001 | Web 与移动端可修改或清除地点名称，保存失败有反馈且保留坐标 |
 | 26 | Album object-key write contract | Complete | PRD-MEMORY-001 | Web/App 上传后向相册和故事登记服务端返回的私有对象键，不再提交本地 URI |
 | 27 | Private album reads with short-lived signed URLs | Complete | Phase 26、PRD-MEMORY-001 | 在关系授权的相册/故事读取响应中签发短时媒体地址，并供两端页面显示 |
+| 28 | Wish private cover create/read | Complete | PRD-WISH-001、Phase 27 | Web/App 上传心愿封面后保存私有对象键，并在授权心愿读取中使用短期签名 URL |
 
 ## 阶段顺序
 
@@ -199,6 +200,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 在既有关系 scope 查询后为 object-key 媒体生成短时签名读取 URL，让 Web 图库和 App 故事列表/详情使用同一受控读取契约；读取响应禁止缓存签名地址，不将本地临时缩略图 URI 回传为可跨设备媒体。保留 legacy URL 兼容，不扩到 Wish/Chat 或对象生命周期。详细计划见
 `harness/build/phase-27-private-album-signed-reads.md`。
+
+### Phase 28 — Wish private cover create/read
+
+修复 Web/App 新建心愿封面对不存在 `upload.url` 的依赖：改为上传后提交对象键，在 `wishes` 增加兼容旧数据的 nullable 私有对象键列，并在心愿授权读取后签发 300 秒 URL。旧 `cover` URL 保留读取兼容。本阶段不做封面编辑/清除、Wish 过程记录媒体或 Chat 媒体迁移。详细计划见
+`harness/build/phase-28-wish-private-cover-create-read.md`。
 
 ## 后续阶段的准入条件
 
