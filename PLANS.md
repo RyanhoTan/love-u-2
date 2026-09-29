@@ -20,6 +20,7 @@
 | 04 | Hide unfinished Web settings | Complete | PRD 7.4、R1 可信核心闭环 | 隐藏并移除 Web 个人中心尚无真实能力的入口和占位路由 |
 | 05 | Hide unfinished mobile settings | Complete | Phase 04、PRD 7.4、R1 可信核心闭环 | 隐藏移动端通知、报告和主题入口并去除通知假保存页 |
 | 06 | Hide fake mobile daily interactions | Complete | PRD-STATUS-001、R1 可信核心闭环 | 隐藏移动端硬编码状态/一句话入口并删除假成功页面 |
+| 07 | Mobile today honest states | Complete | Phase 06、PRD-TODAY-001 | 移动端首页区分加载、失败、未绑定与真实已绑定数据 |
 
 ## 阶段顺序
 
@@ -69,6 +70,12 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 在 R2 建立真实状态/一句话数据模型之前，该阶段先落实 R1：从移动端首页隐藏两个假交互入口，并
 删除硬编码伴侣内容和无条件成功反馈页面。详细计划见
 `harness/build/phase-06-hide-fake-mobile-daily-interactions.md`。
+
+### Phase 07 — Mobile today honest states
+
+该阶段补齐移动端首页的真实状态边界：请求期间显示加载，失败时允许重试，未绑定时引导建立关系，
+只有服务端确认已绑定后才展示情侣天数、心愿和纪念日。详细计划见
+`harness/build/phase-07-mobile-today-honest-states.md`。
 
 ## 后续阶段的准入条件
 

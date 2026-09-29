@@ -13,6 +13,7 @@
 | 04 — Hide unfinished Web settings | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 05 — Hide unfinished mobile settings | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 06 — Hide fake mobile daily interactions | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 07 — Mobile today honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -221,3 +222,20 @@
 - **Blockers:** None。
 - **Next action:** 提交本小点，然后修正移动端首页绑定、加载和错误状态。
 - **Evidence references:** `app/app/home/(tabs)/index.tsx`、删除的状态/一句话页面、`PRD.md`、app lint 输出。
+
+## 2026-09-29T13:41:06+08:00 — Phase 07: mobile today honest states completed
+
+- **Status:** `Not started` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-TODAY-001 的移动端加载、失败、未绑定与已绑定状态。
+- **Changes:** 首页增加显式加载状态、失败重试和未绑定引导；先读取情侣关系，只为已绑定用户加载纪念日；只有真实已绑定关系展示双方头像、天数、心愿和纪念日；缺少关系日期时用破折号而非伪造 0 天。
+- **Red:** 修改前任何请求失败都会清空数据并继续渲染默认伴侣头像、“我们在一起 0 天”和情侣专属入口；未绑定用户也得到相同假展示。
+- **Green:** 四种顶层状态由 `homeStatus` 和 `coupleSpace.isBound` 明确分支，错误页可重试，未绑定页进入真实绑定流程。
+- **Refactor:** 将情侣关系设为首页主查询，避免未绑定用户发起无意义的纪念日请求；复用现有 API 和布局组件，没有新增依赖。
+- **Verification:** app lint、TypeScript `--noEmit`、静态状态分支检查和 `git diff --check` 通过。
+- **Review:** 失败不再伪装空数据；未绑定用户不再看到情侣专属入口；已绑定但未设置关系日期时不虚构天数。
+- **Operational evidence:** 未连接真实后端或数据库，未读取凭据，未推送或部署。
+- **Limitations:** 未用 Android/iOS 模拟器或真实账号执行端到端；目前聚焦时会显示全屏加载而不是保留旧数据后台刷新。
+- **Blockers:** None。
+- **Next action:** 提交本小点，再基于 PRD 选择下一个核心路径一致性问题。
+- **Evidence references:** `app/app/home/(tabs)/index.tsx`、`PRD.md`、app lint 输出。
