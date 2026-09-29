@@ -98,7 +98,12 @@ export interface CreateWishPayload {
 
 export type UpdateWishPayload =
   | { status: WishStatus }
-  | { title?: string; description?: string; targetDate?: string };
+  | {
+      title?: string;
+      description?: string;
+      targetDate?: string;
+      budgetAmount?: number | null;
+    };
 
 export interface CreateWishRecordPayload {
   content: string;

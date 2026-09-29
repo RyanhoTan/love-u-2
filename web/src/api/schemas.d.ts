@@ -207,7 +207,7 @@ export interface paths {
         head?: never;
         /**
          * 更新心愿
-         * @description 可修改标题、描述、状态或目标日期；至少提供一个字段。
+         * @description 可修改标题、描述、状态、目标日期或预算；至少提供一个字段。
          */
         patch: operations["updateWish"];
         trace?: never;
@@ -633,7 +633,7 @@ export interface components {
             locationName: string;
             latitude: number | null;
             longitude: number | null;
-            /** @description Integer amount; unit not specified in code (open question) */
+            /** @description Integer budget in yuan; null means not set */
             budgetAmount: number | null;
             status: components["schemas"]["WishStatus"];
             /**
@@ -674,7 +674,7 @@ export interface components {
             /** @default null */
             budgetAmount: number | null;
         };
-        /** @description PATCH at least one supported field: title, status, description, or targetDate */
+        /** @description PATCH at least one supported field: title, status, description, targetDate, or budgetAmount */
         UpdateWishRequest: {
             /** @description Updated wish title; trimmed by the server */
             title?: string;
@@ -683,6 +683,8 @@ export interface components {
             description?: string;
             /** @description Updated target date; a real calendar date in YYYY-MM-DD format, year 1000–9999 */
             targetDate?: components["schemas"]["DateOnly"];
+            /** @description Updated integer budget in yuan; null clears the budget */
+            budgetAmount?: number | null;
         };
         WishRecordMedia: {
             /** Format: uri */

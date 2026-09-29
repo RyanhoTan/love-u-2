@@ -645,6 +645,11 @@ export async function updateWish(req: Request, res: Response) {
     values.push(payload.targetDate);
   }
 
+  if (payload.budgetAmount !== undefined) {
+    assignments.push("budget_amount = ?");
+    values.push(payload.budgetAmount);
+  }
+
   assignments.push("updated_at = CURRENT_TIMESTAMP");
 
   const isCoupleWish = existingWish.relationship_id !== null;

@@ -27,6 +27,7 @@ export function WishDetailInfo({
   onEditTitle,
   onEditDescription,
   onEditTargetDate,
+  onEditBudget,
 }: {
   wish: WishItem;
   creator: Creator | null;
@@ -35,6 +36,7 @@ export function WishDetailInfo({
   onEditTitle: () => void;
   onEditDescription: () => void;
   onEditTargetDate: () => void;
+  onEditBudget: () => void;
 }) {
   const isDone = wish.status === "done";
 
@@ -107,6 +109,7 @@ export function WishDetailInfo({
           icon={<Wallet className="size-[18px]" strokeWidth={2} />}
           label="预算"
           value={formatBudget(wish.budgetAmount)}
+          onEdit={onEditBudget}
         />
         <div className="h-px bg-border" />
         <div className="flex h-12 items-center gap-3 px-4">

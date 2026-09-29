@@ -21,6 +21,7 @@ import { NavBar, toast } from "@/components/common";
 
 const MAX_DESCRIPTION_LENGTH = 1000;
 const MAX_TITLE_LENGTH = 100;
+const MAX_BUDGET_AMOUNT = 2_147_483_647;
 
 function parseLocalDate(dateText: string) {
   const [year, month, day] = dateText.split("-").map(Number);
@@ -31,6 +32,21 @@ function formatDisplayDate(date: Date) {
   return formatLocalDateOnly(date).replaceAll("-", ".");
 }
 
+function parseBudgetAmount(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  if (!/^\d+$/.test(trimmed)) {
+    return undefined;
+  }
+
+  const amount = Number(trimmed);
+  return Number.isSafeInteger(amount) && amount <= MAX_BUDGET_AMOUNT
+    ? amount
+    : undefined;
+}
+
 export default function EditWish() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const wishId = Number(id);
@@ -38,6 +54,7 @@ export default function EditWish() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [targetDate, setTargetDate] = useState(new Date());
+  const [budgetText, setBudgetText] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     "loading",
@@ -46,11 +63,14 @@ export default function EditWish() {
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
   const normalizedTitle = title.trim();
+  const budgetAmount = parseBudgetAmount(budgetText);
+  const isBudgetValid = budgetAmount !== undefined;
   const hasChanges =
     wish !== null &&
     (normalizedTitle !== wish.title ||
       description !== wish.description ||
-      formatLocalDateOnly(targetDate) !== wish.targetDate);
+      formatLocalDateOnly(targetDate) !== wish.targetDate ||
+      (isBudgetValid && budgetAmount !== wish.budgetAmount));
 
   const loadWish = useCallback(async () => {
     if (!Number.isInteger(wishId) || wishId <= 0) {
@@ -67,6 +87,7 @@ export default function EditWish() {
       setTitle(response.wish.title);
       setDescription(response.wish.description);
       setTargetDate(parseLocalDate(response.wish.targetDate));
+      setBudgetText(response.wish.budgetAmount?.toString() ?? "");
       setLoadState("ready");
     } catch (error) {
       setLoadError(
@@ -81,21 +102,30 @@ export default function EditWish() {
   }, [loadWish]);
 
   async function handleSave() {
-    if (!wish || saving || normalizedTitle.length === 0 || !hasChanges) {
+    if (
+      !wish ||
+      saving ||
+      normalizedTitle.length === 0 ||
+      !isBudgetValid ||
+      !hasChanges
+    ) {
       return;
     }
 
     const titleChanged = normalizedTitle !== wish.title;
     const descriptionChanged = description !== wish.description;
     const targetDateChanged = formatLocalDateOnly(targetDate) !== wish.targetDate;
+    const budgetChanged = budgetAmount !== wish.budgetAmount;
     const payload: {
       title?: string;
       description?: string;
       targetDate?: string;
+      budgetAmount?: number | null;
     } = {};
     if (titleChanged) payload.title = normalizedTitle;
     if (descriptionChanged) payload.description = description.trim();
     if (targetDateChanged) payload.targetDate = formatLocalDateOnly(targetDate);
+    if (budgetChanged) payload.budgetAmount = budgetAmount;
 
     try {
       setSaving(true);
@@ -188,6 +218,27 @@ export default function EditWish() {
               <Text style={styles.dateText}>{formatDisplayDate(targetDate)}</Text>
               <Text style={styles.dateHint}>点击修改</Text>
             </TouchableOpacity>
+            <Text style={styles.label}>预算</Text>
+            <View style={styles.budgetField}>
+              <Text style={styles.budgetCurrency}>¥</Text>
+              <TextInput
+                accessibilityLabel="心愿预算"
+                value={budgetText}
+                onChangeText={(value) => {
+                  setBudgetText(value);
+                  setSaveError("");
+                }}
+                placeholder="未设置，留空可清除"
+                placeholderTextColor="#C3B8BE"
+                keyboardType="number-pad"
+                maxLength={10}
+                editable={!saving}
+                style={styles.budgetInput}
+              />
+            </View>
+            {!isBudgetValid ? (
+              <Text style={styles.errorText}>预算须为 0–2,147,483,647 的整数</Text>
+            ) : null}
             {saveError ? (
               <Text accessibilityRole="alert" style={styles.errorText}>
                 {saveError}
@@ -197,7 +248,13 @@ export default function EditWish() {
 
           <TouchableOpacity
             accessibilityRole="button"
-            disabled={saving || !wish || !hasChanges || normalizedTitle.length === 0}
+            disabled={
+              saving ||
+              !wish ||
+              !hasChanges ||
+              normalizedTitle.length === 0 ||
+              !isBudgetValid
+            }
             onPress={() => void handleSave()}
             style={[styles.saveButton, saving && styles.disabledButton]}
           >
@@ -278,6 +335,28 @@ const styles = StyleSheet.create({
   dateHint: {
     color: "#8F7D88",
     fontSize: 13,
+  },
+  budgetField: {
+    minHeight: 50,
+    borderWidth: 1,
+    borderColor: "#EADDE3",
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  budgetCurrency: {
+    color: "#8F7D88",
+    fontSize: 15,
+    marginRight: 8,
+  },
+  budgetInput: {
+    flex: 1,
+    paddingVertical: 12,
+    color: "#2E2430",
+    fontSize: 15,
+    textAlign: "right",
   },
   counter: {
     alignSelf: "flex-end",

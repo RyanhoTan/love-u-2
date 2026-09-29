@@ -611,3 +611,17 @@
 - **Limitations:** 未做真实 DATE 往返或多账号/并发写入验证；原生选择器需真机验证。Web 构建仍报告依赖 Zod 注释位置和 >500 kB chunk 的既有警告。
 - **Next action:** 独立提交后继续 PRD-WISH-001 的其他字段编辑和过程记录能力缺口。
 - **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、两端心愿详情编辑组件、schema 矩阵与各 workspace 检查输出。
+
+## 2026-09-29T15:13:41+08:00 — Phase 24: wish budget editing completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 心愿预算更新；空值可清除，人民币整数范围与现有 MySQL `INT NULL` 一致。
+- **Red:** 创建时可设预算，详情两端仅展示且 PATCH 不支持修改；schema 未约束超出数据库 signed INT 上限的请求。
+- **Green:** 创建/更新复用 nullable 非负整数 schema，限制到 `2,147,483,647`；服务端仅在提交时绑定 `budget_amount`；OpenAPI 类型同步；Web 预算 dialog 与移动端编辑表单支持更新/清空。
+- **Verification:** create/update 15 项 budget 与兼容矩阵通过；Web API 生成、server lint/build、Web lint/build、app lint/typecheck、`git diff --check` 均通过。
+- **Review:** `0` 与 null 保持不同语义，null 清除显示为“未定”；负数、小数、非数字及超范围拒绝；只提交真实变更字段，既有写入关系授权仍在。
+- **Operational evidence:** 未连接 MySQL、真实账号、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 未验证真实 SQL NULL 往返或键盘/设备交互；Web build 保留依赖 Zod 注释位置与 >500 kB chunk 警告。
+- **Next action:** 独立提交后继续 PRD-WISH-001 的剩余编辑与过程记录能力缺口。
+- **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、Web/App 心愿编辑 UI、schema 矩阵与各 workspace 检查输出。

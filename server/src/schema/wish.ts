@@ -2,6 +2,12 @@ import { z } from "zod";
 import { isValidCalendarDateOnly } from "./dateOnly.js";
 
 export const wishStatusSchema = z.enum(["todo", "doing", "done"]);
+const wishBudgetAmountSchema = z
+  .number()
+  .int()
+  .min(0)
+  .max(2_147_483_647)
+  .nullable();
 
 function wishDateOnlySchema(fieldName: "targetDate" | "recordDate") {
   return z
@@ -38,7 +44,7 @@ export const createWishSchema = z.object({
     .default(""),
   latitude: z.number().min(-90).max(90).nullable().optional().default(null),
   longitude: z.number().min(-180).max(180).nullable().optional().default(null),
-  budgetAmount: z.number().int().min(0).nullable().optional().default(null),
+  budgetAmount: wishBudgetAmountSchema.optional().default(null),
 });
 
 export const updateWishSchema = z
@@ -56,6 +62,7 @@ export const updateWishSchema = z
       .max(1000, "description must be at most 1000 characters")
       .optional(),
     targetDate: wishDateOnlySchema("targetDate").optional(),
+    budgetAmount: wishBudgetAmountSchema.optional(),
   })
   .strict()
   .refine((payload) => Object.keys(payload).length > 0, {

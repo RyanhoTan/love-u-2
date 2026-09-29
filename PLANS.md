@@ -8,8 +8,8 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–23 是这项授权下已完成的
-阶段。Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–24 已完成。
+Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
 |---|---|---|---|---|
@@ -37,6 +37,7 @@
 | 21 | Mobile anniversary list honest states | Complete | PRD-DAY-001、R1 可信核心闭环 | 移动端纪念日列表区分加载、空数据与请求失败并提供重试 |
 | 22 | Mobile anniversary editing and deletion | Complete | Phase 21、PRD-DAY-001 | 移动端列表可进入真实编辑表单并保存或删除纪念日 |
 | 23 | Wish target-date editing | Complete | Phase 14、PRD-WISH-001 | 服务端、Web 与移动端支持受校验的心愿目标日期更新 |
+| 24 | Wish budget editing | Complete | Phase 08、PRD-WISH-001 | 服务端、Web 与移动端支持校验、清空且不会覆盖其他字段的预算更新 |
 
 ## 阶段顺序
 
@@ -175,6 +176,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 在既有真实日历日期校验基础上，扩展受当前心愿关系授权的 PATCH，仅更新用户提交的目标日期；Web 与移动端都可编辑，并保留 `YYYY-MM-DD` 本地日历日语义。此阶段不允许清空目标日期，也不修改地点、预算、封面等其他字段或数据库结构。详细计划见
 `harness/build/phase-23-wish-target-date-editing.md`。
+
+### Phase 24 — Wish budget editing
+
+为现有心愿 PATCH 增加可空的非负整数预算更新，并在 Web 与移动端详情编辑；清空表示“未定”。服务端验证与数据库 `INT` 范围对齐，不更新用户未改的其他字段。详细计划见
+`harness/build/phase-24-wish-budget-editing.md`。
 
 ## 后续阶段的准入条件
 
