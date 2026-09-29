@@ -1,9 +1,6 @@
 import {
-  Activity,
-  Bell,
   ChevronRight,
   Heart,
-  Palette,
   User,
   type LucideIcon,
 } from "lucide-react";
@@ -21,15 +18,12 @@ const GROUPS: {
     label: "情侣空间",
     rows: [
       { to: "/me/couple", label: "情侣空间", icon: Heart },
-      { to: "/me/report", label: "恋爱报告", icon: Activity },
     ],
   },
   {
     label: "账户",
     rows: [
       { to: "/me/profile", label: "个人资料", icon: User },
-      { to: "/me/notify", label: "通知", icon: Bell },
-      { to: "/me/appearance", label: "外观", icon: Palette },
     ],
   },
 ];

@@ -10,6 +10,7 @@
 | 01 — Repository baseline assessment | Not started | — | — | — | — | Awaiting explicit approval |
 | 02 — Web today real-data baseline | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 03 — Web profile editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 04 — Hide unfinished Web settings | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -167,3 +168,20 @@
 - **Blockers:** None。
 - **Next action:** 提交 Small point B，然后从 PRD 选择下一个独立、可验证的小点。
 - **Evidence references:** `web/src/pages/profile-page/index.tsx`、`web/src/api/user.ts`、`web/src/routes/me.tsx`、`server/src/schema/user.ts`、`PRD.md`、server/Web lint/build 输出。
+
+## 2026-09-29T13:35:44+08:00 — Phase 04: unfinished Web settings hidden
+
+- **Status:** `Not started` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD 7.4 和 R1 中“未上线功能不伪装可用”的 Web 个人中心小点。
+- **Changes:** 从 Web “我的”移除通知、恋爱报告和外观入口，同时移除三个仅渲染通用占位页的路由；同步产品基线。
+- **Red:** 修改前静态检查命中三个菜单链接和三个 `PlaceholderPage` 路由，通知路由甚至展示了没有保存行为的“保存”按钮。
+- **Green:** Web 个人中心只保留已有真实实现的情侣空间和个人资料；三个未完成功能不再有 Web 入口或专用占位路由，直接旧地址由全局回退返回首页。
+- **Refactor:** 清理不再使用的图标和 `page` helper import，没有删除可复用的通用占位组件或影响其他模块。
+- **Verification:** Web lint/build、目标路径静态检查和 `git diff --check` 通过；Vite 保留既有的 Zod 注释解析与 bundle size 警告。
+- **Review:** 范围仅限 Web；移动端假成功/占位入口保留给后续独立小点；资料与情侣空间路由未改变。
+- **Operational evidence:** 未访问数据库、凭据或外部系统，未推送或部署。
+- **Limitations:** 旧收藏地址没有专门的“功能尚未上线”页面，而是使用现有全局首页回退。
+- **Blockers:** None。
+- **Next action:** 提交本小点，再选择下一项 R1 假成功或契约一致性问题。
+- **Evidence references:** `web/src/pages/me-page/index.tsx`、`web/src/routes/me.tsx`、`PRD.md`、Web lint/build 输出。

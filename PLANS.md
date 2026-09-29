@@ -17,6 +17,7 @@
 | 01 | Repository baseline assessment | Not started | Phase 00 | 形成有证据的现状、风险和候选重构阶段建议，不修改业务代码 |
 | 02 | Web today real-data baseline | Complete | Phase 00、PRD-TODAY-001 | 清除 Web 首页模拟业务内容，只呈现真实数据或诚实空状态 |
 | 03 | Web profile editing | Complete | PRD-AUTH-001、现有 `/userinfo` | 允许清空生日并将 Web 个人资料从占位页改为真实表单 |
+| 04 | Hide unfinished Web settings | Complete | PRD 7.4、R1 可信核心闭环 | 隐藏并移除 Web 个人中心尚无真实能力的入口和占位路由 |
 
 ## 阶段顺序
 
@@ -48,6 +49,12 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 该阶段补齐 Web 个人资料编辑。先以独立小提交修复生日无法清空的 API 契约，再以第二个提交替换
 占位路由并接入真实 PUT 与 session 刷新。详细计划见
 `harness/build/phase-03-web-profile-editing.md`。
+
+### Phase 04 — Hide unfinished Web settings
+
+该阶段落实 PRD 7.4 的诚实入口原则：从 Web 个人中心隐藏通知、恋爱报告和外观入口，并移除对应
+占位路由；真实资料编辑和情侣空间保持不变。详细计划见
+`harness/build/phase-04-hide-unfinished-web-settings.md`。
 
 ## 后续阶段的准入条件
 
