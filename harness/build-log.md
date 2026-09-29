@@ -7,7 +7,7 @@
 | Phase | Status | Branch | Started | Completed | Evidence | Blockers |
 |---|---|---|---|---|---|---|
 | 00 — Repository workflow foundation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方开始与完成记录 | None |
-| 01 — Repository baseline assessment | Not started | — | — | — | — | Awaiting explicit approval |
+| 01 — Repository baseline assessment | Not started | — | — | — | — | Not required for active PRD R1/P0 iteration; may be started if a later change depends on a full baseline |
 | 02 — Web today real-data baseline | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 03 — Web profile editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 04 — Hide unfinished Web settings | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
@@ -239,3 +239,14 @@
 - **Blockers:** None。
 - **Next action:** 提交本小点，再基于 PRD 选择下一个核心路径一致性问题。
 - **Evidence references:** `app/app/home/(tabs)/index.tsx`、`PRD.md`、app lint 输出。
+
+## 2026-09-29T13:48:08+08:00 — Roadmap reconciled for active PRD iteration
+
+- **Status:** Planning record corrected; Phase 01 remains `Not started`; Phases 02–07 remain `Complete`.
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** 用户授权按 PRD 持续实现 R1/P0 功能、每个小点独立提交；当前活动 Goal 明确承载该授权和完成条件。
+- **Changes:** 修正 `PLANS.md` 中“仅安排 Phase 00/01、后续实现均未授权”的过期说明；明确 Phase 01 不是活动 P0 迭代的先决条件；同步 Phase 01 的 build-log blocker 描述。
+- **Verification:** 当前分支为 `refactor/codex-workflow-harness`，本次修改前工作树干净；Phase summary 与已完成阶段列表一致；`git diff --check` 通过。
+- **Review:** Phase 01 的只读评估仍未实施，不把它误标成完成；待确认的业务决策仍需在具体功能遇到时停止并请求用户输入。
+- **Operational evidence:** 未改业务代码，未连接外部服务或读取凭据，未推送或部署。
+- **Next action:** 提交此路线图修正，然后继续检查当前 PRD P0 未完成项。

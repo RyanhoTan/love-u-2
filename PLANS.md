@@ -7,14 +7,14 @@
 
 ## 当前路线图
 
-`PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 候选方向，但其中待确认项与候选功能不等于
-实现授权。当前执行路线仍只安排工程工作流的建立与一次只读基线评估；基线评估之后的实现阶段
-必须根据 PRD、证据和用户优先级单独提出、审阅和批准。
+`PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–07 是这项授权下已完成的
+阶段。Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
 |---|---|---|---|---|
 | 00 | Repository workflow foundation | Complete | 无 | 建立适配本仓库的 Codex 协作文件、边界和证据记录方式 |
-| 01 | Repository baseline assessment | Not started | Phase 00 | 形成有证据的现状、风险和候选重构阶段建议，不修改业务代码 |
+| 01 | Repository baseline assessment | Not started | Phase 00 | 形成有证据的现状、风险和候选重构阶段建议，不修改业务代码；当前 P0 迭代不以此为前置条件 |
 | 02 | Web today real-data baseline | Complete | Phase 00、PRD-TODAY-001 | 清除 Web 首页模拟业务内容，只呈现真实数据或诚实空状态 |
 | 03 | Web profile editing | Complete | PRD-AUTH-001、现有 `/userinfo` | 允许清空生日并将 Web 个人资料从占位页改为真实表单 |
 | 04 | Hide unfinished Web settings | Complete | PRD 7.4、R1 可信核心闭环 | 隐藏并移除 Web 个人中心尚无真实能力的入口和占位路由 |
@@ -31,7 +31,7 @@
 
 ### Phase 01 — Repository baseline assessment
 
-在单独批准后，对移动端、Web 端、服务端、数据库、媒体与现有验证面进行只读检查，识别：
+作为独立只读评估阶段启动时，对移动端、Web 端、服务端、数据库、媒体与现有验证面进行检查，识别：
 
 - 文档与实现偏差；
 - 模块和 API 边界；
@@ -39,7 +39,8 @@
 - 安全、隐私、数据迁移和恢复风险；
 - 可以独立实施和验证的候选重构阶段。
 
-详细计划见 `harness/build/phase-01-repository-baseline-assessment.md`。
+详细计划见 `harness/build/phase-01-repository-baseline-assessment.md`。该阶段当前仍为 `Not started`，
+仅在后续某项工作依赖完整基线盘点时纳入执行，不阻塞当前已获授权的 PRD R1/P0 迭代。
 
 ### Phase 02 — Web today real-data baseline
 
@@ -86,7 +87,8 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 3. 定义可观察的验收标准和真实可运行的验证命令。
 4. 区分重构、行为变更、依赖变更和运维变更。
 5. 对认证、情侣数据、媒体或数据库风险提供额外验证和恢复说明。
-6. 获得该阶段的明确授权后再写代码。
+6. 用户明确授权该阶段；如果当前有效 Goal 已明确覆盖相应 PRD 需求和结果，则可在该 Goal 范围内
+   持续推进，不必为每个小点重复确认。
 
 ## 计划变更规则
 
