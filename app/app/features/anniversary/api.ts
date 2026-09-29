@@ -30,6 +30,10 @@ interface CreateAnniversaryResponse {
   anniversary: AnniversaryItem;
 }
 
+interface MessageResponse {
+  message: string;
+}
+
 export interface CreateAnniversaryPayload {
   title: string;
   type: AnniversaryType;
@@ -48,5 +52,24 @@ export async function createAnniversary(payload: CreateAnniversaryPayload) {
   return requestWithAuth<CreateAnniversaryResponse>("/anniversaries", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function updateAnniversary(
+  anniversaryId: number,
+  payload: CreateAnniversaryPayload,
+) {
+  return requestWithAuth<CreateAnniversaryResponse>(
+    `/anniversaries/${anniversaryId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function deleteAnniversary(anniversaryId: number) {
+  return requestWithAuth<MessageResponse>(`/anniversaries/${anniversaryId}`, {
+    method: "DELETE",
   });
 }

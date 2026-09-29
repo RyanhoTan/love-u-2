@@ -16,7 +16,7 @@ import {
   type AnniversaryItem,
 } from "@/app/features/anniversary/api";
 import { useAuth } from "@/app/features/auth/auth-context";
-import { NavBar, PinkButton, toast } from "@/components/common";
+import { NavBar, PinkButton } from "@/components/common";
 import { Row } from "@/components/layout";
 import { colors } from "@/styles/colors";
 
@@ -84,14 +84,6 @@ export default function AnniversaryScreen() {
     <SafeAreaView style={styles.safeArea}>
       <NavBar
         title="纪念日"
-        rightContent={
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => toast.info("编辑功能开发中")}
-          >
-            <Text style={styles.headerAction}>编辑</Text>
-          </TouchableOpacity>
-        }
       />
 
       <ScrollView
@@ -136,7 +128,15 @@ export default function AnniversaryScreen() {
 
             return (
               <View key={item.id}>
-                <TouchableOpacity activeOpacity={0.9} style={styles.card}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  style={styles.card}
+                  onPress={() =>
+                    router.push(`/home/anniversary/${item.id}/edit`)
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel={`编辑纪念日：${item.title}`}
+                >
                   <View
                     style={[
                       styles.iconWrap,
@@ -192,11 +192,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     paddingHorizontal: 16,
-  },
-  headerAction: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.semantic.textPrimary,
   },
   content: {
     paddingTop: 18,

@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–21 是这项授权下已完成的
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–22 是这项授权下已完成的
 阶段。Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -35,6 +35,7 @@
 | 19 | Anniversary creation authorization | Complete | Phase 18、PRD-DAY-001 | 纪念日插入时在同一语句确认当前 bound 关系及成员资格 |
 | 20 | Honest anniversary reminder copy | Complete | PRD-DAY-001、R1 可信核心闭环 | 移动/Web 不再声称尚未实现的纪念日通知已经生效 |
 | 21 | Mobile anniversary list honest states | Complete | PRD-DAY-001、R1 可信核心闭环 | 移动端纪念日列表区分加载、空数据与请求失败并提供重试 |
+| 22 | Mobile anniversary editing and deletion | Complete | Phase 21、PRD-DAY-001 | 移动端列表可进入真实编辑表单并保存或删除纪念日 |
 
 ## 阶段顺序
 
@@ -163,6 +164,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 移动端纪念日列表不再把网络/API 失败渲染为“还没有纪念日”；失败态明确说明读取失败并提供重试。详细计划见
 `harness/build/phase-21-mobile-anniversary-list-honest-states.md`。
+
+### Phase 22 — Mobile anniversary editing and deletion
+
+移除移动端纪念日页占位编辑 toast；列表项进入编辑表单，加载真实数据后可保存更新或确认删除，失败时保留草稿并反馈错误。详细计划见
+`harness/build/phase-22-mobile-anniversary-editing-and-deletion.md`。
 
 ## 后续阶段的准入条件
 

@@ -28,6 +28,7 @@
 | 19 — Anniversary creation authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 | 20 — Honest anniversary reminder copy | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/浏览器检查 | None |
 | 21 — Mobile anniversary list honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/后端联调 | None |
+| 22 — Mobile anniversary editing and deletion | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/后端联调 | None |
 
 ## Activity
 
@@ -584,3 +585,16 @@
 - **Limitations:** 无设备/弱网集成；顶部“编辑”仍为未完成 toast 入口，需独立处理。
 - **Next action:** 独立提交；继续移动端纪念日可编辑/删除缺口。
 - **Evidence references:** `app/app/home/anniversary/index.tsx`、`harness/context/phase-21-mobile-anniversary-list-honest-states-context.md`、app lint/typecheck 输出。
+## 2026-09-29T14:57:37+08:00 — Phase 22: mobile anniversary editing and deletion completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-DAY-001 移动端纪念日更新与删除；服务端、数据库、提醒投递不变。
+- **Red:** 移动端顶栏“编辑”仅显示 `toast.info("编辑功能开发中")`，纪念日卡片无法进入可编辑界面；app API 无 PATCH/DELETE 封装。
+- **Green:** 列表卡片进入编辑表单；从已授权列表获取真实字段，PATCH 提交完整 payload；删除先 Alert 二次确认，再调用 DELETE；成功提示后返回并由列表焦点加载刷新，失败留在表单显示错误。
+- **Verification:** `pnpm --dir app lint`、`pnpm --dir app exec tsc --noEmit`、导航/API/状态分支静态复核、`git diff --check` 通过。
+- **Review:** 标题、分类、日期、重复和提醒计划均可编辑；保存 payload 保留未主动改动的既有 reminderDaysBefore；加载失败可重试；非当前情侣范围从列表不可见，写请求仍由服务端 Phase 18 授权。
+- **Operational evidence:** 未使用真机或真实后端/数据库，未读取凭据，未推送或部署。
+- **Limitations:** 未做多账号授权集成或真机交互验证；日期重复/时区边界与提醒投递继续待验证。
+- **Next action:** 独立提交；继续 PRD-DAY-001 时间边界及 app/web 表单语义检查。
+- **Evidence references:** `app/app/features/anniversary/api.ts`、`app/app/home/anniversary/index.tsx`、`app/app/home/anniversary/[id]/edit.tsx`、app lint/typecheck 输出。
