@@ -27,6 +27,14 @@ const require = createRequire(import.meta.url);
 const ffmpegPath = require("ffmpeg-static") as string | null;
 
 type WishRecordMediaPayload = {
+  objectKey?: string;
+  url?: string;
+  mediaType: "image" | "video";
+  thumbnailUrl: string;
+  thumbnailObjectKey?: string;
+};
+
+type WishRecordMediaOutput = {
   url: string;
   mediaType: "image" | "video";
   thumbnailUrl: string;
@@ -81,6 +89,8 @@ interface WishRecordRow extends RowDataPacket {
 
 interface WishRecordMediaRow extends RowDataPacket {
   source_id: number;
+  object_key: string | null;
+  thumbnail_object_key: string | null;
   url: string;
   media_type: "image" | "video";
   thumbnail_url: string | null;
@@ -135,7 +145,7 @@ async function serializeWish(row: WishRow) {
 
 function serializeWishRecord(
   row: WishRecordRow,
-  media: { url: string; mediaType: "image" | "video"; thumbnailUrl: string }[] = [],
+  media: WishRecordMediaOutput[] = [],
 ) {
   return {
     id: row.id,
@@ -216,34 +226,66 @@ async function assertWishSoftDeleteColumnsReady() {
   }
 }
 
-async function getWishRecordMedia(recordIds: number[]) {
+async function getWishRecordMedia(
+  recordIds: number[],
+  wish: WishRow,
+  userId: number,
+) {
   if (!recordIds.length || !(await hasTable("album_media"))) {
-    return new Map<number, { url: string; mediaType: "image" | "video"; thumbnailUrl: string }[]>();
+    return new Map<number, WishRecordMediaOutput[]>();
   }
 
+  const scope = await buildWishScope(userId);
+  const isActiveRelationshipWish =
+    scope.relationshipId !== null && scope.relationshipId === wish.relationship_id;
   const [rows] = await db.query<WishRecordMediaRow[]>(
     `
-      SELECT source_id, url, media_type, thumbnail_url
+      SELECT
+        album_media.source_id,
+        album_media.object_key,
+        album_media.thumbnail_object_key,
+        album_media.url,
+        album_media.media_type,
+        album_media.thumbnail_url
       FROM album_media
-      WHERE source_type = 'wish_record'
-        AND source_id IN (?)
-      ORDER BY id ASC
+      INNER JOIN wish_records
+        ON wish_records.id = album_media.source_id
+      WHERE album_media.source_type = 'wish_record'
+        AND album_media.source_id IN (?)
+        AND wish_records.wish_id = ?
+        AND album_media.relationship_id <=> ?
+        AND (? = 1 OR album_media.created_by_user_id = ?)
+      ORDER BY album_media.id ASC
     `,
-    [recordIds]
+    [
+      recordIds,
+      wish.id,
+      wish.relationship_id,
+      isActiveRelationshipWish ? 1 : 0,
+      wish.created_by_user_id,
+    ]
   );
 
-  const mediaByRecord = new Map<
-    number,
-    { url: string; mediaType: "image" | "video"; thumbnailUrl: string }[]
-  >();
-  for (const row of rows) {
-    const media = mediaByRecord.get(row.source_id) ?? [];
-    media.push({
-      url: row.url,
-      mediaType: row.media_type,
-      thumbnailUrl: row.thumbnail_url || "",
-    });
-    mediaByRecord.set(row.source_id, media);
+  const serializedRows = await Promise.all(
+    rows.map(async (row) => ({
+      sourceId: row.source_id,
+      media: {
+        url: row.object_key
+          ? await createMediaReadUrl(row.object_key)
+          : row.url,
+        mediaType: row.media_type,
+        thumbnailUrl: row.thumbnail_object_key
+          ? await createMediaReadUrl(row.thumbnail_object_key)
+          : row.thumbnail_url || "",
+      },
+    }))
+  );
+
+  const mediaByRecord = new Map<number, WishRecordMediaOutput[]>();
+  for (const { sourceId, media: serializedMedia } of serializedRows) {
+    const media = mediaByRecord.get(sourceId) ?? [];
+    media.push(serializedMedia);
+    mediaByRecord.set(sourceId, media);
   }
 
   return mediaByRecord;
@@ -269,8 +311,10 @@ async function createWishRecordMedia(
     item.mediaType,
     "wish_record",
     recordId,
-    item.url,
-    item.thumbnailUrl || null,
+    item.objectKey || null,
+    item.thumbnailObjectKey || null,
+    item.url || "",
+    item.objectKey ? null : item.thumbnailUrl || null,
     formatDateOnly(wish.target_date),
     wish.location_name,
     wish.latitude,
@@ -285,6 +329,8 @@ async function createWishRecordMedia(
         media_type,
         source_type,
         source_id,
+        object_key,
+        thumbnail_object_key,
         url,
         thumbnail_url,
         taken_at,
@@ -298,7 +344,7 @@ async function createWishRecordMedia(
   );
 }
 
-async function generateVideoThumbnailUrl(userId: number, videoUrl: string) {
+async function generateVideoThumbnailObjectKey(userId: number, videoUrl: string) {
   if (!ffmpegPath) {
     throw new HttpError(500, "ffmpeg is not available");
   }
@@ -327,7 +373,7 @@ async function generateVideoThumbnailUrl(userId: number, videoUrl: string) {
       "image/jpeg",
       thumbnail,
     );
-    return result.url;
+    return result.key;
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -340,14 +386,24 @@ async function createWishRecordThumbnails(
   const result: WishRecordMediaPayload[] = [];
 
   for (const item of media) {
-    result.push(
-      item.mediaType === "video"
-        ? {
-            ...item,
-            thumbnailUrl: await generateVideoThumbnailUrl(userId, item.url),
-          }
-        : item,
-    );
+    if (item.mediaType === "video") {
+      const videoUrl = item.objectKey
+        ? await createMediaReadUrl(item.objectKey)
+        : item.url;
+      if (!videoUrl) {
+        throw new HttpError(400, "video media url is missing");
+      }
+      result.push({
+        ...item,
+        thumbnailUrl: "",
+        thumbnailObjectKey: await generateVideoThumbnailObjectKey(
+          userId,
+          videoUrl,
+        ),
+      });
+    } else {
+      result.push(item.objectKey ? { ...item, thumbnailUrl: "" } : item);
+    }
   }
 
   return result;
@@ -544,7 +600,11 @@ export async function getWishRecords(req: Request, res: Response) {
     `,
     [wishId]
   );
-  const mediaByRecord = await getWishRecordMedia(rows.map((row) => row.id));
+  const mediaByRecord = await getWishRecordMedia(
+    rows.map((row) => row.id),
+    wish,
+    userId,
+  );
 
   res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
@@ -745,6 +805,16 @@ export async function createWishRecord(req: Request, res: Response) {
     throw new HttpError(500, "wish records table not found");
   }
 
+  if (
+    payload.media.some(
+      (item) =>
+        item.objectKey &&
+        !isAlbumObjectKeyOwnedByUser(userId, item.objectKey),
+    )
+  ) {
+    throw new HttpError(403, "record media does not belong to the current user");
+  }
+
   const authorization = buildWishWriteAuthorization(wish, userId);
   const insertValues = [
     userId,
@@ -817,11 +887,13 @@ export async function createWishRecord(req: Request, res: Response) {
     throw new HttpError(500, "failed to create wish record");
   }
 
+  const mediaByRecord = await getWishRecordMedia([record.id], wish, userId);
+
   res.setHeader("Cache-Control", "private, no-store");
   res.status(201).json({
     message: "create wish record success",
     wish: await serializeWish(wish),
-    record: serializeWishRecord(record, media),
+    record: serializeWishRecord(record, mediaByRecord.get(record.id)),
   });
 }
 

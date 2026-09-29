@@ -46,7 +46,7 @@ import {
   createWishRecord,
   getWishById,
   uploadWishFile,
-  type WishRecordMediaItem,
+  type WishRecordMediaInput,
   type WishItem,
 } from "@/app/features/wish-list/api";
 import { formatLocalDateOnly } from "@/app/features/wish-list/date";
@@ -229,7 +229,7 @@ export default function CreateRecord() {
   };
 
   const uploadSelectedMedia = async () => {
-    const media: WishRecordMediaItem[] = [];
+    const media: WishRecordMediaInput[] = [];
 
     for (const item of selectedMedia) {
       const result = await uploadWishFile(
@@ -239,9 +239,8 @@ export default function CreateRecord() {
       );
 
       media.push({
-        url: result.url,
+        objectKey: result.key,
         mediaType: item.type,
-        thumbnailUrl: "",
       });
     }
 

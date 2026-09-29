@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–29 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–30 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -43,6 +43,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 27 | Private album reads with short-lived signed URLs | Complete | Phase 26、PRD-MEMORY-001 | 在关系授权的相册/故事读取响应中签发短时媒体地址，并供两端页面显示 |
 | 28 | Wish private cover create/read | Complete | PRD-WISH-001、Phase 27 | Web/App 上传心愿封面后保存私有对象键，并在授权心愿读取中使用短期签名 URL |
 | 29 | Wish private cover update/clear | Complete | PRD-WISH-001、Phase 28 | Web/App 可替换或清除心愿封面；PATCH 持续使用私有对象键，不改变关系授权 |
+| 30 | Wish record private media | Complete | PRD-WISH-001、Phase 27/28/29 | App/Web 心愿过程记录上传并保存私有对象键，在授权记录读取中签发媒体/缩略图 URL |
 
 ## 阶段顺序
 
@@ -211,6 +212,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 在已有心愿编辑入口增加私有封面替换与清除：替换时先上传后提交当前用户所属对象键，清除时显式提交 null 并同时清空新旧封面列。保留现有关系写入授权，不删除已上传/旧对象。详细计划见
 `harness/build/phase-29-wish-cover-edit-clear.md`。
+
+### Phase 30 — Wish record private media
+
+将 Wish 过程记录从失效的上传 `url` 假设迁移到私有对象键：上传后以 key 登记媒体，在已授权 Wish/record scope 内读取时签发短时 URL；视频缩略图也保存对象键。兼容旧 URL 记录和旧客户端写入。本阶段不删除存储对象。详细计划见
+`harness/build/phase-30-wish-record-private-media.md`。
 
 ## 后续阶段的准入条件
 

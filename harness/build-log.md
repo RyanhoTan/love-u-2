@@ -36,6 +36,7 @@
 | 27 — Private album reads with short-lived signed URLs | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无 DB/R2/浏览器/设备集成 |
 | 28 — Wish private cover create/read | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/浏览器/设备集成 |
 | 29 — Wish private cover update/clear | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/浏览器/设备集成 |
+| 30 — Wish record private media | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/FFmpeg/浏览器/设备集成 |
 
 ## Activity
 
@@ -746,3 +747,31 @@
 - **Blockers:** None。
 - **Next action:** 独立提交后继续 PRD R1/P0 的下一个可执行缺口。
 - **Evidence references:** `server/src/media/objectKey.ts`、`server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、Web/App Wish 编辑页、schema 矩阵与 workspace 检查输出。
+
+## 2026-09-29T16:40:11+08:00 — Phase 30: private wish record media started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 过程记录媒体上传、登记和授权读取；不包含媒体删除/孤儿回收策略、Chat、故事媒体重构或编辑已保存记录。
+- **Red:** App/Web 从 `/upload/media` 读取 `url`，但服务端仅返回 `key`；Wish record API 仍只接受 URL 并将 `album_media.object_key` 留空，记录媒体既不能可靠保存也不能受控读取。
+- **Decision:** 新写入使用 `objectKey`，兼容旧客户端 `url`（恰好二选一）；媒体 key 校验当前上传者并存 `album_media.object_key`；私有 video thumbnail 另存 nullable key 列；在已授权 wish + record scope 读取后签发 300 秒 URL；保留旧 URL 读取/写入兼容。
+- **Verification:** Pending。
+- **Operational evidence:** Phase 29 已提交，分支为 `refactor/codex-workflow-harness`；未访问数据库、R2、真实账号或客户端。
+- **Limitations:** 媒体上传后记录 INSERT 失败可能留下孤儿对象；真实 DB/R2/视频转码/设备流程待集成验证。
+- **Blockers:** None。
+- **Next action:** 实现私有媒体 key 读写、Web/App 上传 payload 与本地预览，再执行 schema 矩阵和各 workspace 检查。
+- **Evidence references:** `server/src/router_handler/upload.ts`、`server/src/router_handler/wish.ts`、`server/src/schema/wish.ts`、`server/src/db/schema.ts`、Wish record App/Web forms、Phase 27 signed URL flow。
+
+## 2026-09-29T16:49:57+08:00 — Phase 30: private wish record media completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 过程记录媒体上传、登记和授权读取；不包含对象回收、Chat 或已有记录编辑/删除。
+- **Green:** App/Web record form 使用认证上传返回的 key；App 保留本地 asset 预览，Web blob URL 仅作草稿预览并及时释放。服务端将 key 存入既有 `album_media.object_key`，新增 nullable `thumbnail_object_key`；视频缩略图从短期签名源 URL 生成并持久化 key；响应只签出 media/thumbnail URL，不回传 object key。旧 URL 输入/存储仍兼容。
+- **Verification:** `pnpm --dir web api`、server lint/build、Web lint/build、App lint/typecheck、`git diff --check` 均通过；11 项 schema/owner 矩阵覆盖 private key、legacy URL、两者同传/缺省、错误目录、路径穿越、非法 URL/字段及 owner 匹配/越权/前缀碰撞。
+- **Review:** key 写入在 `findWishById` 授权后校验上传者；读取通过 exact `wish_records.wish_id`、media `relationship_id` 与当前授权模式筛选；active couple 可看当前关系媒体，解绑后 creator-scope 读取限于创建者上传媒体。Wish records GET 和创建响应均为 `private, no-store`。
+- **Operational evidence:** 未连接 MySQL、R2、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** additive ALTER、对象上传/签名过期、FFmpeg 拉取签名源 URL、真机/浏览器展示未验证；写记录失败可能遗留原图/缩略图孤儿；媒体列表无分页并需为返回项分别签名；300 秒后需重新聚焦/读取，无定时续签；Web build 保留既有 Zod 注释位置和 >500 kB chunk 警告。
+- **Blockers:** None。
+- **Next action:** 独立提交后继续 PRD R1/P0 的下一个可执行缺口。
+- **Evidence references:** `server/src/db/schema.ts`、`server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、`web/src/pages/wishes-page/record-sheet.tsx`、`app/app/home/wish-list/[id]/records/create.tsx`、schema 矩阵与 workspace 检查输出。

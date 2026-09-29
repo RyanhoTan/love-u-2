@@ -718,13 +718,23 @@ export interface components {
             records: components["schemas"]["WishRecord"][];
         };
         CreateWishRecordMediaInput: {
-            /** Format: uri */
-            url: string;
+            /** @description Private uploaded album object key; new clients should use this field */
+            objectKey?: string;
+            /**
+             * Format: uri
+             * @description Legacy URL input retained for older clients
+             */
+            url?: string;
             /** @enum {string} */
             mediaType: "image" | "video";
             /** @default  */
             thumbnailUrl: string;
-        };
+        } & ({
+            objectKey: string;
+        } | {
+            /** Format: uri */
+            url: string;
+        });
         CreateWishRecordRequest: {
             /** @default  */
             content: string;

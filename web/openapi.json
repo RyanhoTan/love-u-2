@@ -3169,15 +3169,34 @@
       },
       "CreateWishRecordMediaInput": {
         "type": "object",
-        "required": [
-          "url",
-          "mediaType"
-        ],
+        "required": ["mediaType"],
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["objectKey"],
+            "properties": {
+              "objectKey": { "type": "string" }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["url"],
+            "properties": {
+              "url": { "type": "string", "format": "uri" }
+            }
+          }
+        ],
         "properties": {
+          "objectKey": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Private uploaded album object key; new clients should use this field"
+          },
           "url": {
             "type": "string",
-            "format": "uri"
+            "format": "uri",
+            "description": "Legacy URL input retained for older clients"
           },
           "mediaType": {
             "type": "string",

@@ -1,0 +1,9 @@
+# Phase 30 context — Wish record private media
+
+`createWishRecord` stores attachments in `album_media` with `source_type='wish_record'` and the generated record id. The table already has nullable `object_key`, while `url` stays NOT NULL for legacy compatibility. Current writer only stores the URL and current reader selects only the URL, despite the authenticated uploader returning only a private key.
+
+Record reads first authorize the Wish and select rows by `wish_id`. Media lookup additionally joins selected record ids to that exact Wish and matches its `relationship_id`. When the current user still has the active relationship, media from either current member can be signed; when the user is reading as the creator after the old relationship is no longer active, the query limits media to that creator. This prevents a cross-linked row or former partner's media from being signed merely because its `source_id` was returned.
+
+New request media should contain exactly one of `objectKey` or a legacy `url`. The key path shape is `album/<numeric-user-id>/<file>`; the authenticated user ownership check happens after Wish authorization and before record insertion. New UI sends keys; old URL clients remain supported. Response media keep the existing `{url, mediaType, thumbnailUrl}` shape, with private object keys signed after the scoped media query.
+
+Videos receive server-generated thumbnails. For private source media, generate the thumbnail from a short-lived signed GET URL and store its key in a new nullable `thumbnail_object_key`; response signing returns a temporary thumbnail URL. Legacy rows and URL clients continue using `thumbnail_url`. Additive schema only; no storage deletion or cleanup is safe without a separate lifecycle contract. All workspace lint/build/type checks and the 11-case schema/owner matrix passed; real DB, R2, FFmpeg network, and client integration were not run.
