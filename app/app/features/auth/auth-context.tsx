@@ -3,16 +3,20 @@ import {
   ReactNode,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import BRAND from "@brand";
 import { getUserInfo, type AuthSessionUser, type AuthUser } from "./api";
+import {
+  AUTH_STORAGE_KEY,
+  LEGACY_AUTH_STORAGE_KEY,
+  persistStoredAuthSession,
+  removeStoredAuthSession,
+  subscribeToAuthInvalidation,
+} from "@/app/shared/auth-session";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
-
-const AUTH_STORAGE_KEY = BRAND.storage.authSession;
-const LEGACY_AUTH_STORAGE_KEY = "love-u-auth-session";
 
 interface AuthSession {
   token: string;
@@ -41,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isRestoring, setIsRestoring] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const tokenRef = useRef<string | null>(null);
   const status: AuthStatus = isRestoring
     ? "loading"
     : user
@@ -48,19 +53,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       : "unauthenticated";
 
   const persistSession = async (nextToken: string, nextUser: AuthUser) => {
-    const nextSession: AuthSession = {
-      token: nextToken,
-      user: nextUser,
-    };
-
+    tokenRef.current = nextToken;
     setToken(nextToken);
     setUser(nextUser);
-    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextSession));
-    await AsyncStorage.removeItem(LEGACY_AUTH_STORAGE_KEY);
+    await persistStoredAuthSession(nextToken, nextUser);
   };
 
-  const removeStoredSession = () =>
-    AsyncStorage.multiRemove([AUTH_STORAGE_KEY, LEGACY_AUTH_STORAGE_KEY]);
+  const removeStoredSession = () => removeStoredAuthSession();
+
+  useEffect(
+    () =>
+      subscribeToAuthInvalidation((rejectedToken) => {
+        if (tokenRef.current !== rejectedToken) {
+          return;
+        }
+
+        tokenRef.current = null;
+        setToken(null);
+        setUser(null);
+        setIsRestoring(false);
+      }),
+    [],
+  );
 
   useEffect(() => {
     async function restoreSession() {
@@ -82,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await persistSession(session.token, userInfo.user);
       } catch {
         await removeStoredSession();
+        tokenRef.current = null;
         setToken(null);
         setUser(null);
       } finally {
@@ -93,28 +108,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateStoredUser = async (nextUser: AuthUser | null) => {
-    if (!token || !nextUser) {
+    const activeToken = tokenRef.current;
+    if (!activeToken || !nextUser) {
+      tokenRef.current = null;
       setToken(null);
       setUser(null);
       await removeStoredSession();
       return;
     }
 
-    await persistSession(token, nextUser);
+    await persistSession(activeToken, nextUser);
   };
 
   const refreshUser = async () => {
-    if (!token) {
+    const activeToken = tokenRef.current;
+    if (!activeToken) {
       return null;
     }
 
-    const userInfo = await getUserInfo(token);
-    await persistSession(token, userInfo.user);
+    const userInfo = await getUserInfo(activeToken);
+    if (tokenRef.current !== activeToken) {
+      return null;
+    }
+    await persistSession(activeToken, userInfo.user);
     return userInfo.user;
   };
 
   const setUserSession = async (session: AuthSession | null) => {
     if (!session) {
+      tokenRef.current = null;
       setToken(null);
       setUser(null);
       await removeStoredSession();

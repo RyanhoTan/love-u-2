@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–37 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–38 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -51,6 +51,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 35 | Reject conflicting partner chat idempotency keys | Complete | PRD-CHAT-001、Phase 34 | 同一 clientMessageId 重试保持幂等；复用 ID 发送不同内容时明确拒绝，避免发送端/接收端内容分叉 |
 | 36 | Isolate client chat state by relationship | Complete | PRD-CHAT-001、Phase 33/35 | 关系 ID 变化时仅展示对应关系的本地缓存、服务端历史和实时事件，不把旧内存消息带入新会话 |
 | 37 | Retry uncertain partner text messages | Complete | PRD-CHAT-001、Phase 35/36 | 发送结果不确定的文字消息可在连接恢复后以同一 clientMessageId 重试；服务端显式拒绝的消息不提供重试 |
+| 38 | Clear invalid App auth sessions | Complete | PRD-AUTH-001 | App 收到受保护请求 401 时清除匹配的持久与内存会话；旧 token 的迟到 401 不得清除新会话 |
 
 ## 阶段顺序
 
@@ -259,6 +260,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 为发送状态不确定的失败文字消息提供显式重试，复用原文字和 `clientMessageId`，并仅在当前关系及 WebSocket ready 时开放操作；服务端明确拒绝（含幂等冲突）不重试。语音失败重试需要保留/重新上传私有对象键，另行处理。详细计划见
 `harness/build/phase-37-chat-text-retry.md`。
+
+### Phase 38 — Clear invalid App auth sessions
+
+对所有统一的 App 鉴权 API 请求，在收到 401 时清理仍与失败 token 匹配的本地会话，并通知 AuthProvider 清除内存认证态；采用串行化存储修改保护并发登录，403、网络错误与服务端错误不触发退出。详细计划见
+`harness/build/phase-38-app-auth-invalidation.md`。
 
 ## 后续阶段的准入条件
 

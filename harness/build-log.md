@@ -44,6 +44,7 @@
 | 35 — Reject conflicting partner chat idempotency keys | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 MySQL/WS 集成 |
 | 36 — Isolate client chat state by relationship | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实浏览器/移动设备关系切换集成 |
 | 37 — Retry uncertain partner text messages | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 语音恢复与真实 WS/设备验证不在本阶段 |
+| 38 — Clear invalid App auth sessions | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 API/设备会话验证 |
 
 ## Activity
 
@@ -962,3 +963,27 @@
 - **Limitations:** Local cache persistence is asynchronous and not a durable outbox. Audio retry policy and real integration/UI tests remain open.
 - **Next action:** Continue PRD-CHAT-001 review for receiver acknowledgements, cross-process delivery, and audio recovery.
 - **Evidence references:** `harness/build/phase-37-chat-text-retry.md`, Web/App partner-chat hooks and message renderers, Phase 35 idempotency.
+
+## 2026-09-30 — Phase 38: clear invalid App auth sessions started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-AUTH-001 App behavior when a protected REST request returns HTTP 401; clear only the exact invalid persisted/in-memory session.
+- **Red:** Web `requestWithAuth` invalidates a matching stale session on 401, but App `requestWithAuth` wraps all non-2xx responses as plain `Error` and leaves `AsyncStorage` plus AuthProvider state authenticated.
+- **Decision:** Add status-aware App API errors. Serialize session storage mutations; on 401 conditionally remove storage only if its current token still equals the rejected request token, then notify AuthProvider, which independently checks its active token before clearing in-memory auth. Do not clear on 403, network errors, or 5xx.
+- **Operational evidence:** Phase 37 committed as `a6d5998`; workspace was clean at start. No API server, credentials, or user session was accessed.
+- **Verification:** Passed App lint, `pnpm --dir app exec tsc --noEmit`, `git diff --check`, and a four-case token-match guard matrix. Static review covered mutation serialization and Provider token matching.
+- **Limitations:** No live API/device auth flow. WebSocket 401 upgrade status is unavailable through the current React Native WebSocket abstraction and remains outside this REST phase.
+- **Blockers:** None for the scoped client behavior.
+- **Next action:** Continue the R1/P0 audit for account/session behavior not covered by REST 401 cleanup, while preserving other product domains' pending decisions.
+- **Evidence references:** `app/app/shared/api-client.ts`, `app/app/shared/auth-session.ts`, `app/app/features/auth/auth-context.tsx`, `PRD.md` PRD-AUTH-001.
+
+## 2026-09-30 — Phase 38: clear invalid App auth sessions completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** App protected REST requests now preserve status; a 401 conditionally removes the exact still-current stored session and notifies AuthProvider to clear matching in-memory auth. Session mutations are serialized so stale 401 responses do not erase a replacement login. 403/network/5xx do not trigger invalidation.
+- **Verification:** App lint and direct TypeScript check passed; a four-case token-match matrix and `git diff --check` passed.
+- **Limitations:** No live API/device test; no WebSocket-upgrade status detection.
+- **Next action:** Continue the PRD R1/P0 completion audit.
+- **Evidence references:** `harness/build/phase-38-app-auth-invalidation.md`, `app/app/shared/auth-session.ts`, `app/app/shared/api-client.ts`, `app/app/features/auth/auth-context.tsx`.
