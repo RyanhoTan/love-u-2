@@ -38,12 +38,19 @@ export const createWishSchema = z.object({
 export const updateWishSchema = z
   .object({
     status: wishStatusSchema.optional(),
+    title: z
+      .string()
+      .trim()
+      .min(1, "title is required")
+      .max(100, "title must be at most 100 characters")
+      .optional(),
     description: z
       .string()
       .trim()
       .max(1000, "description must be at most 1000 characters")
       .optional(),
   })
+  .strict()
   .refine((payload) => Object.keys(payload).length > 0, {
     message: "at least one wish field is required",
   });

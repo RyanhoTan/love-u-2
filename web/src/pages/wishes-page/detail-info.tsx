@@ -24,12 +24,14 @@ export function WishDetailInfo({
   creator,
   onMarkDone,
   onAddRecord,
+  onEditTitle,
   onEditDescription,
 }: {
   wish: WishItem;
   creator: Creator | null;
   onMarkDone: () => void;
   onAddRecord: () => void;
+  onEditTitle: () => void;
   onEditDescription: () => void;
 }) {
   const isDone = wish.status === "done";
@@ -47,6 +49,15 @@ export function WishDetailInfo({
           无封面
         </div>
       )}
+
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="min-w-0 flex-1 whitespace-pre-wrap break-words text-[22px] font-semibold leading-[1.35] tracking-[-0.4px] text-fg">
+          {wish.title}
+        </h2>
+        <Button variant="ghost" className="shrink-0" onClick={onEditTitle}>
+          编辑标题
+        </Button>
+      </div>
 
       <div className="flex items-center gap-2">
         <span

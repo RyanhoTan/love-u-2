@@ -17,6 +17,7 @@
 | 08 — Web wish description editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 09 — Mobile wish description editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 10 — Mobile wish detail honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 11 — Web wish title editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -353,3 +354,37 @@
 - **Blockers:** None。
 - **Next action:** 独立提交此修复，再继续 PRD R1/P0 中不依赖未决业务规则的缺口。
 - **Evidence references:** `app/app/home/wish-list/[id]/index.tsx`、`PRD.md` PRD-WISH-001、Phase 10 lint/typecheck/static check 输出。
+
+## 2026-09-29T14:14:00+08:00 — Phase 11: Web wish title editing authorized and started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** 活动 PRD R1/P0 Goal 中 PRD-WISH-001 的 Web 心愿标题编辑小点。
+- **Changes:** 开始将 title 加入现有 `/wishes/:id` PATCH schema/handler/OpenAPI，并在 Web 详情提供真实标题编辑对话框。
+- **Red:** 修改前 server `updateWishSchema` 仅接受 `status` 与 `description`；Web 详情不显示心愿标题，也没有标题编辑入口；PATCH OpenAPI 说明仅可修改 status（与已实现 description 不一致）。
+- **Green:** Pending。
+- **Refactor:** Pending。
+- **Verification:** 修改前分支为 `refactor/codex-workflow-harness`，工作树干净；服务端 UPDATE 已有关系授权条件和参数化字段列表，计划复用。
+- **Review:** 标题 trim 后必须为 1–100 字符；SQL 列名固定在 handler 内，用户值只作为参数；保留 description/status 已有请求形式。
+- **Operational evidence:** 未读取凭据、连接 MySQL 或访问远端。
+- **Limitations:** 本阶段只覆盖 server 契约和 Web UI，不覆盖移动端标题编辑、心愿其他字段或真实 MySQL 多账号联调。
+- **Blockers:** None。
+- **Next action:** 扩展 schema/handler/OpenAPI，完成 Web dialog，运行 server/Web lint/build 与 schema parse 后单独提交。
+- **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、Web 心愿详情组件。
+
+## 2026-09-29T14:19:00+08:00 — Phase 11: Web wish title editing completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 中仅 Web 的心愿标题编辑；PATCH 继续支持 status 与 description。
+- **Changes:** Server PATCH 接受 trim 后 1–100 字符标题，并以固定列名、参数化值和原关系授权 SQL 写入；同步 OpenAPI 和生成的 Web 类型；详情显示真实标题，dialog 提交期间防重复、失败保留草稿、成功后关闭并刷新查询。
+- **Red:** 初始 schema parse 发现未知字段未被拒绝，而 OpenAPI 已声明 `additionalProperties: false`；现有 Zod 对象默认会剥除未知字段。
+- **Green:** `.strict()` 使服务端行为与 OpenAPI 一致。最终 schema parse 矩阵 `validAndTrimmed/emptyRejected/overlongRejected/unknownRejected/emptyPatchRejected/statusOk/descriptionOk` 全部为 true。
+- **Refactor:** PATCH summary/description 从“仅更新状态”修正为反映 title/status/description；未改变既有关系/个人心愿 UPDATE 授权谓词。
+- **Verification:** `pnpm --dir web api` 生成类型通过；`pnpm --dir server lint`、`pnpm --dir server build`、`pnpm --dir web lint`、`pnpm --dir web build`、`git diff --check` 通过。Vite 仍报告 Zod 注释位置和 JS chunk >500 kB 警告。
+- **Review:** Web 和 app 已知请求只发送允许的 status/description 字段；新增 title 按 SQL 参数传值；数据库关系授权条件和软删除条件原样保留。
+- **Operational evidence:** 未连接 MySQL、未读取凭据、未访问外部服务，未推送或部署。
+- **Limitations:** 未做数据库跨情侣授权集成、真实浏览器后端联调；本阶段故意未提供移动端标题编辑，其他字段仍未完成。
+- **Blockers:** None。
+- **Next action:** 独立提交本阶段，然后继续 PRD R1/P0 余项。
+- **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、`web/src/api/schemas.d.ts`、Web 心愿详情 UI、server/Web 验证输出。

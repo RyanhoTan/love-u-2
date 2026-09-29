@@ -16,6 +16,7 @@ import { WishDetailRecords } from "./detail-records";
 import { MarkDoneDialog } from "./mark-done-dialog";
 import { RecordSheet } from "./record-sheet";
 import { EditDescriptionDialog } from "./edit-description-dialog";
+import { EditTitleDialog } from "./edit-title-dialog";
 
 export function WishDetailPage() {
   const { id = "" } = useParams();
@@ -25,6 +26,7 @@ export function WishDetailPage() {
   const wishQuery = useWishQuery(wishId);
   const recordsQuery = useWishRecordsQuery(wishId);
   const updateMutation = useUpdateWishMutation();
+  const [showTitleEditor, setShowTitleEditor] = useState(false);
   const [showDescriptionEditor, setShowDescriptionEditor] = useState(false);
 
   const showDone = params.get("done") === "1";
@@ -98,6 +100,10 @@ export function WishDetailPage() {
           creator={creator}
           onMarkDone={() => openQuery("done")}
           onAddRecord={() => openQuery("record")}
+          onEditTitle={() => {
+            updateMutation.reset();
+            setShowTitleEditor(true);
+          }}
           onEditDescription={() => {
             updateMutation.reset();
             setShowDescriptionEditor(true);
@@ -158,6 +164,30 @@ export function WishDetailPage() {
                 { id: wishId, payload: { description } },
                 {
                   onSuccess: () => setShowDescriptionEditor(false),
+                },
+              );
+            }}
+          />
+        ) : null}
+
+        {showTitleEditor ? (
+          <EditTitleDialog
+            initialTitle={wish.title}
+            pending={updateMutation.isPending}
+            error={
+              updateMutation.isError
+                ? errorMessage(updateMutation.error, "标题保存失败")
+                : undefined
+            }
+            onCancel={() => {
+              updateMutation.reset();
+              setShowTitleEditor(false);
+            }}
+            onSave={(title) => {
+              updateMutation.mutate(
+                { id: wishId, payload: { title } },
+                {
+                  onSuccess: () => setShowTitleEditor(false),
                 },
               );
             }}

@@ -591,6 +591,11 @@ export async function updateWish(req: Request, res: Response) {
   const assignments: string[] = [];
   const values: (string | number | null)[] = [];
 
+  if (payload.title !== undefined) {
+    assignments.push("title = ?");
+    values.push(payload.title);
+  }
+
   if (payload.status !== undefined) {
     assignments.push("status = ?");
     values.push(payload.status);

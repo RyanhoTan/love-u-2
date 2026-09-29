@@ -206,8 +206,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * 更新心愿状态
-         * @description 当前仅允许修改 `status` 字段。
+         * 更新心愿
+         * @description 可修改标题、描述或状态；至少提供一个字段。
          */
         patch: operations["updateWish"];
         trace?: never;
@@ -672,8 +672,10 @@ export interface components {
             /** @default null */
             budgetAmount: number | null;
         };
-        /** @description PATCH at least one supported field: status or description */
+        /** @description PATCH at least one supported field: title, status, or description */
         UpdateWishRequest: {
+            /** @description Updated wish title; trimmed by the server */
+            title?: string;
             status?: components["schemas"]["WishStatus"];
             /** @description Updated wish description; an empty string clears it */
             description?: string;
