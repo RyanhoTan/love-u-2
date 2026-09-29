@@ -57,6 +57,7 @@ interface ServerErrorMessage {
   type: "error";
   code: string;
   message: string;
+  clientMessageId?: string;
 }
 
 interface ServerReadReceiptMessage {
@@ -269,6 +270,10 @@ export function usePartnerChat(
             message.id === payload.clientMessageId
               ? {
                   ...message,
+                  audioUrl:
+                    message.messageType === "audio"
+                      ? undefined
+                      : message.audioUrl,
                   serverMessageId:
                     payload.serverMessageId ?? message.serverMessageId,
                   status:
@@ -296,6 +301,15 @@ export function usePartnerChat(
       }
 
       if (payload.type === "error") {
+        if (payload.clientMessageId) {
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === payload.clientMessageId
+                ? { ...message, status: "failed" }
+                : message,
+            ),
+          );
+        }
         setErrorMessage(payload.message);
       }
     };
@@ -361,9 +375,15 @@ export function usePartnerChat(
       return;
     }
 
+    const persistableMessages = messages.map((message) =>
+      message.audioUrl && /^(file|content|ph|blob):/i.test(message.audioUrl)
+        ? { ...message, audioUrl: undefined }
+        : message,
+    );
+
     void AsyncStorage.setItem(
       storageKey,
-      JSON.stringify(messages.slice(-MAX_LOCAL_HISTORY_MESSAGES)),
+      JSON.stringify(persistableMessages.slice(-MAX_LOCAL_HISTORY_MESSAGES)),
     );
   }, [messages]);
 
@@ -408,47 +428,50 @@ export function usePartnerChat(
     return true;
   }, []);
 
-  const sendAudioMessage = useCallback((audioUrl: string) => {
-    const trimmedAudioUrl = audioUrl.trim();
-    if (!trimmedAudioUrl) {
-      return false;
-    }
+  const sendAudioMessage = useCallback(
+    (audioObjectKey: string, audioPreviewUri: string) => {
+      const trimmedObjectKey = audioObjectKey.trim();
+      if (!trimmedObjectKey) {
+        return false;
+      }
 
-    const clientMessageId = createClientMessageId();
-    const nextMessage: PartnerChatMessage = {
-      id: clientMessageId,
-      text: "",
-      messageType: "audio",
-      audioUrl: trimmedAudioUrl,
-      sentAt: new Date().toISOString(),
-      isSelf: true,
-      status: "sending",
-    };
-
-    setMessages((current) => [...current, nextMessage]);
-
-    const socket = socketRef.current;
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      setMessages((current) =>
-        current.map((message) =>
-          message.id === clientMessageId
-            ? { ...message, status: "failed" }
-            : message,
-        ),
-      );
-      return false;
-    }
-
-    socket.send(
-      JSON.stringify({
-        type: "message",
+      const clientMessageId = createClientMessageId();
+      const nextMessage: PartnerChatMessage = {
+        id: clientMessageId,
+        text: "",
         messageType: "audio",
-        audioUrl: trimmedAudioUrl,
-        clientMessageId,
-      }),
-    );
-    return true;
-  }, []);
+        audioUrl: audioPreviewUri,
+        sentAt: new Date().toISOString(),
+        isSelf: true,
+        status: "sending",
+      };
+
+      setMessages((current) => [...current, nextMessage]);
+
+      const socket = socketRef.current;
+      if (!socket || socket.readyState !== WebSocket.OPEN) {
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === clientMessageId
+              ? { ...message, status: "failed" }
+              : message,
+          ),
+        );
+        return false;
+      }
+
+      socket.send(
+        JSON.stringify({
+          type: "message",
+          messageType: "audio",
+          audioObjectKey: trimmedObjectKey,
+          clientMessageId,
+        }),
+      );
+      return true;
+    },
+    [],
+  );
 
   const isConnected = status === "connected";
 

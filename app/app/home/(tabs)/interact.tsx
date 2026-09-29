@@ -3,6 +3,7 @@ import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import {
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -18,6 +19,7 @@ import { useIsFocused } from "@react-navigation/native";
 import { ImagesAvatarFemalePng, ImagesAvatarMalePng } from "@/assets";
 import { uploadAlbumFile } from "@/app/features/album/api";
 import { useAuth } from "@/app/features/auth/auth-context";
+import { getPartnerChatAudioUrl } from "@/app/features/partner-chat/api";
 import {
   getCoupleSpace,
   type CoupleSpace,
@@ -61,7 +63,7 @@ export default function Interact() {
   const isAtBottomRef = useRef(true);
   const [inputValue, setInputValue] = useState("");
   const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
-  const [playingAudioUrl, setPlayingAudioUrl] = useState<string | null>(null);
+  const [playingAudioMessageId, setPlayingAudioMessageId] = useState<string | null>(null);
   const { messages, sendMessage, sendAudioMessage } =
     usePartnerChat(token, { isVisible: isFocused });
 
@@ -111,27 +113,43 @@ export default function Interact() {
           : extension === "aac"
             ? "audio/aac"
             : "audio/mp4";
-    const upload = await uploadAlbumFile(
-      audioUri,
-      fileName,
-      contentType,
-      "interact",
-    );
-    sendAudioMessage(upload.url);
-    isAtBottomRef.current = true;
-    scrollToBottom();
+    try {
+      const upload = await uploadAlbumFile(
+        audioUri,
+        fileName,
+        contentType,
+        "interact",
+      );
+      if (!upload.key || !sendAudioMessage(upload.key, audioUri)) {
+        throw new Error("voice message could not be sent");
+      }
+      isAtBottomRef.current = true;
+      scrollToBottom();
+    } catch {
+      Alert.alert("语音发送失败", "请检查网络后重试。");
+    }
   };
 
-  const handlePressAudioMessage = (audioUrl: string) => {
-    if (playingAudioUrl === audioUrl && audioStatus.playing) {
+  const handlePressAudioMessage = async (message: (typeof messages)[number]) => {
+    if (playingAudioMessageId === message.id && audioStatus.playing) {
       audioPlayer.pause();
-      setPlayingAudioUrl(null);
+      setPlayingAudioMessageId(null);
       return;
     }
 
-    audioPlayer.replace(audioUrl);
-    audioPlayer.play();
-    setPlayingAudioUrl(audioUrl);
+    try {
+      const audioUrl = message.serverMessageId && token
+        ? await getPartnerChatAudioUrl(message.serverMessageId, token)
+        : message.audioUrl;
+      if (!audioUrl) {
+        throw new Error("audio URL unavailable");
+      }
+      audioPlayer.replace(audioUrl);
+      audioPlayer.play();
+      setPlayingAudioMessageId(message.id);
+    } catch {
+      Alert.alert("语音暂时无法播放", "请检查网络或情侣绑定状态后重试。");
+    }
   };
 
   useEffect(() => {
@@ -233,7 +251,7 @@ export default function Interact() {
                       avatar={item.isSelf ? selfAvatar : partnerAvatar}
                       message={
                         item.messageType === "audio"
-                          ? playingAudioUrl === audioUrl && audioStatus.playing
+                          ? playingAudioMessageId === item.id && audioStatus.playing
                             ? "播放中..."
                             : "语音消息"
                           : item.text
@@ -241,8 +259,8 @@ export default function Interact() {
                       time={timeText}
                       isSelf={item.isSelf}
                       onPress={
-                        item.messageType === "audio" && audioUrl
-                          ? () => handlePressAudioMessage(audioUrl)
+                        item.messageType === "audio" && (audioUrl || item.serverMessageId)
+                          ? () => void handlePressAudioMessage(item)
                           : undefined
                       }
                     />
@@ -371,4 +389,3 @@ const styles = StyleSheet.create({
   },
   inputWrap: { paddingTop: 12 },
 });
-

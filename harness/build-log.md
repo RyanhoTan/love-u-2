@@ -37,6 +37,7 @@
 | 28 — Wish private cover create/read | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/浏览器/设备集成 |
 | 29 — Wish private cover update/clear | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/浏览器/设备集成 |
 | 30 — Wish record private media | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/FFmpeg/浏览器/设备集成 |
+| 31 — Private voice messages in partner chat | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/WebSocket/浏览器/设备集成 |
 
 ## Activity
 
@@ -775,3 +776,26 @@
 - **Blockers:** None。
 - **Next action:** 独立提交后继续 PRD R1/P0 的下一个可执行缺口。
 - **Evidence references:** `server/src/db/schema.ts`、`server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、`web/src/pages/wishes-page/record-sheet.tsx`、`app/app/home/wish-list/[id]/records/create.tsx`、schema 矩阵与 workspace 检查输出。
+
+## 2026-09-29 — Phase 31: private voice messages in partner chat started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 / PRD-MEMORY-001: private object-key writes for new chat voice messages and current-relationship-authorized playback URL refresh; preserve legacy audio URLs.
+- **Red:** `/upload/media` returns `{ key }`, but Web/App chat still read `url`; WS and DB only persist `audio_url`, which cannot provide fresh private playback URLs.
+- **Decision:** Add nullable `audio_object_key`; enforce exactly-one key/legacy URL input and sender ownership under `interact/<userId>/`; expose no key or signed URL in private WS events. Fetch a 300-second URL on playback through a current bound relationship and message-participant check. Keep legacy rows/clients readable.
+- **Operational evidence:** Phase 30 was committed, branch `refactor/codex-workflow-harness`; worktree was clean at start. No DB, R2, browser, or device was accessed.
+- **Evidence references:** `harness/build/phase-31-chat-private-audio.md`, `harness/context/phase-31-chat-private-audio-context.md`, `server/src/ws/partnerChat.ts`, `web/src/features/partner-chat/use-partner-chat.ts`, `app/app/home/(tabs)/interact.tsx`.
+
+## 2026-09-29 — Phase 31: private voice messages in partner chat completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Added nullable `partner_chat_messages.audio_object_key`; audio WS requests accept exactly one private `audioObjectKey` or legacy `audioUrl` and validate key structure/uploader ownership. New key-backed DB/WS messages never expose the key or a signed URL. Added authenticated `GET /partner-chat/messages/{id}/audio-url`, which requires the requester to be a message participant in that same currently bound relationship and returns a 300-second signed URL with `Cache-Control: private, no-store`; legacy URLs remain available under the same relationship query. Web/App upload `key` and refresh the URL on each playback. Upload/save failures report failed status or an App alert. OpenAPI/upload types now match `{ key }`.
+- **Verification:** `pnpm --dir web api`, `pnpm --dir server lint`, `pnpm --dir server build`, `pnpm --dir web lint`, `pnpm --dir web build`, `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check` all passed. Ten compiled schema/owner cases passed: private key, legacy URL, both/neither, path traversal, unknown field, matching owner, wrong owner, numeric-prefix collision, and extra path segment.
+- **Review:** Endpoint query ties the audio row to an active bound relationship, validates both message participants against the relationship pair, and requires the caller to be a sender/receiver. Signed URLs are generated only after authorization and never sent through WS for key-backed rows. Server save/validation errors carry `clientMessageId` so clients mark the optimistic message failed. No other App/Web callsite still reads the upload response's removed `url`.
+- **Operational evidence:** No MySQL, R2, browser, WebSocket integration environment, or real device was accessed; no credentials were read; no push or deployment occurred.
+- **Limitations:** Additive startup ALTER and URL authorization were not exercised against real MySQL; no R2 expiry or native/browser playback test. Upload-success/message-save-failure may orphan an object. An already-issued signed URL remains valid until its 300-second expiry after unbind. Existing open WebSocket sessions are not revoked on unbind and remain a separate PRD-CHAT-001 P0 gap. Web build emitted existing Zod Rollup comment-position and >500 kB chunk warnings.
+- **Blockers:** None.
+- **Next action:** Continue with current-relationship enforcement for already-open chat WebSocket connections.
+- **Evidence references:** `server/src/db/schema.ts`, `server/src/schema/partnerChat.ts`, `server/src/router_handler/partnerChat.ts`, `server/src/ws/partnerChat.ts`, `web/openapi.json`, `web/src/features/partner-chat/api.ts`, `web/src/pages/messages-page/voice-bubble.tsx`, `app/app/features/partner-chat/api.ts`, schema/owner matrix output.

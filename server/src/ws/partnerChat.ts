@@ -7,6 +7,10 @@ import { z } from "zod";
 import { verifyAuthToken } from "../auth.js";
 import db from "../db/index.js";
 import { ensureDatabaseSchema } from "../db/schema.js";
+import {
+  isInteractObjectKeyOwnedByUser,
+  partnerChatAudioMessageSchema,
+} from "../schema/partnerChat.js";
 
 const CHAT_PATH = "/partner-chat";
 const HEARTBEAT_INTERVAL_MS = 30_000;
@@ -26,6 +30,7 @@ interface PartnerChatMessage {
   text: string | null;
   message_type: "text" | "audio";
   audio_url: string | null;
+  audio_object_key: string | null;
   audio_duration_seconds: number | null;
   client_message_id: string | null;
   sent_at: Date | string;
@@ -46,25 +51,19 @@ interface PartnerChatConnection {
   isAlive: boolean;
 }
 
-const incomingPayloadSchema = z.discriminatedUnion("type", [
-  z.discriminatedUnion("messageType", [
-    z.object({
+const incomingPayloadSchema = z.union([
+  z
+    .object({
       type: z.literal("message"),
       messageType: z.literal("text"),
       text: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
       clientMessageId: z.string().trim().max(100).optional(),
-    }),
-    z.object({
-      type: z.literal("message"),
-      messageType: z.literal("audio"),
-      audioUrl: z.string().trim().min(1).max(2048),
-      audioDurationSeconds: z.number().positive().max(600).optional(),
-      clientMessageId: z.string().trim().max(100).optional(),
-    }),
-  ]),
+    })
+    .strict(),
+  partnerChatAudioMessageSchema,
   z.object({
     type: z.literal("read"),
-  }),
+  }).strict(),
 ]);
 
 const connectionsByUserId = new Map<number, Set<PartnerChatConnection>>();
@@ -77,6 +76,16 @@ function sendJson(socket: WebSocket, payload: unknown) {
   if (socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(payload));
   }
+}
+
+function getClientMessageId(payload: unknown) {
+  if (!payload || typeof payload !== "object") {
+    return undefined;
+  }
+
+  const candidate = (payload as { clientMessageId?: unknown }).clientMessageId;
+  const parsed = z.string().trim().max(100).safeParse(candidate);
+  return parsed.success ? parsed.data : undefined;
 }
 
 function rejectUpgrade(socket: Duplex, statusCode: number, message: string) {
@@ -174,7 +183,10 @@ function createMessagePayload(message: PartnerChatMessage) {
     relationshipId: message.relationship_id,
     text: message.text ?? "",
     messageType: message.message_type,
-    audioUrl: message.audio_url ?? undefined,
+    audioUrl:
+      message.audio_object_key == null
+        ? message.audio_url ?? undefined
+        : undefined,
     audioDurationSeconds,
     clientMessageId: message.client_message_id ?? undefined,
     sentAt: toIsoString(message.sent_at),
@@ -187,7 +199,8 @@ async function saveMessage(
     | { messageType: "text"; text: string; clientMessageId?: string }
     | {
         messageType: "audio";
-        audioUrl: string;
+        audioObjectKey?: string;
+        audioUrl?: string;
         audioDurationSeconds?: number;
         clientMessageId?: string;
       }
@@ -204,11 +217,12 @@ async function saveMessage(
         text,
         message_type,
         audio_url,
+        audio_object_key,
         audio_duration_seconds,
         client_message_id,
         sent_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
     `,
     [
@@ -217,7 +231,10 @@ async function saveMessage(
       connection.partnerId,
       payload.messageType === "text" ? payload.text : null,
       payload.messageType,
-      payload.messageType === "audio" ? payload.audioUrl : null,
+      payload.messageType === "audio" ? (payload.audioUrl ?? null) : null,
+      payload.messageType === "audio"
+        ? (payload.audioObjectKey ?? null)
+        : null,
       payload.messageType === "audio"
         ? (payload.audioDurationSeconds ?? null)
         : null,
@@ -236,6 +253,7 @@ async function saveMessage(
         text,
         message_type,
         audio_url,
+        audio_object_key,
         audio_duration_seconds,
         client_message_id,
         sent_at
@@ -282,6 +300,7 @@ async function deliverPendingMessages(connection: PartnerChatConnection) {
         text,
         message_type,
         audio_url,
+        audio_object_key,
         audio_duration_seconds,
         client_message_id,
         sent_at
@@ -418,6 +437,7 @@ async function handleIncomingPayload(connection: PartnerChatConnection, rawData:
       type: "error",
       code: "invalid_message",
       message: parsed.error.issues[0]?.message ?? "invalid message payload",
+      clientMessageId: getClientMessageId(payload),
     });
     return;
   }
@@ -436,6 +456,23 @@ async function handleIncomingPayload(connection: PartnerChatConnection, rawData:
     return;
   }
 
+  if (
+    parsed.data.messageType === "audio" &&
+    parsed.data.audioObjectKey !== undefined &&
+    !isInteractObjectKeyOwnedByUser(
+      connection.userId,
+      parsed.data.audioObjectKey,
+    )
+  ) {
+    sendJson(connection.socket, {
+      type: "error",
+      code: "invalid_audio_object_key",
+      message: "audio object key is invalid",
+      clientMessageId: parsed.data.clientMessageId,
+    });
+    return;
+  }
+
   let message: PartnerChatMessage;
   try {
     message = await saveMessage(
@@ -448,6 +485,7 @@ async function handleIncomingPayload(connection: PartnerChatConnection, rawData:
           }
         : {
             messageType: "audio",
+            audioObjectKey: parsed.data.audioObjectKey,
             audioUrl: parsed.data.audioUrl,
             audioDurationSeconds: parsed.data.audioDurationSeconds,
             clientMessageId: parsed.data.clientMessageId,

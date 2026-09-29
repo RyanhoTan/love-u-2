@@ -368,9 +368,29 @@ export interface paths {
         put?: never;
         /**
          * 上传媒体文件
-         * @description 请求体为原始二进制；成功响应为 `{ key, url }`，无 message。
+         * @description 请求体为原始二进制；成功响应为 `{ key }`，无 message。对象读取 URL 由各自的授权资源接口签发。
          */
         post: operations["uploadMedia"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/partner-chat/messages/{id}/audio-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取伴侣聊天语音播放地址
+         * @description Requires an authenticated sender/receiver who is still a member of this message's currently bound relationship. Key-backed audio returns a 300-second signed URL. Legacy URL-backed audio remains readable while the relationship is bound. Responses are private and not cacheable.
+         */
+        get: operations["getPartnerChatAudioUrl"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -394,8 +414,10 @@ export interface paths {
          *
          *     Client → server message schemas:
          *     - PartnerChatClientMessageText
-         *     - PartnerChatClientMessageAudio
+         *     - PartnerChatClientMessageAudio (exactly one of `audioObjectKey` or legacy `audioUrl`)
          *     - PartnerChatClientRead
+         *
+         *     New object keys must belong to the authenticated sender under `interact/<userId>/`. The server does not echo private keys or signed URLs over WebSocket; clients fetch playback URLs from `GET /partner-chat/messages/{id}/audio-url`.
          *
          *     Server → client message schemas:
          *     - PartnerChatServerReady
@@ -868,12 +890,10 @@ export interface components {
         UpdateAlbumStoryFavoriteRequest: {
             isFavorite: boolean;
         };
-        /** @description Success body has NO `message` field — keep as implemented. */
+        /** @description Success body returns a private object key only; it has NO `url` or `message` field. */
         UploadMediaResponse: {
             /** @description Object storage key */
             key: string;
-            /** @description Public URL */
-            url: string;
         };
         PartnerChatClientMessageText: {
             /** @enum {string} */
@@ -883,14 +903,34 @@ export interface components {
             text: string;
             clientMessageId?: string;
         };
-        PartnerChatClientMessageAudio: {
+        /** @description Exactly one form is accepted: new private object key or legacy URL. */
+        PartnerChatClientMessageAudio: components["schemas"]["PartnerChatClientMessageAudioObjectKey"] | components["schemas"]["PartnerChatClientMessageAudioLegacyUrl"];
+        PartnerChatClientMessageAudioObjectKey: {
             /** @enum {string} */
             type: "message";
             /** @enum {string} */
             messageType: "audio";
+            /** @description Must belong to the authenticated sender. */
+            audioObjectKey: string;
+            audioDurationSeconds?: number;
+            clientMessageId?: string;
+        };
+        PartnerChatClientMessageAudioLegacyUrl: {
+            /** @enum {string} */
+            type: "message";
+            /** @enum {string} */
+            messageType: "audio";
+            /** @description Legacy URL form; mutually exclusive with audioObjectKey. */
             audioUrl: string;
             audioDurationSeconds?: number;
             clientMessageId?: string;
+        };
+        PartnerChatAudioUrlResponse: {
+            messageId: string;
+            /** @description 300-second signed URL for private objects; legacy URL otherwise. */
+            url: string;
+            /** @description Present only when the URL is a short-lived signed URL. */
+            expiresIn?: number;
         };
         PartnerChatClientRead: {
             /** @enum {string} */
@@ -940,6 +980,7 @@ export interface components {
             type: "error";
             code: string;
             message: string;
+            clientMessageId?: string;
         };
     };
     responses: never;
@@ -1009,6 +1050,9 @@ export type SchemaUpdateAlbumStoryFavoriteRequest = components['schemas']['Updat
 export type SchemaUploadMediaResponse = components['schemas']['UploadMediaResponse'];
 export type SchemaPartnerChatClientMessageText = components['schemas']['PartnerChatClientMessageText'];
 export type SchemaPartnerChatClientMessageAudio = components['schemas']['PartnerChatClientMessageAudio'];
+export type SchemaPartnerChatClientMessageAudioObjectKey = components['schemas']['PartnerChatClientMessageAudioObjectKey'];
+export type SchemaPartnerChatClientMessageAudioLegacyUrl = components['schemas']['PartnerChatClientMessageAudioLegacyUrl'];
+export type SchemaPartnerChatAudioUrlResponse = components['schemas']['PartnerChatAudioUrlResponse'];
 export type SchemaPartnerChatClientRead = components['schemas']['PartnerChatClientRead'];
 export type SchemaPartnerChatServerReady = components['schemas']['PartnerChatServerReady'];
 export type SchemaPartnerChatServerMessage = components['schemas']['PartnerChatServerMessage'];
@@ -2444,7 +2488,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Uploaded — body is `{ key, url }` without message */
+            /** @description Uploaded — body is `{ key }` without message */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -2455,6 +2499,66 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+        };
+    };
+    getPartnerChatAudioUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Positive integer resource id */
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized playback URL */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerChatAudioUrlResponse"];
+                };
+            };
+            /** @description Invalid message id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Audio message not found in a current authorized relationship */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Signed URL service temporarily unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

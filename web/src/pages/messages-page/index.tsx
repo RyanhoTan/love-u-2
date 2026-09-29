@@ -277,9 +277,15 @@ export function MessagesPage() {
                           aria-label="发送中"
                         />
                       ) : null}
-                      {message.messageType === "audio" && message.audioUrl ? (
+                      {message.messageType === "audio" &&
+                      (message.audioUrl || message.serverMessageId) ? (
                         <VoiceBubble
                           src={message.audioUrl}
+                          resolveSrc={
+                            message.serverMessageId
+                              ? () => chat.getAudioUrl(message.serverMessageId!)
+                              : undefined
+                          }
                           incoming={incoming}
                           durationSeconds={message.audioDurationSeconds}
                         />

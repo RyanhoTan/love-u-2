@@ -365,6 +365,7 @@ const tableDefinitions: readonly TableDefinition[] = [
         text VARCHAR(2000) NULL,
         message_type VARCHAR(20) NOT NULL DEFAULT 'text',
         audio_url VARCHAR(2048) NULL,
+        audio_object_key VARCHAR(2048) NULL,
         audio_duration_seconds DOUBLE NULL,
         client_message_id VARCHAR(100) NULL,
         sent_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -385,6 +386,7 @@ const tableDefinitions: readonly TableDefinition[] = [
       { name: "text", definition: "VARCHAR(2000) NULL" },
       { name: "message_type", definition: "VARCHAR(20) NOT NULL DEFAULT 'text'" },
       { name: "audio_url", definition: "VARCHAR(2048) NULL" },
+      { name: "audio_object_key", definition: "VARCHAR(2048) NULL" },
       { name: "audio_duration_seconds", definition: "DOUBLE NULL" },
       { name: "client_message_id", definition: "VARCHAR(100) NULL" },
       {

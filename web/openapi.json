@@ -2005,7 +2005,7 @@
       "post": {
         "summary": "上传媒体文件",
         "deprecated": false,
-        "description": "请求体为原始二进制；成功响应为 `{ key, url }`，无 message。",
+        "description": "请求体为原始二进制；成功响应为 `{ key }`，无 message。对象读取 URL 由各自的授权资源接口签发。",
         "operationId": "uploadMedia",
         "tags": [
           "Upload"
@@ -2051,7 +2051,7 @@
         },
         "responses": {
           "201": {
-            "description": "Uploaded — body is `{ key, url }` without message",
+            "description": "Uploaded — body is `{ key }` without message",
             "content": {
               "application/json": {
                 "schema": {
@@ -2080,11 +2080,96 @@
         ]
       }
     },
+    "/partner-chat/messages/{id}/audio-url": {
+      "get": {
+        "summary": "获取伴侣聊天语音播放地址",
+        "deprecated": false,
+        "description": "Requires an authenticated sender/receiver who is still a member of this message's currently bound relationship. Key-backed audio returns a 300-second signed URL. Legacy URL-backed audio remains readable while the relationship is bound. Responses are private and not cacheable.",
+        "operationId": "getPartnerChatAudioUrl",
+        "tags": [
+          "PartnerChat"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ResourceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized playback URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerChatAudioUrlResponse"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid message id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Audio message not found in a current authorized relationship",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "503": {
+            "description": "Signed URL service temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/partner-chat": {
       "get": {
         "summary": "伴侣聊天 WebSocket",
         "deprecated": false,
-        "description": "Not a JSON REST endpoint. Clients open a WebSocket to\n`ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade).\n\nRequires an active bound couple relationship; otherwise upgrade is rejected\nwith HTTP 403.\n\nClient → server message schemas:\n- PartnerChatClientMessageText\n- PartnerChatClientMessageAudio\n- PartnerChatClientRead\n\nServer → client message schemas:\n- PartnerChatServerReady\n- PartnerChatServerMessage\n- PartnerChatServerDelivery\n- PartnerChatServerReadReceipt\n- PartnerChatServerError\n\nMessage `id` values are **strings** (unlike HTTP resource ids).\n",
+        "description": "Not a JSON REST endpoint. Clients open a WebSocket to\n`ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade).\n\nRequires an active bound couple relationship; otherwise upgrade is rejected\nwith HTTP 403.\n\nClient → server message schemas:\n- PartnerChatClientMessageText\n- PartnerChatClientMessageAudio (exactly one of `audioObjectKey` or legacy `audioUrl`)\n- PartnerChatClientRead\n\nNew object keys must belong to the authenticated sender under `interact/<userId>/`. The server does not echo private keys or signed URLs over WebSocket; clients fetch playback URLs from `GET /partner-chat/messages/{id}/audio-url`.\n\nServer → client message schemas:\n- PartnerChatServerReady\n- PartnerChatServerMessage\n- PartnerChatServerDelivery\n- PartnerChatServerReadReceipt\n- PartnerChatServerError\n\nMessage `id` values are **strings** (unlike HTTP resource ids).\n",
         "operationId": "partnerChatUpgrade",
         "tags": [
           "PartnerChat"
@@ -3691,21 +3776,16 @@
       "UploadMediaResponse": {
         "type": "object",
         "required": [
-          "key",
-          "url"
+          "key"
         ],
         "additionalProperties": false,
         "properties": {
           "key": {
             "type": "string",
             "description": "Object storage key"
-          },
-          "url": {
-            "type": "string",
-            "description": "Public URL"
           }
         },
-        "description": "Success body has NO `message` field — keep as implemented.\n"
+        "description": "Success body returns a private object key only; it has NO `url` or `message` field.\n"
       },
       "PartnerChatClientMessageText": {
         "type": "object",
@@ -3740,6 +3820,55 @@
         }
       },
       "PartnerChatClientMessageAudio": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/PartnerChatClientMessageAudioObjectKey"
+          },
+          {
+            "$ref": "#/components/schemas/PartnerChatClientMessageAudioLegacyUrl"
+          }
+        ],
+        "description": "Exactly one form is accepted: new private object key or legacy URL."
+      },
+      "PartnerChatClientMessageAudioObjectKey": {
+        "type": "object",
+        "required": [
+          "type",
+          "messageType",
+          "audioObjectKey"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "message"
+            ]
+          },
+          "messageType": {
+            "type": "string",
+            "enum": [
+              "audio"
+            ]
+          },
+          "audioObjectKey": {
+            "type": "string",
+            "pattern": "^interact/[1-9][0-9]*/[A-Za-z0-9._-]+$",
+            "maxLength": 2048,
+            "description": "Must belong to the authenticated sender."
+          },
+          "audioDurationSeconds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 600
+          },
+          "clientMessageId": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      },
+      "PartnerChatClientMessageAudioLegacyUrl": {
         "type": "object",
         "required": [
           "type",
@@ -3763,7 +3892,8 @@
           "audioUrl": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 2048
+            "maxLength": 2048,
+            "description": "Legacy URL form; mutually exclusive with audioObjectKey."
           },
           "audioDurationSeconds": {
             "type": "number",
@@ -3773,6 +3903,27 @@
           "clientMessageId": {
             "type": "string",
             "maxLength": 100
+          }
+        }
+      },
+      "PartnerChatAudioUrlResponse": {
+        "type": "object",
+        "required": [
+          "messageId",
+          "url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "messageId": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "300-second signed URL for private objects; legacy URL otherwise."
+          },
+          "expiresIn": {
+            "type": "integer",
+            "description": "Present only when the URL is a short-lived signed URL."
           }
         }
       },
@@ -3955,6 +4106,10 @@
           },
           "message": {
             "type": "string"
+          },
+          "clientMessageId": {
+            "type": "string",
+            "maxLength": 100
           }
         },
         "description": "WS errors include `code`; HTTP errors currently do not"

@@ -90,7 +90,6 @@ interface CreateAlbumStoryResponse {
 
 interface UploadMediaResponse {
   key: string;
-  url: string;
 }
 
 interface UpdateAlbumStoryFavoriteResponse {

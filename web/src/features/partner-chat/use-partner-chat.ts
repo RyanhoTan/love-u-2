@@ -8,6 +8,7 @@ import type {
   SchemaPartnerChatServerReady,
 } from "@/api/schemas";
 import { uploadMedia } from "@/api/upload";
+import { getPartnerChatAudioUrl } from "@/features/partner-chat/api";
 
 export type PartnerChatStatus =
   | "idle"
@@ -152,6 +153,7 @@ export function usePartnerChat(
 ) {
   const isVisible = options.isVisible ?? true;
   const socketRef = useRef<WebSocket | null>(null);
+  const audioPreviewUrlsRef = useRef(new Map<string, string>());
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldReconnectRef = useRef(false);
   const historyStorageKeyRef = useRef<string | null>(null);
@@ -161,6 +163,16 @@ export function usePartnerChat(
   const [status, setStatus] = useState<PartnerChatStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [messages, setMessages] = useState<PartnerChatMessage[]>([]);
+
+  useEffect(
+    () => () => {
+      for (const url of audioPreviewUrlsRef.current.values()) {
+        URL.revokeObjectURL(url);
+      }
+      audioPreviewUrlsRef.current.clear();
+    },
+    [],
+  );
 
   const clearReconnectTimer = useCallback(() => {
     if (reconnectTimerRef.current) {
@@ -267,19 +279,31 @@ export function usePartnerChat(
       }
 
       if (payload.type === "delivery" && payload.clientMessageId) {
+        const previewUrl = audioPreviewUrlsRef.current.get(
+          payload.clientMessageId,
+        );
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+          audioPreviewUrlsRef.current.delete(payload.clientMessageId);
+        }
+
         setMessages((current) =>
-          current.map((message) =>
-            message.id === payload.clientMessageId
-              ? {
-                  ...message,
-                  serverMessageId:
-                    payload.serverMessageId ?? message.serverMessageId,
-                  status:
-                    message.status === "read" ? "read" : payload.status,
-                  sentAt: payload.sentAt ?? message.sentAt,
-                }
-              : message,
-          ),
+          current.map((message) => {
+            if (message.id !== payload.clientMessageId) {
+              return message;
+            }
+
+            return {
+              ...message,
+              audioUrl: message.audioUrl?.startsWith("blob:")
+                ? undefined
+                : message.audioUrl,
+              serverMessageId:
+                payload.serverMessageId ?? message.serverMessageId,
+              status: message.status === "read" ? "read" : payload.status,
+              sentAt: payload.sentAt ?? message.sentAt,
+            };
+          }),
         );
         return;
       }
@@ -299,6 +323,15 @@ export function usePartnerChat(
       }
 
       if (payload.type === "error") {
+        if (payload.clientMessageId) {
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === payload.clientMessageId
+                ? { ...message, status: "failed" }
+                : message,
+            ),
+          );
+        }
         setErrorMessage(payload.message);
       }
     };
@@ -417,6 +450,7 @@ export function usePartnerChat(
 
       const clientMessageId = createClientMessageId();
       const localUrl = URL.createObjectURL(file);
+      audioPreviewUrlsRef.current.set(clientMessageId, localUrl);
       const audioDurationSeconds =
         Number.isFinite(durationSeconds) && durationSeconds > 0
           ? durationSeconds
@@ -437,19 +471,10 @@ export function usePartnerChat(
       void (async () => {
         try {
           const uploaded = await uploadMedia(file, "interact");
-          const remoteUrl = uploaded.url.trim();
-          if (!remoteUrl) {
+          const audioObjectKey = uploaded.key.trim();
+          if (!audioObjectKey) {
             throw new Error("upload failed");
           }
-
-          setMessages((current) =>
-            current.map((message) =>
-              message.id === clientMessageId
-                ? { ...message, audioUrl: remoteUrl }
-                : message,
-            ),
-          );
-          queueMicrotask(() => URL.revokeObjectURL(localUrl));
 
           const socket = socketRef.current;
           if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -467,7 +492,7 @@ export function usePartnerChat(
             JSON.stringify({
               type: "message",
               messageType: "audio",
-              audioUrl: remoteUrl,
+              audioObjectKey,
               audioDurationSeconds,
               clientMessageId,
             }),
@@ -499,6 +524,7 @@ export function usePartnerChat(
       markAsRead: sendReadEvent,
       sendMessage: sendTextMessage,
       sendAudioMessage,
+      getAudioUrl: getPartnerChatAudioUrl,
     }),
     [
       errorMessage,
