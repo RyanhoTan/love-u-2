@@ -16,6 +16,7 @@
 | 07 — Mobile today honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 08 — Web wish description editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 09 — Mobile wish description editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 10 — Mobile wish detail honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -318,3 +319,37 @@
 - **Blockers:** None。
 - **Next action:** 提交移动端描述编辑，再继续 PRD-WISH-001 其余 P0 缺口。
 - **Evidence references:** `app/app/features/wish-list/api.ts`、`app/app/home/wish-list/[id]/index.tsx`、`app/app/home/wish-list/[id]/edit.tsx`、app lint/TypeScript 输出。
+
+## 2026-09-29T14:06:25+08:00 — Phase 10: mobile wish detail honest states authorized and started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** 活动 PRD R1/P0 Goal 中 PRD-WISH-001 的移动端心愿详情真实状态小点。
+- **Changes:** 开始替换详情页在 GET 未完成或失败时仍显示的硬编码心愿字段与状态；新增明确加载、可重试失败状态，并移除没有服务端来源的参与人/创建者演示头像。
+- **Red:** 修改前 `wish` 为 null 时页面展示标题 `title`、状态 `planning`、`targetDate`、`locationName`、`budgetAmount` 和固定 2/2 参与人；读取失败仅 toast 后仍保留这些假数据。
+- **Green:** Pending。
+- **Refactor:** Pending。
+- **Verification:** 修改前工作树干净；静态证据来自 `app/app/home/wish-list/[id]/index.tsx` 和 `app/app/features/wish-list/api.ts`。
+- **Review:** 使用 API 返回的 `todo/doing/done` 状态；不引入服务端/API/数据库变更，不改变成功加载后的状态流转和编辑描述流程。
+- **Operational evidence:** 未连接后端、数据库、对象存储或读取凭据。
+- **Limitations:** 本阶段不补齐参与人/头像的真实关系资料、不更改详情页其他无行为操作、不解决其他状态页的 mock。
+- **Blockers:** None。
+- **Next action:** 实现加载/失败/重试 UI，验证 app lint 与 TypeScript，再提交该小点。
+- **Evidence references:** `PRD.md` PRD-WISH-001、Phase 10 阶段文件、移动端心愿详情源码。
+
+## 2026-09-29T14:11:00+08:00 — Phase 10: mobile wish detail honest states completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 的移动端详情加载、失败、重试和移除硬编码演示数据。
+- **Changes:** 心愿详情在加载期间显示加载态；读取失败或 ID 无效时显示错误与重新加载，不展示详情操作；成功后只使用服务端返回的 title/status/description/date/location/budget；缺失可选日期、地点和预算使用破折号；移除固定创建人/参与人头像与 2/2 文案。
+- **Red:** 修改前静态源码显示 `wish === null` 时以 `title`、`planning`、`targetDate`、`locationName`、`budgetAmount` 和 2/2 参与人作为演示数据；失败只 toast 并继续显示演示内容。
+- **Green:** `rg` 检查不再命中上述字段占位值、静态状态或演示头像；错误分支有可触发的重新加载按钮，详情和状态操作只在成功数据分支渲染。
+- **Refactor:** 使用请求序号忽略页面失焦或被更新请求覆盖的迟到结果；不新增 API、依赖或本地伪持久化。
+- **Verification:** `pnpm --dir app lint` 通过；`pnpm --dir app exec tsc --noEmit` 通过；静态占位值检查通过；`git diff --check` 通过。
+- **Review:** Tag 使用 API `WishStatus`（`todo`/`doing`/`done`）；空预算 `0` 正确显示为 `¥0`；成功读取后描述编辑与“开始计划”仍使用原真实 API。
+- **Operational evidence:** 未连接后端、数据库、对象存储或读取凭据，未推送或部署。
+- **Limitations:** 未运行 Android/iOS 模拟器、真实账号联调或数据库集成；不处理其他心愿状态页和无行为按钮。
+- **Blockers:** None。
+- **Next action:** 独立提交此修复，再继续 PRD R1/P0 中不依赖未决业务规则的缺口。
+- **Evidence references:** `app/app/home/wish-list/[id]/index.tsx`、`PRD.md` PRD-WISH-001、Phase 10 lint/typecheck/static check 输出。

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { useImageViewer } from "@/hooks/use-image-viewer";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,7 +6,6 @@ import {
   Clock,
   MapPin,
   Wallet,
-  User,
   Heart,
   MessageCircleMore,
   Pencil,
@@ -14,20 +13,18 @@ import {
 import type { ImageSourcePropType } from "react-native";
 // 引入 Dimensions 用来获取手机屏幕的宽度
 import {
+  ActivityIndicator,
   Image,
   Text,
   TouchableOpacity,
   Dimensions,
   ScrollView,
   StyleSheet,
+  View,
 } from "react-native";
 import { Column, Row } from "@/components/layout";
-import { Tag, type WishTagStatus } from "@/components/wish-list";
-import {
-  ImagesCoverPng,
-  ImagesAvatarFemalePng,
-  ImagesAvatarMalePng,
-} from "@/assets";
+import { Tag } from "@/components/wish-list";
+import { ImagesCoverPng } from "@/assets";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   getWishById,
@@ -45,37 +42,53 @@ export default function WishListDetail() {
   const { openViewer, Viewer } = useImageViewer();
   const [imageHeight, setImageHeight] = useState(150); // 给个默认高度防止闪烁
   const [wish, setWish] = useState<WishItem | null>(null);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
   const [isStartingPlan, setIsStartingPlan] = useState(false);
+  const requestId = useRef(0);
 
-  useFocusEffect(
-    useCallback(() => {
+  const loadWish = useCallback(
+    async () => {
       const parsedWishId = Number(id);
+      const currentRequestId = requestId.current + 1;
+      requestId.current = currentRequestId;
+      setWish(null);
+      setLoadError("");
 
       if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
-        toast.error("愿望不存在");
+        setLoadError("心愿不存在，请检查链接后重试");
+        setLoadState("error");
         return;
       }
 
-      let active = true;
-      void getWishById(parsedWishId)
-        .then((response) => {
-          if (active) {
-            setWish(response.wish);
-          }
-        })
-        .catch((error: unknown) => {
-          if (!active) {
-            return;
-          }
-          const message =
-            error instanceof Error ? error.message : "加载愿望详情失败";
-          toast.error(message);
-        });
+      setLoadState("loading");
+      try {
+        const response = await getWishById(parsedWishId);
+        if (requestId.current === currentRequestId) {
+          setWish(response.wish);
+          setLoadState("ready");
+        }
+      } catch (error) {
+        if (requestId.current === currentRequestId) {
+          setLoadError(
+            error instanceof Error ? error.message : "加载心愿详情失败，请重试",
+          );
+          setLoadState("error");
+        }
+      }
+    },
+    [id],
+  );
 
+  useFocusEffect(
+    useCallback(() => {
+      void loadWish();
       return () => {
-        active = false;
+        requestId.current += 1;
       };
-    }, [id]),
+    }, [loadWish]),
   );
 
   useEffect(() => {
@@ -105,6 +118,33 @@ export default function WishListDetail() {
     }
   }, [wish?.cover]);
 
+  if (loadState !== "ready" || !wish) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <NavBar />
+        {loadState === "loading" ? (
+          <View style={styles.stateContainer}>
+            <ActivityIndicator color="#FF4F7A" />
+            <Text style={styles.stateText}>正在加载心愿…</Text>
+          </View>
+        ) : (
+          <View style={styles.stateContainer}>
+            <Text accessibilityRole="alert" style={styles.errorText}>
+              {loadError || "心愿数据不可用，请重试"}
+            </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => void loadWish()}
+              style={styles.retryButton}
+            >
+              <Text style={styles.retryText}>重新加载</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </SafeAreaView>
+    );
+  }
+
   const coverSource: ImageSourcePropType = wish?.cover
     ? { uri: wish.cover }
     : ImagesCoverPng;
@@ -114,32 +154,19 @@ export default function WishListDetail() {
       id: "Clock",
       Icon: Clock,
       label: "想完成时间",
-      value: wish?.targetDate || "targetDate",
+      value: wish.targetDate || "—",
     },
     {
       id: "MapPin",
       Icon: MapPin,
       label: "地点",
-      value: wish?.locationName || "locationName",
+      value: wish.locationName || "—",
     },
     {
       id: "Wallet",
       Icon: Wallet,
       label: "预算",
-      value: wish?.budgetAmount ? `¥${wish.budgetAmount}` : "budgetAmount",
-    },
-    {
-      id: "User",
-      Icon: User,
-      label: "创建人",
-      customValue: (
-        <Row gap={4} items="center">
-          <Image
-            source={ImagesAvatarFemalePng}
-            style={{ width: 24, height: 24, borderRadius: 20 }}
-          />
-        </Row>
-      ),
+      value: wish.budgetAmount != null ? `¥${wish.budgetAmount}` : "—",
     },
   ];
 
@@ -155,14 +182,6 @@ export default function WishListDetail() {
       onPress: () => toast.info("信息"),
     },
   ];
-
-  const participants = [
-    { id: "female", source: ImagesAvatarFemalePng },
-    { id: "male", source: ImagesAvatarMalePng },
-  ];
-
-  //   TODO: 这个状态应该根据实际数据来动态设置，目前是为了展示效果先写死了
-  const status: WishTagStatus = wish?.status || "planning";
 
   const handleStartPlan = async () => {
     const parsedWishId = Number(id);
@@ -224,12 +243,12 @@ export default function WishListDetail() {
           <Column gap={8}>
             <Row gap={8} items="center">
               <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-                {wish?.title || "title"}
+                {wish.title}
               </Text>
-              <Tag status={status} />
+              <Tag status={wish.status} />
             </Row>
             <Text style={{ color: "#666" }}>
-              {wish?.description || "还没有写下描述"}
+              {wish.description || "还没有写下描述"}
             </Text>
           </Column>
           <Row style={styles.divider} />
@@ -240,29 +259,9 @@ export default function WishListDetail() {
                   <item.Icon color="#666" />
                   <Text>{item.label}</Text>
                 </Row>
-                {!!item.customValue ? (
-                  item.customValue
-                ) : (
-                  <Text>{item.value}</Text>
-                )}
+                <Text>{item.value}</Text>
               </Row>
             ))}
-          </Column>
-
-          <Row style={styles.divider} />
-          <Column gap={12}>
-            <Text style={{ fontWeight: "bold" }}>
-              参与人（{participants.length}/2）
-            </Text>
-            <Row gap={12}>
-              {participants.map((p) => (
-                <Image
-                  key={p.id}
-                  source={p.source}
-                  style={{ width: 40, height: 40, borderRadius: 20 }}
-                />
-              ))}
-            </Row>
           </Column>
         </Column>
       </ScrollView>
@@ -297,6 +296,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     gap: 1,
+  },
+  stateContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    paddingHorizontal: 24,
+  },
+  stateText: {
+    color: "#666",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  errorText: {
+    color: "#C6284D",
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  retryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  retryText: {
+    color: "#FF4F7A",
+    fontSize: 14,
+    fontWeight: "600",
   },
   contentContainer: {
     padding: 16,

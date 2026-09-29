@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–07 是这项授权下已完成的
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–10 是这项授权下已完成的
 阶段。Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -23,6 +23,7 @@
 | 07 | Mobile today honest states | Complete | Phase 06、PRD-TODAY-001 | 移动端首页区分加载、失败、未绑定与真实已绑定数据 |
 | 08 | Web wish description editing | Complete | PRD-WISH-001 | 通过受关系授权的 PATCH 支持 Web 用户编辑心愿描述 |
 | 09 | Mobile wish description editing | Complete | Phase 08、PRD-WISH-001 | 移动端从心愿详情编辑描述并在成功后刷新详情 |
+| 10 | Mobile wish detail honest states | Complete | PRD-WISH-001 | 加载失败时不展示假心愿字段或状态，并允许重试 |
 
 ## 阶段顺序
 
@@ -91,6 +92,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 该阶段复用 Phase 08 的服务端 PATCH 能力，在移动端详情页提供编辑描述入口和真实保存流程；保存失败
 保留草稿，保存成功后回到并刷新详情。详细计划见
 `harness/build/phase-09-mobile-wish-description-editing.md`。
+
+### Phase 10 — Mobile wish detail honest states
+
+修复移动端心愿详情在数据加载或读取失败时仍展示写死标题、状态、日期、地点和预算的问题；为加载中和失败状态提供明确反馈与重试。阶段范围仅限移动端心愿详情页，不改变服务端数据、状态流转、其他心愿页面中的交互或历史数据。详细计划见
+`harness/build/phase-10-mobile-wish-detail-honest-states.md`。
 
 ## 后续阶段的准入条件
 
