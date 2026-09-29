@@ -23,6 +23,7 @@
 | 14 — Wish calendar date validation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 15 — Wish deletion lifecycle authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 | 16 — Wish record creation authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
+| 17 — Anniversary calendar date validation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 
 ## Activity
 
@@ -514,3 +515,16 @@
 - **Limitations:** 尚无隔离 MySQL 集成验证；媒体处理发生在记录插入之后，部分失败及媒体 URL 所有权仍需单独处理。
 - **Next action:** 独立提交后继续 PRD R1/P0 的其他缺口。
 - **Evidence references:** `server/src/router_handler/wish.ts`、`harness/context/phase-16-wish-record-creation-authorization-context.md`、server lint/build 与聚焦检查输出。
+## 2026-09-29T14:42:19+08:00 — Phase 17: anniversary calendar date validation completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-DAY-001 的纪念日创建/全量更新日期校验；不改时区、提醒发送或数据表。
+- **Red:** 修改前 `createAnniversarySchema` 与 `updateAnniversarySchema` 都接受 `2026-02-30`。
+- **Green:** 从心愿 schema 抽取共用日历日期校验，纪念日 `originalDate` 复用；OpenAPI 请求字段说明及 Web 生成类型同步。两个纪念日 schema 与两个心愿 schema 均接受有效闰日及 1000/9999 边界，拒绝非闰日、不存在的日期、1000 年前及格式错误日期；非法请求映射 400。
+- **Verification:** 四个实际导出 schema 的正反矩阵、`parseRequestBody` 的 400 检查、`pnpm --dir web api`、server lint/build、Web lint/build、`git diff --check` 均通过。首次聚焦脚本误用 `status` 而非实际 `statusCode`，修正脚本后通过；这是检查脚本错误。
+- **Review:** 两个纪念日 handler 均在 DB 写入前解析请求；有效请求形状、字段必填性及心愿原校验语义不变。Web 构建仍有 Zod 注释位置和 >500 kB chunk 的既有警告。
+- **Operational evidence:** 未连接 MySQL、未访问真实设备或浏览器、未读取凭据、未推送或部署。
+- **Limitations:** 未验证真实数据库或服务器/设备时区边界；纪念日提醒尚无发送闭环。
+- **Next action:** 独立提交；继续 PRD-DAY-001 的服务端关系授权缺口。
+- **Evidence references:** `server/src/schema/dateOnly.ts`、`server/src/schema/anniversary.ts`、`server/src/schema/wish.ts`、`web/openapi.json`、聚焦矩阵和构建输出。

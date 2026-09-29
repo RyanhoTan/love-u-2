@@ -2746,7 +2746,8 @@
             "$ref": "#/components/schemas/AnniversaryType"
           },
           "originalDate": {
-            "$ref": "#/components/schemas/DateOnly"
+            "$ref": "#/components/schemas/DateOnly",
+            "description": "Real calendar date in YYYY-MM-DD format, year 1000–9999; invalid dates return 400"
           },
           "repeatType": {
             "$ref": "#/components/schemas/AnniversaryRepeatType"

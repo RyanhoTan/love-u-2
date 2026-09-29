@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidCalendarDateOnly } from "./dateOnly.js";
 
 export const anniversaryTypeSchema = z.enum([
   "love",
@@ -18,7 +19,8 @@ export const anniversaryPayloadSchema = z.object({
   type: anniversaryTypeSchema,
   originalDate: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "originalDate must be in YYYY-MM-DD format"),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "originalDate must be in YYYY-MM-DD format")
+    .refine(isValidCalendarDateOnly, "originalDate must be a valid calendar date"),
   repeatType: anniversaryRepeatTypeSchema,
   reminderDaysBefore: z
     .number()

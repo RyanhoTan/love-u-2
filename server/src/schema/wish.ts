@@ -1,24 +1,13 @@
 import { z } from "zod";
+import { isValidCalendarDateOnly } from "./dateOnly.js";
 
 export const wishStatusSchema = z.enum(["todo", "doing", "done"]);
-
-function isValidWishDateOnly(value: string) {
-  if (value < "1000-01-01") {
-    return false;
-  }
-
-  const parsed = new Date(`${value}T00:00:00.000Z`);
-  return (
-    !Number.isNaN(parsed.getTime()) &&
-    parsed.toISOString().slice(0, 10) === value
-  );
-}
 
 function wishDateOnlySchema(fieldName: "targetDate" | "recordDate") {
   return z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, `${fieldName} must be in YYYY-MM-DD format`)
-    .refine(isValidWishDateOnly, `${fieldName} must be a valid calendar date`);
+    .refine(isValidCalendarDateOnly, `${fieldName} must be a valid calendar date`);
 }
 
 export const createWishSchema = z.object({

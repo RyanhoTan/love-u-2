@@ -604,6 +604,7 @@ export interface components {
         AnniversaryPayload: {
             title: string;
             type: components["schemas"]["AnniversaryType"];
+            /** @description Real calendar date in YYYY-MM-DD format, year 1000–9999; invalid dates return 400 */
             originalDate: components["schemas"]["DateOnly"];
             repeatType: components["schemas"]["AnniversaryRepeatType"];
             reminderDaysBefore: number;
