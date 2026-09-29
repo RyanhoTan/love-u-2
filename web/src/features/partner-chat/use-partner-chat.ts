@@ -341,9 +341,15 @@ export function usePartnerChat(
       setErrorMessage("聊天连接异常");
     };
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       if (socketRef.current === socket) {
         socketRef.current = null;
+      }
+
+      const relationshipRevoked = event.code === 4003;
+      if (relationshipRevoked) {
+        shouldReconnectRef.current = false;
+        setErrorMessage("情侣关系已解除，聊天连接已关闭");
       }
 
       setStatus("closed");
@@ -355,7 +361,7 @@ export function usePartnerChat(
         ),
       );
 
-      if (shouldReconnectRef.current) {
+      if (shouldReconnectRef.current && !relationshipRevoked) {
         reconnectTimerRef.current = setTimeout(connect, 2000);
       }
     };

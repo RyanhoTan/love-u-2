@@ -5,6 +5,7 @@ import db from "../db/index.js";
 import { HttpError } from "../errors.js";
 import { bindCoupleSchema, updateCoupleProfileSchema } from "../schema/couple.js";
 import { parseRequestBody } from "../validation.js";
+import { closePartnerChatConnectionsForRelationship } from "../ws/partnerChat.js";
 
 const COUPLE_INVITES_TABLE = "couple_invites";
 const COUPLE_RELATIONSHIPS_TABLE = "couple_relationships";
@@ -557,6 +558,7 @@ export async function unbindCoupleSpace(req: Request, res: Response) {
     );
 
     await connection.commit();
+    closePartnerChatConnectionsForRelationship(relationship.id);
     res.status(200).json({ message: "unbind couple space success" });
   } catch (error) {
     await connection.rollback();

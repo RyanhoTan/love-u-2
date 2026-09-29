@@ -43,6 +43,10 @@ interface ReadReceiptRow extends RowDataPacket {
   read_at: Date | string;
 }
 
+interface ActiveRelationshipIdRow extends RowDataPacket {
+  id: number;
+}
+
 interface PartnerChatConnection {
   socket: WebSocket;
   userId: number;
@@ -147,6 +151,55 @@ function removeConnection(connection: PartnerChatConnection) {
   }
 }
 
+function closeRelationshipConnections(
+  relationshipId: number,
+  code: number,
+  reason: string,
+) {
+  const connections = [...connectionsByUserId.values()].flatMap((items) =>
+    [...items].filter((connection) => connection.relationshipId === relationshipId),
+  );
+
+  for (const connection of connections) {
+    removeConnection(connection);
+    if (connection.socket.readyState === WebSocket.OPEN) {
+      connection.socket.close(code, reason);
+    } else if (connection.socket.readyState === WebSocket.CONNECTING) {
+      connection.socket.terminate();
+    }
+  }
+}
+
+export function closePartnerChatConnectionsForRelationship(relationshipId: number) {
+  closeRelationshipConnections(relationshipId, 4003, "relationship_unbound");
+}
+
+async function isConnectionRelationshipCurrent(connection: PartnerChatConnection) {
+  const [rows] = await db.query<ActiveRelationshipIdRow[]>(
+    `
+      SELECT id
+      FROM couple_relationships
+      WHERE id = ?
+        AND status = 'bound'
+        AND (
+          (user_a_id = ? AND user_b_id = ?)
+          OR
+          (user_a_id = ? AND user_b_id = ?)
+        )
+      LIMIT 1
+    `,
+    [
+      connection.relationshipId,
+      connection.userId,
+      connection.partnerId,
+      connection.partnerId,
+      connection.userId,
+    ],
+  );
+
+  return rows.length > 0;
+}
+
 function getPartnerConnections(partnerId: number, relationshipId: number) {
   const partnerConnections = connectionsByUserId.get(partnerId);
   if (!partnerConnections) {
@@ -208,68 +261,121 @@ async function saveMessage(
   await ensurePartnerChatSchema();
 
   const sentAt = new Date();
-  const [result] = await db.execute<ResultSetHeader>(
-    `
-      INSERT INTO partner_chat_messages (
-        relationship_id,
-        sender_id,
-        receiver_id,
-        text,
-        message_type,
-        audio_url,
-        audio_object_key,
-        audio_duration_seconds,
-        client_message_id,
-        sent_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
-    `,
-    [
-      connection.relationshipId,
-      connection.userId,
-      connection.partnerId,
-      payload.messageType === "text" ? payload.text : null,
-      payload.messageType,
-      payload.messageType === "audio" ? (payload.audioUrl ?? null) : null,
-      payload.messageType === "audio"
-        ? (payload.audioObjectKey ?? null)
-        : null,
-      payload.messageType === "audio"
-        ? (payload.audioDurationSeconds ?? null)
-        : null,
-      payload.clientMessageId ?? null,
-      sentAt,
-    ]
-  );
+  const databaseConnection = await db.getConnection();
+  let transactionStarted = false;
 
-  const [rows] = await db.query<PartnerChatMessageRow[]>(
-    `
-      SELECT
-        id,
-        relationship_id,
-        sender_id,
-        receiver_id,
-        text,
-        message_type,
-        audio_url,
-        audio_object_key,
-        audio_duration_seconds,
-        client_message_id,
-        sent_at
-      FROM partner_chat_messages
-      WHERE id = ?
-      LIMIT 1
-    `,
-    [result.insertId]
-  );
+  try {
+    await databaseConnection.beginTransaction();
+    transactionStarted = true;
 
-  const savedMessage = rows[0];
-  if (!savedMessage) {
-    throw new Error("saved partner chat message could not be loaded");
+    const [relationships] = await databaseConnection.query<ActiveRelationshipIdRow[]>(
+      `
+        SELECT id
+        FROM couple_relationships
+        WHERE id = ?
+          AND status = 'bound'
+          AND (
+            (user_a_id = ? AND user_b_id = ?)
+            OR
+            (user_a_id = ? AND user_b_id = ?)
+          )
+        LIMIT 1
+        FOR UPDATE
+      `,
+      [
+        connection.relationshipId,
+        connection.userId,
+        connection.partnerId,
+        connection.partnerId,
+        connection.userId,
+      ],
+    );
+
+    if (relationships.length === 0) {
+      throw new Error("partner chat relationship is no longer active");
+    }
+
+    const [result] = await databaseConnection.execute<ResultSetHeader>(
+      `
+        INSERT INTO partner_chat_messages (
+          relationship_id,
+          sender_id,
+          receiver_id,
+          text,
+          message_type,
+          audio_url,
+          audio_object_key,
+          audio_duration_seconds,
+          client_message_id,
+          sent_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
+      `,
+      [
+        connection.relationshipId,
+        connection.userId,
+        connection.partnerId,
+        payload.messageType === "text" ? payload.text : null,
+        payload.messageType,
+        payload.messageType === "audio" ? (payload.audioUrl ?? null) : null,
+        payload.messageType === "audio"
+          ? (payload.audioObjectKey ?? null)
+          : null,
+        payload.messageType === "audio"
+          ? (payload.audioDurationSeconds ?? null)
+          : null,
+        payload.clientMessageId ?? null,
+        sentAt,
+      ],
+    );
+
+    const [rows] = await databaseConnection.query<PartnerChatMessageRow[]>(
+      `
+        SELECT
+          id,
+          relationship_id,
+          sender_id,
+          receiver_id,
+          text,
+          message_type,
+          audio_url,
+          audio_object_key,
+          audio_duration_seconds,
+          client_message_id,
+          sent_at
+        FROM partner_chat_messages
+        WHERE id = ?
+        LIMIT 1
+      `,
+      [result.insertId],
+    );
+
+    const savedMessage = rows[0];
+    if (
+      !savedMessage ||
+      savedMessage.relationship_id !== connection.relationshipId ||
+      savedMessage.sender_id !== connection.userId ||
+      savedMessage.receiver_id !== connection.partnerId
+    ) {
+      throw new Error("saved partner chat message could not be loaded");
+    }
+
+    await databaseConnection.commit();
+    transactionStarted = false;
+    return savedMessage;
+  } catch (error) {
+    if (transactionStarted) {
+      try {
+        await databaseConnection.rollback();
+      } catch {
+        // Preserve the original error; the connection will be released below.
+      }
+    }
+    throw error;
+  } finally {
+    databaseConnection.release();
   }
-
-  return savedMessage;
 }
 
 async function markMessagesDelivered(messageIds: number[]) {
@@ -308,6 +414,19 @@ async function deliverPendingMessages(connection: PartnerChatConnection) {
       WHERE receiver_id = ?
         AND relationship_id = ?
         AND delivered_at IS NULL
+        AND EXISTS (
+          SELECT 1
+          FROM couple_relationships AS relationship
+          WHERE relationship.id = partner_chat_messages.relationship_id
+            AND relationship.status = 'bound'
+            AND (
+              (relationship.user_a_id = partner_chat_messages.sender_id
+                AND relationship.user_b_id = partner_chat_messages.receiver_id)
+              OR
+              (relationship.user_b_id = partner_chat_messages.sender_id
+                AND relationship.user_a_id = partner_chat_messages.receiver_id)
+            )
+        )
       ORDER BY id ASC
     `,
     [connection.userId, connection.relationshipId]
@@ -344,6 +463,12 @@ async function markIncomingMessagesRead(connection: PartnerChatConnection) {
       WHERE receiver_id = ?
         AND relationship_id = ?
         AND read_at IS NULL
+        AND EXISTS (
+          SELECT 1
+          FROM couple_relationships AS relationship
+          WHERE relationship.id = partner_chat_messages.relationship_id
+            AND relationship.status = 'bound'
+        )
       ORDER BY id ASC
     `,
     [connection.userId, connection.relationshipId]
@@ -356,16 +481,26 @@ async function markIncomingMessagesRead(connection: PartnerChatConnection) {
   const readAt = new Date();
   const messageIds = messages.map((message) => message.id);
 
-  await db.query(
+  const [updateResult] = await db.query<ResultSetHeader>(
     `
       UPDATE partner_chat_messages
       SET
         delivered_at = COALESCE(delivered_at, ?),
         read_at = COALESCE(read_at, ?)
       WHERE id IN (?)
+        AND EXISTS (
+          SELECT 1
+          FROM couple_relationships AS relationship
+          WHERE relationship.id = partner_chat_messages.relationship_id
+            AND relationship.status = 'bound'
+        )
     `,
     [readAt, readAt, messageIds]
   );
+
+  if (updateResult.affectedRows === 0) {
+    return null;
+  }
 
   return { messageIds, readAt };
 }
@@ -380,6 +515,12 @@ async function sendExistingReadReceipts(connection: PartnerChatConnection) {
       WHERE sender_id = ?
         AND relationship_id = ?
         AND read_at IS NOT NULL
+        AND EXISTS (
+          SELECT 1
+          FROM couple_relationships AS relationship
+          WHERE relationship.id = partner_chat_messages.relationship_id
+            AND relationship.status = 'bound'
+        )
       ORDER BY id DESC
       LIMIT 300
     `,
@@ -418,6 +559,21 @@ async function handleRead(connection: PartnerChatConnection) {
 }
 
 async function handleIncomingPayload(connection: PartnerChatConnection, rawData: RawData) {
+  try {
+    if (!(await isConnectionRelationshipCurrent(connection))) {
+      closePartnerChatConnectionsForRelationship(connection.relationshipId);
+      return;
+    }
+  } catch {
+    console.error("failed to validate partner chat relationship");
+    closeRelationshipConnections(
+      connection.relationshipId,
+      1011,
+      "relationship_check_failed",
+    );
+    return;
+  }
+
   let payload: unknown;
 
   try {
@@ -615,19 +771,63 @@ export function setupPartnerChat(server: HttpServer) {
     }
   );
 
+  let heartbeatCheckInProgress = false;
   const heartbeat = setInterval(() => {
-    for (const connections of connectionsByUserId.values()) {
-      for (const connection of connections) {
-        if (!connection.isAlive) {
-          connection.socket.terminate();
-          removeConnection(connection);
-          continue;
+    if (heartbeatCheckInProgress) {
+      return;
+    }
+
+    heartbeatCheckInProgress = true;
+    void (async () => {
+      try {
+        const connections = [...connectionsByUserId.values()].flatMap((items) => [
+          ...items,
+        ]);
+        const representativeByRelationship = new Map<number, PartnerChatConnection>();
+
+        for (const connection of connections) {
+          representativeByRelationship.set(connection.relationshipId, connection);
         }
 
-        connection.isAlive = false;
-        connection.socket.ping();
+        for (const [relationshipId, connection] of representativeByRelationship) {
+          try {
+            if (!(await isConnectionRelationshipCurrent(connection))) {
+              closePartnerChatConnectionsForRelationship(relationshipId);
+            }
+          } catch {
+            console.error("failed to validate partner chat relationship");
+            closeRelationshipConnections(
+              relationshipId,
+              1011,
+              "relationship_check_failed",
+            );
+          }
+        }
+
+        for (const connection of connections) {
+          if (
+            connection.socket.readyState !== WebSocket.OPEN ||
+            !connectionsByUserId.get(connection.userId)?.has(connection)
+          ) {
+            continue;
+          }
+
+          if (!connection.isAlive) {
+            connection.socket.terminate();
+            removeConnection(connection);
+            continue;
+          }
+
+          connection.isAlive = false;
+          connection.socket.ping();
+        }
+      } finally {
+        heartbeatCheckInProgress = false;
       }
-    }
+    })().catch(() => {
+      heartbeatCheckInProgress = false;
+      console.error("failed to check partner chat connections");
+    });
   }, HEARTBEAT_INTERVAL_MS);
 
   wss.on("close", () => {

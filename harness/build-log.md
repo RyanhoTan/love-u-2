@@ -38,6 +38,7 @@
 | 29 — Wish private cover update/clear | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/浏览器/设备集成 |
 | 30 — Wish record private media | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/FFmpeg/浏览器/设备集成 |
 | 31 — Private voice messages in partner chat | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/WebSocket/浏览器/设备集成 |
+| 32 — Revoke partner chat sockets after unbind | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/WS/跨进程/设备集成 |
 
 ## Activity
 
@@ -799,3 +800,30 @@
 - **Blockers:** None.
 - **Next action:** Continue with current-relationship enforcement for already-open chat WebSocket connections.
 - **Evidence references:** `server/src/db/schema.ts`, `server/src/schema/partnerChat.ts`, `server/src/router_handler/partnerChat.ts`, `server/src/ws/partnerChat.ts`, `web/openapi.json`, `web/src/features/partner-chat/api.ts`, `web/src/pages/messages-page/voice-bubble.tsx`, `app/app/features/partner-chat/api.ts`, schema/owner matrix output.
+
+## 2026-09-29 — Phase 32: revoke partner chat sockets after unbind started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 active-relationship boundary for established WebSocket connections; no history deletion or ownership changes.
+- **Red:** Handshake checks current bound membership, but an established socket keeps the captured relationship id after the unbind transaction commits and can continue processing inbound payloads.
+- **Decision:** Close local sockets only after successful unbind commit; revalidate relationship status and exact member pair before handling every inbound payload; periodically check existing connections at the current heartbeat interval as a cross-process fallback; clients stop retrying on the revoked close code.
+- **Operational evidence:** Phase 31 committed as `68afb4b`; worktree was clean before this phase. No DB or live WS was accessed.
+- **Verification:** Completed; see Phase 32 completion entry below.
+- **Limitations:** Real DB/WS/cross-process/device integration was unavailable; remote process revocation relies on the existing 30-second heartbeat DB check.
+- **Blockers:** None.
+- **Next action:** Continue PRD-CHAT-001 P0 review for server-backed history, offline delivery, ordering, and duplicate client-message behavior.
+- **Evidence references:** `server/src/router_handler/couple.ts`, `server/src/ws/partnerChat.ts`, App/Web `use-partner-chat.ts`, Phase 31.
+
+## 2026-09-29 — Phase 32: revoke partner chat sockets after unbind completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Successful unbind now closes local sockets only after commit. Each inbound message/read event revalidates the current bound relationship and exact member pair; message insertion locks the relationship row in the same transaction as insert. Pending-message and read-receipt queries require the active bound relationship. Existing connections are periodically revalidated on the 30-second heartbeat for cross-process fallback. Web/App stop reconnecting on close code `4003`; App surfaces revocation and permits one attempt on screen re-entry without looping if still unbound.
+- **Verification:** `pnpm --dir server lint`, `pnpm --dir server build`, `pnpm --dir web lint`, `pnpm --dir web build`, `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check` all passed. Web build emitted the existing Zod Rollup comment-position and large-chunk warnings.
+- **Review:** Rollback does not invoke socket closure because closure follows successful commit. Inbound payload validation checks relationship id, status, and both member ids; the persistence path re-checks under `FOR UPDATE` to serialize against unbind. The close-code branch suppresses retry loops on both clients.
+- **Operational evidence:** No real MySQL, live WebSocket server, second process, browser, or device was accessed; no credentials were read, no push/deploy occurred.
+- **Limitations:** Locking/rollback race semantics and close delivery need real integration tests. Same-process closure is post-commit; other processes rely on a successful heartbeat query within the existing 30-second interval. An in-flight event can race at the boundary. Chat history ownership, offline delivery, idempotency, ordering, and end-to-end reliability remain outside this phase.
+- **Blockers:** None for this scoped implementation.
+- **Next action:** Continue PRD-CHAT-001 P0 review for server-backed history, offline delivery, ordering, and duplicate client-message behavior.
+- **Evidence references:** `server/src/router_handler/couple.ts`, `server/src/ws/partnerChat.ts`, `app/app/features/partner-chat/use-partner-chat.ts`, `web/src/features/partner-chat/use-partner-chat.ts`, Phase 32 build/context docs.

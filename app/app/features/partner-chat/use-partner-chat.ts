@@ -159,6 +159,7 @@ export function usePartnerChat(
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldReconnectRef = useRef(false);
+  const relationshipRevokedRef = useRef(false);
   const historyStorageKeyRef = useRef<string | null>(null);
   const hasLoadedHistoryRef = useRef(false);
   const isVisibleRef = useRef(isVisible);
@@ -215,6 +216,7 @@ export function usePartnerChat(
     socketRef.current = socket;
 
     socket.onopen = () => {
+      relationshipRevokedRef.current = false;
       setStatus("connected");
       setErrorMessage(null);
     };
@@ -319,9 +321,20 @@ export function usePartnerChat(
       setErrorMessage("聊天连接异常");
     };
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       if (socketRef.current === socket) {
         socketRef.current = null;
+      }
+
+      const relationshipRevoked = event.code === 4003;
+      const failedReentry = relationshipRevokedRef.current && !relationshipRevoked;
+      if (relationshipRevoked) {
+        relationshipRevokedRef.current = true;
+        shouldReconnectRef.current = false;
+        setErrorMessage("情侣关系已解除，聊天连接已关闭");
+      } else if (failedReentry) {
+        shouldReconnectRef.current = false;
+        setErrorMessage("当前没有有效的情侣关系，聊天尚未连接");
       }
 
       setStatus("closed");
@@ -333,22 +346,34 @@ export function usePartnerChat(
         ),
       );
 
-      if (shouldReconnectRef.current) {
+      if (
+        shouldReconnectRef.current &&
+        !relationshipRevoked &&
+        !failedReentry
+      ) {
         reconnectTimerRef.current = setTimeout(connect, 2000);
       }
     };
   }, [clearReconnectTimer, loadHistory, sendReadEvent, token]);
 
   useEffect(() => {
-    if (isVisible) {
+    if (!isVisible) {
+      return;
+    }
+
+    if (relationshipRevokedRef.current && token) {
+      shouldReconnectRef.current = true;
+      connect();
+    } else {
       sendReadEvent();
     }
-  }, [isVisible, sendReadEvent]);
+  }, [connect, isVisible, sendReadEvent, token]);
 
   useEffect(() => {
     shouldReconnectRef.current = Boolean(token);
 
     if (!token) {
+      relationshipRevokedRef.current = false;
       socketRef.current?.close();
       socketRef.current = null;
       clearReconnectTimer();

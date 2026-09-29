@@ -64,7 +64,7 @@ export default function Interact() {
   const [inputValue, setInputValue] = useState("");
   const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
   const [playingAudioMessageId, setPlayingAudioMessageId] = useState<string | null>(null);
-  const { messages, sendMessage, sendAudioMessage } =
+  const { messages, errorMessage, sendMessage, sendAudioMessage } =
     usePartnerChat(token, { isVisible: isFocused });
 
   const isBound = Boolean(coupleSpace?.isBound && coupleSpace.partner);
@@ -199,6 +199,11 @@ export default function Interact() {
               end={{ x: 0, y: 1 }}
               style={styles.threadHighlight}
             />
+            {errorMessage ? (
+              <Text accessibilityRole="alert" style={styles.connectionError}>
+                {errorMessage}
+              </Text>
+            ) : null}
             <ScrollView
               ref={scrollRef}
               style={styles.scroll}
@@ -388,4 +393,10 @@ const styles = StyleSheet.create({
     color: "#8d6b77",
   },
   inputWrap: { paddingTop: 12 },
+  connectionError: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    color: "#7d4b5a",
+    fontSize: 12,
+  },
 });
