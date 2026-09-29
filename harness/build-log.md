@@ -40,6 +40,7 @@
 | 31 — Private voice messages in partner chat | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/WebSocket/浏览器/设备集成 |
 | 32 — Revoke partner chat sockets after unbind | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/WS/跨进程/设备集成 |
 | 33 — Server-backed partner chat history | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/浏览器/移动设备集成 |
+| 34 — Accurate partner chat delivery states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-30 | 下方阶段记录 | 无真实 DB/WS/双端设备集成 |
 
 ## Activity
 
@@ -855,3 +856,30 @@
 - **Blockers:** None for this scoped feature.
 - **Next action:** Continue PRD-CHAT-001 P0 review for delivery acknowledgements, idempotency, and real-time/offline ordering gaps.
 - **Evidence references:** `server/src/router_handler/partnerChat.ts`, `server/src/router/partnerChat.ts`, `server/src/schema/partnerChat.ts`, `web/openapi.json`, generated `web/src/api/schemas.d.ts`, Web/App partner-chat APIs/hooks/pages, phase 33 build/context docs.
+
+## 2026-09-29 — Phase 34: accurate partner chat delivery states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 alignment of sender delivery state, online recipient WebSocket availability, persisted `delivered_at`, offline pending replay, and Web/App status labels.
+- **Red:** Message persistence and delivery columns exist, but send handler always emits `sent`; it marks rows delivered based on a non-empty connection set even if every socket is closing; pending replay marks all selected messages delivered regardless of whether `sendJson` actually wrote to an open socket. Both clients hide `sent` status.
+- **Decision:** Define `sent`/`delivered_at` as the server handing the message to an open socket for the exact active relationship (not proof the client rendered it); use `partner_offline` when no recipient socket accepts the send; preserve the distinct `read` receipt. Replay only marks successfully submitted messages delivered.
+- **Operational evidence:** Phase 33 committed as `4c20267`; workspace was clean at start. No DB or client device was accessed.
+- **Verification:** Completed; see Phase 34 completion entry below.
+- **Limitations:** No real DB/WebSocket/paired-device test; `sent` means handed to an open socket, not rendered by recipient UI; replay sender notifications are same-process only.
+- **Blockers:** None.
+- **Next action:** Continue PRD-CHAT-001 review for client-message idempotency, delivery acknowledgement boundaries, and offline/reconnect ordering.
+- **Evidence references:** `PRD.md` PRD-CHAT-001, `server/src/ws/partnerChat.ts`, Web/App `use-partner-chat.ts`, message status renderers.
+
+## 2026-09-30 — Phase 34: accurate partner chat delivery states completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** `sendJson` reports whether an open socket accepted a payload. Direct send returns `partner_offline` when no recipient socket accepts the event, unless an idempotently loaded row was already delivered. `delivered_at` updates are scoped to a currently bound exact member pair. Pending replay only marks accepted messages and sends delivery updates to connected same-process sender sockets. Web/App now render `sent` as “已送达”; `partner_offline`, `read`, and `failed` remain distinct.
+- **Verification:** Server lint/build, Web lint/build, App lint/typecheck, and `git diff --check` passed. A compiled four-case delivery-state matrix passed. Web build emitted existing Zod Rollup annotation and >500 kB chunk warnings.
+- **Review:** Direct send and replay both check actual `OPEN` state at send call. Duplicate IDs preserve `delivered_at` status after the saved row is loaded; active relationship status/member pair is required for delivery timestamp updates.
+- **Operational evidence:** No real MySQL, WebSocket server, multiple processes, browser, or mobile device was accessed; no credentials were read, no push/deploy occurred.
+- **Limitations:** `sent` means `ws.send` accepted data for an open socket, not that the recipient app rendered it. A direct delivery-state DB failure is logged after socket acceptance, so a later history read can show stale state. Pending-replay sender notifications are local-process only; there is no cross-process presence/pub-sub. Dropped frames/background delivery require a future receiver acknowledgement protocol.
+- **Blockers:** None for this scoped behavior.
+- **Next action:** Continue PRD-CHAT-001 review for client-message idempotency, delivery acknowledgement boundaries, and offline/reconnect ordering.
+- **Evidence references:** `server/src/ws/partnerChat.ts`, App `interact.tsx`, Web `messages-page/index.tsx`, Phase 34 build/context docs.

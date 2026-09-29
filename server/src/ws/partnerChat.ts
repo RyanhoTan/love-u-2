@@ -34,6 +34,8 @@ interface PartnerChatMessage {
   audio_duration_seconds: number | null;
   client_message_id: string | null;
   sent_at: Date | string;
+  delivered_at: Date | string | null;
+  read_at: Date | string | null;
 }
 
 interface PartnerChatMessageRow extends PartnerChatMessage, RowDataPacket {}
@@ -77,9 +79,25 @@ function ensurePartnerChatSchema() {
 }
 
 function sendJson(socket: WebSocket, payload: unknown) {
-  if (socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify(payload));
+  if (socket.readyState !== WebSocket.OPEN) {
+    return false;
   }
+
+  try {
+    socket.send(JSON.stringify(payload));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function getPartnerChatDeliveryStatus(
+  message: Pick<PartnerChatMessage, "delivered_at">,
+  acceptedByOpenRecipient: boolean,
+): "sent" | "partner_offline" {
+  return message.delivered_at != null || acceptedByOpenRecipient
+    ? "sent"
+    : "partner_offline";
 }
 
 function getClientMessageId(payload: unknown) {
@@ -246,6 +264,19 @@ function createMessagePayload(message: PartnerChatMessage) {
   };
 }
 
+function createDeliveryPayload(
+  message: PartnerChatMessage,
+  status: "sent" | "partner_offline",
+) {
+  return {
+    type: "delivery",
+    status,
+    clientMessageId: message.client_message_id ?? undefined,
+    serverMessageId: String(message.id),
+    sentAt: toIsoString(message.sent_at),
+  };
+}
+
 async function saveMessage(
   connection: PartnerChatConnection,
   payload:
@@ -343,7 +374,9 @@ async function saveMessage(
           audio_object_key,
           audio_duration_seconds,
           client_message_id,
-          sent_at
+          sent_at,
+          delivered_at,
+          read_at
         FROM partner_chat_messages
         WHERE id = ?
         LIMIT 1
@@ -380,17 +413,31 @@ async function saveMessage(
 
 async function markMessagesDelivered(messageIds: number[]) {
   if (messageIds.length === 0) {
-    return;
+    return false;
   }
 
-  await db.query(
+  const [result] = await db.query<ResultSetHeader>(
     `
       UPDATE partner_chat_messages
       SET delivered_at = COALESCE(delivered_at, CURRENT_TIMESTAMP(3))
       WHERE id IN (?)
+        AND EXISTS (
+          SELECT 1
+          FROM couple_relationships AS relationship
+          WHERE relationship.id = partner_chat_messages.relationship_id
+            AND relationship.status = 'bound'
+            AND (
+              (relationship.user_a_id = partner_chat_messages.sender_id
+                AND relationship.user_b_id = partner_chat_messages.receiver_id)
+              OR
+              (relationship.user_b_id = partner_chat_messages.sender_id
+                AND relationship.user_a_id = partner_chat_messages.receiver_id)
+            )
+        )
     `,
     [messageIds]
   );
+  return result.affectedRows > 0;
 }
 
 async function deliverPendingMessages(connection: PartnerChatConnection) {
@@ -409,7 +456,9 @@ async function deliverPendingMessages(connection: PartnerChatConnection) {
         audio_object_key,
         audio_duration_seconds,
         client_message_id,
-        sent_at
+        sent_at,
+        delivered_at,
+        read_at
       FROM partner_chat_messages
       WHERE receiver_id = ?
         AND relationship_id = ?
@@ -432,11 +481,29 @@ async function deliverPendingMessages(connection: PartnerChatConnection) {
     [connection.userId, connection.relationshipId]
   );
 
+  const deliveredMessages: PartnerChatMessage[] = [];
   for (const message of messages) {
-    sendJson(connection.socket, createMessagePayload(message));
+    if (sendJson(connection.socket, createMessagePayload(message))) {
+      deliveredMessages.push(message);
+    }
   }
 
-  await markMessagesDelivered(messages.map((message) => message.id));
+  const deliveryStatePersisted = await markMessagesDelivered(
+    deliveredMessages.map((message) => message.id),
+  );
+  if (deliveryStatePersisted) {
+    for (const message of deliveredMessages) {
+      for (const senderConnection of getPartnerConnections(
+        message.sender_id,
+        message.relationship_id,
+      )) {
+        sendJson(
+          senderConnection.socket,
+          createDeliveryPayload(message, "sent"),
+        );
+      }
+    }
+  }
 }
 
 function sendReadReceipt(
@@ -663,11 +730,14 @@ async function handleIncomingPayload(connection: PartnerChatConnection, rawData:
     connection.relationshipId
   );
 
+  let acceptedByOpenRecipient = false;
   for (const partnerConnection of partnerConnections) {
-    sendJson(partnerConnection.socket, createMessagePayload(message));
+    if (sendJson(partnerConnection.socket, createMessagePayload(message))) {
+      acceptedByOpenRecipient = true;
+    }
   }
 
-  if (partnerConnections.length > 0) {
+  if (acceptedByOpenRecipient) {
     try {
       await markMessagesDelivered([message.id]);
     } catch (error) {
@@ -675,13 +745,13 @@ async function handleIncomingPayload(connection: PartnerChatConnection, rawData:
     }
   }
 
-  sendJson(connection.socket, {
-    type: "delivery",
-    status: "sent",
-    clientMessageId: parsed.data.clientMessageId,
-    serverMessageId: String(message.id),
-    sentAt: toIsoString(message.sent_at),
-  });
+  sendJson(
+    connection.socket,
+    createDeliveryPayload(
+      message,
+      getPartnerChatDeliveryStatus(message, acceptedByOpenRecipient),
+    ),
+  );
 }
 
 export function setupPartnerChat(server: HttpServer) {
