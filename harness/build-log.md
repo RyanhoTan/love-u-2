@@ -21,6 +21,7 @@
 | 12 — Mobile wish title editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 13 — Mobile wish date-only serialization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 14 — Wish calendar date validation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 15 — Wish deletion lifecycle authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 
 ## Activity
 
@@ -486,3 +487,16 @@
 - **Blockers:** None。
 - **Next action:** 独立提交此输入校验后继续其他 PRD P0 缺口。
 - **Evidence references:** `server/src/schema/wish.ts`、`server/src/validation.ts`、`web/openapi.json`、`web/src/api/schemas.d.ts`、`harness/context/phase-14-wish-calendar-date-validation-context.md`。
+## 2026-09-29T14:36:36+08:00 — Phase 15: wish deletion lifecycle authorization completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 心愿软删除、恢复和永久删除的最终写入授权；不更改解绑历史数据的产品策略。
+- **Red:** 三个 handler 原先先用 `findWishById` 校验范围，再以 `id`/删除状态执行写入，SQL 内没有当前关系授权，也不检查写入行数。预查后解绑、关系切换或行状态变化可造成无权写入或假成功。
+- **Green:** 提取 Phase 08 已有的情侣/个人心愿写入授权谓词供 PATCH 与三个删除生命周期 handler 复用；三个最终 UPDATE/DELETE 增加同语句授权，并在 `affectedRows === 0` 时返回 404。
+- **Verification:** `pnpm --dir server lint`、`pnpm --dir server build`、`git diff --check` 均通过；静态逐条检查三个 SQL 的 id、授权、删除状态条件与零行处理。未配置自动化测试套件。
+- **Review:** 未授权或跨关系用户预查返回 404；预查后关系解绑/切换或个人心愿创建者绑定时，最终条件不匹配而返回 404；行删除状态变化同理。成功写入仍使用原有响应和 30 天保留期。
+- **Operational evidence:** 未连接 MySQL、未执行真实删除、未读取凭据、未推送或部署。
+- **Limitations:** 尚无隔离 MySQL 集成环境，因此没有运行并发时序或真实跨情侣请求验证；PRD 解绑历史数据处置仍待产品决策。
+- **Next action:** 本小点独立提交；继续检查过程记录的写入授权边界。
+- **Evidence references:** `server/src/router_handler/wish.ts`、`harness/context/phase-15-wish-deletion-lifecycle-authorization-context.md`、server lint/build 输出。

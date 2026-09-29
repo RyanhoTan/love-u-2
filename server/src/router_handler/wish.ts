@@ -414,6 +414,40 @@ async function findWishById(
   return rows[0] ?? null;
 }
 
+function buildWishWriteAuthorization(wish: WishRow, userId: number) {
+  if (wish.relationship_id !== null) {
+    return {
+      sql: `relationship_id = ? AND EXISTS (
+        SELECT 1
+        FROM couple_relationships AS authorized_relationship
+        WHERE authorized_relationship.id = ?
+          AND authorized_relationship.id = wishes.relationship_id
+          AND authorized_relationship.status = 'bound'
+          AND (
+            authorized_relationship.user_a_id = ?
+            OR authorized_relationship.user_b_id = ?
+          )
+      )`,
+      values: [wish.relationship_id, wish.relationship_id, userId, userId],
+    };
+  }
+
+  return {
+    sql: `relationship_id IS NULL
+       AND created_by_user_id = ?
+       AND NOT EXISTS (
+         SELECT 1
+         FROM couple_relationships AS active_relationship
+         WHERE active_relationship.status = 'bound'
+           AND (
+             active_relationship.user_a_id = ?
+             OR active_relationship.user_b_id = ?
+           )
+       )`,
+    values: [userId, userId, userId],
+  };
+}
+
 export async function getWishes(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(req);
 
@@ -609,48 +643,18 @@ export async function updateWish(req: Request, res: Response) {
   assignments.push("updated_at = CURRENT_TIMESTAMP");
 
   const isCoupleWish = existingWish.relationship_id !== null;
-  const authorizationCondition = isCoupleWish
-    ? `relationship_id = ? AND EXISTS (
-        SELECT 1
-        FROM couple_relationships AS authorized_relationship
-        WHERE authorized_relationship.id = ?
-          AND authorized_relationship.id = wishes.relationship_id
-          AND authorized_relationship.status = 'bound'
-          AND (
-            authorized_relationship.user_a_id = ?
-            OR authorized_relationship.user_b_id = ?
-          )
-      )`
-    : `relationship_id IS NULL
-       AND created_by_user_id = ?
-       AND NOT EXISTS (
-         SELECT 1
-         FROM couple_relationships AS active_relationship
-         WHERE active_relationship.status = 'bound'
-           AND (
-             active_relationship.user_a_id = ?
-             OR active_relationship.user_b_id = ?
-           )
-       )`;
-  const authorizationValues = isCoupleWish
-    ? [
-        existingWish.relationship_id!,
-        existingWish.relationship_id!,
-        userId,
-        userId,
-      ]
-    : [userId, userId, userId];
+  const authorization = buildWishWriteAuthorization(existingWish, userId);
 
   await db.query<ResultSetHeader>(
     `
       UPDATE wishes
       SET ${assignments.join(", ")}
       WHERE id = ?
-        AND ${authorizationCondition}
+        AND ${authorization.sql}
         AND deleted_at IS NULL
       LIMIT 1
     `,
-    [...values, wishId, ...authorizationValues]
+    [...values, wishId, ...authorization.values]
   );
 
   const wish = await findWishById(userId, wishId);
@@ -794,7 +798,8 @@ export async function deleteWish(req: Request, res: Response) {
     throw new HttpError(404, "wish not found");
   }
 
-  await db.query<ResultSetHeader>(
+  const authorization = buildWishWriteAuthorization(wish, userId);
+  const [result] = await db.query<ResultSetHeader>(
     `
       UPDATE wishes
       SET
@@ -802,11 +807,15 @@ export async function deleteWish(req: Request, res: Response) {
         delete_expires_at = DATE_ADD(CURRENT_TIMESTAMP, INTERVAL ? DAY),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
+        AND ${authorization.sql}
         AND deleted_at IS NULL
       LIMIT 1
     `,
-    [WISH_RETENTION_DAYS, wishId]
+    [WISH_RETENTION_DAYS, wishId, ...authorization.values]
   );
+  if (result.affectedRows === 0) {
+    throw new HttpError(404, "wish not found");
+  }
 
   const deletedWish = await findWishById(userId, wishId, { includeDeleted: true });
   if (!deletedWish) {
@@ -832,7 +841,8 @@ export async function restoreWish(req: Request, res: Response) {
     throw new HttpError(404, "deleted wish not found");
   }
 
-  await db.query<ResultSetHeader>(
+  const authorization = buildWishWriteAuthorization(wish, userId);
+  const [result] = await db.query<ResultSetHeader>(
     `
       UPDATE wishes
       SET
@@ -840,11 +850,15 @@ export async function restoreWish(req: Request, res: Response) {
         delete_expires_at = NULL,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
+        AND ${authorization.sql}
         AND deleted_at IS NOT NULL
       LIMIT 1
     `,
-    [wishId]
+    [wishId, ...authorization.values]
   );
+  if (result.affectedRows === 0) {
+    throw new HttpError(404, "deleted wish not found");
+  }
 
   const restoredWish = await findWishById(userId, wishId);
   if (!restoredWish) {
@@ -870,15 +884,20 @@ export async function permanentlyDeleteWish(req: Request, res: Response) {
     throw new HttpError(404, "deleted wish not found");
   }
 
-  await db.query<ResultSetHeader>(
+  const authorization = buildWishWriteAuthorization(wish, userId);
+  const [result] = await db.query<ResultSetHeader>(
     `
       DELETE FROM wishes
       WHERE id = ?
+        AND ${authorization.sql}
         AND deleted_at IS NOT NULL
       LIMIT 1
     `,
-    [wishId]
+    [wishId, ...authorization.values]
   );
+  if (result.affectedRows === 0) {
+    throw new HttpError(404, "deleted wish not found");
+  }
 
   res.status(200).json({
     message: "permanently delete wish success",
