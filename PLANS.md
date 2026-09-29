@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–15 是这项授权下已完成的
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–16 是这项授权下已完成的
 阶段。Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -29,6 +29,7 @@
 | 13 | Mobile wish date-only serialization | Complete | PRD-WISH-001、PRD 10.5 | 创建心愿和过程记录时保留日期选择器显示的本地日历日期 |
 | 14 | Wish calendar date validation | Complete | Phase 13、PRD-WISH-001 | 服务端拒绝不真实或超出当前 DATE 范围的心愿及记录日期 |
 | 15 | Wish deletion lifecycle authorization | Complete | PRD-WISH-001、Phase 08 | 删除、恢复和永久删除在实际写入时重新约束当前关系授权 |
+| 16 | Wish record creation authorization | Complete | Phase 15、PRD-WISH-001 | 过程记录插入与当前心愿/关系授权合为同一 SQL 语句 |
 
 ## 阶段顺序
 
@@ -127,6 +128,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 复用 Phase 08 已有的写入时关系授权条件，保护心愿软删除、恢复和永久删除，避免预先读取之后关系变化仍可写入。详细计划见
 `harness/build/phase-15-wish-deletion-lifecycle-authorization.md`。
+
+### Phase 16 — Wish record creation authorization
+
+心愿过程记录的创建从先查心愿再无条件插入，改为在 INSERT 内查询可写的当前心愿；预检查后关系或心愿状态变化时不创建记录。详细计划见
+`harness/build/phase-16-wish-record-creation-authorization.md`。
 
 ## 后续阶段的准入条件
 

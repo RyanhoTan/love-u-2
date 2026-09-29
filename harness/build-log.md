@@ -22,6 +22,7 @@
 | 13 — Mobile wish date-only serialization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 14 — Wish calendar date validation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 15 — Wish deletion lifecycle authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
+| 16 — Wish record creation authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 
 ## Activity
 
@@ -500,3 +501,16 @@
 - **Limitations:** 尚无隔离 MySQL 集成环境，因此没有运行并发时序或真实跨情侣请求验证；PRD 解绑历史数据处置仍待产品决策。
 - **Next action:** 本小点独立提交；继续检查过程记录的写入授权边界。
 - **Evidence references:** `server/src/router_handler/wish.ts`、`harness/context/phase-15-wish-deletion-lifecycle-authorization-context.md`、server lint/build 输出。
+## 2026-09-29T14:38:55+08:00 — Phase 16: wish record creation authorization completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 心愿过程记录的 INSERT 授权；不改变媒体生命周期或解绑后的历史数据策略。
+- **Red:** 原先 `findWishById` 预查后直接 `INSERT ... VALUES`，若关系在两步之间解绑/切换或心愿软删除，INSERT 仍无条件创建记录。
+- **Green:** 改为 `INSERT ... SELECT FROM wishes`，在同条语句校验心愿 id、Phase 15 写入授权及未删除状态。零行插入返回 404，且在缩略图和媒体处理之前终止。
+- **Verification:** `pnpm --dir server lint`、`pnpm --dir server build`、`git diff --check` 均通过；聚焦静态检查确认八个记录值与一个心愿 id 占位符、授权和状态条件及零行保护顺序。第一次聚焦脚本错误地把动态授权参数当成 SQL 文本内固定占位符，修正预期后通过；这不是实现失败。
+- **Review:** 未登录由 `getAuthenticatedUserId` 拒绝，非成员/跨关系预查返回 404；预查后的关系或心愿状态变化在 INSERT 条件中再次检查。成功路径字段和响应形状不变。
+- **Operational evidence:** 未连接 MySQL、未执行真实写入、未读取凭据、未推送或部署。
+- **Limitations:** 尚无隔离 MySQL 集成验证；媒体处理发生在记录插入之后，部分失败及媒体 URL 所有权仍需单独处理。
+- **Next action:** 独立提交后继续 PRD R1/P0 的其他缺口。
+- **Evidence references:** `server/src/router_handler/wish.ts`、`harness/context/phase-16-wish-record-creation-authorization-context.md`、server lint/build 与聚焦检查输出。

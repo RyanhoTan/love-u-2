@@ -696,8 +696,8 @@ export async function createWishRecord(req: Request, res: Response) {
     throw new HttpError(500, "wish records table not found");
   }
 
+  const authorization = buildWishWriteAuthorization(wish, userId);
   const insertValues = [
-    wishId,
     userId,
     payload.content || null,
     payload.recordDate,
@@ -706,6 +706,8 @@ export async function createWishRecord(req: Request, res: Response) {
     payload.latitude,
     payload.longitude,
     payload.budgetAmount,
+    wishId,
+    ...authorization.values,
   ];
 
   const [result] = await db.query<ResultSetHeader>(
@@ -721,10 +723,21 @@ export async function createWishRecord(req: Request, res: Response) {
         longitude,
         budget_amount
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      SELECT
+        wishes.id,
+        ?, ?, ?, ?, ?, ?, ?, ?
+      FROM wishes
+      WHERE wishes.id = ?
+        AND ${authorization.sql}
+        AND wishes.deleted_at IS NULL
+      LIMIT 1
     `,
     insertValues
   );
+  if (result.affectedRows === 0) {
+    throw new HttpError(404, "wish not found");
+  }
+
   const media = await createWishRecordThumbnails(userId, payload.media);
   await createWishRecordMedia(wish, result.insertId, userId, media);
 
