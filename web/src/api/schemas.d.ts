@@ -787,7 +787,8 @@ export interface components {
         };
         CreateAlbumMediaRequest: {
             mediaType: components["schemas"]["AlbumMediaType"];
-            url: string;
+            /** @description Object storage key returned by the authenticated upload endpoint */
+            objectKey: string;
             /** @default  */
             thumbnailUrl: string;
             takenAt?: components["schemas"]["DateOnly"];
@@ -829,7 +830,8 @@ export interface components {
         };
         CreateAlbumStoryMediaInput: {
             mediaType: components["schemas"]["AlbumMediaType"];
-            url: string;
+            /** @description Object storage key returned by the authenticated upload endpoint */
+            objectKey: string;
             /** @default  */
             thumbnailUrl: string;
             takenAt?: components["schemas"]["DateOnly"];

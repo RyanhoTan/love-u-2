@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–25 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–26 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -39,6 +39,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 23 | Wish target-date editing | Complete | Phase 14、PRD-WISH-001 | 服务端、Web 与移动端支持受校验的心愿目标日期更新 |
 | 24 | Wish budget editing | Complete | Phase 08、PRD-WISH-001 | 服务端、Web 与移动端支持校验、清空且不会覆盖其他字段的预算更新 |
 | 25 | Wish location-name editing | Complete | Phase 08、PRD-WISH-001 | Web 与移动端可修改或清除地点名称，保存失败有反馈且保留坐标 |
+| 26 | Album object-key write contract | Complete | PRD-MEMORY-001 | Web/App 上传后向相册和故事登记服务端返回的私有对象键，不再提交本地 URI |
 
 ## 阶段顺序
 
@@ -187,6 +188,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 为心愿 PATCH 增加受长度校验的地点名称字段，Web 与移动端均可编辑或清空名称；保持现有经纬度不变，不引入地图/地理编码能力。详细计划见
 `harness/build/phase-25-wish-location-name-editing.md`。
+
+### Phase 26 — Album object-key write contract
+
+对齐相册创建接口的 `objectKey` 契约：Web/App 必须先经认证上传获得对象键，再登记为相册媒体或故事媒体；不将本地临时 URI 或公开 URL 当作媒体对象标识。本阶段仅修复写入注册链路，签名读取 URL 接入以及 Wish/Chat 上传消费者另行分阶段处理。详细计划见
+`harness/build/phase-26-album-object-key-write-contract.md`。
 
 ## 后续阶段的准入条件
 

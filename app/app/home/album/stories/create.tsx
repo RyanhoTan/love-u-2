@@ -150,7 +150,7 @@ export default function CreateStory() {
 
         media.push({
           mediaType: item.type,
-          url: upload.url,
+          objectKey: upload.key,
           thumbnailUrl: item.type === "video" ? getThumbnailUri(item) : "",
         });
       }

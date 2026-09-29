@@ -3392,16 +3392,18 @@
         "type": "object",
         "required": [
           "mediaType",
-          "url"
+          "objectKey"
         ],
         "additionalProperties": false,
         "properties": {
           "mediaType": {
             "$ref": "#/components/schemas/AlbumMediaType"
           },
-          "url": {
+          "objectKey": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 2048,
+            "description": "Object storage key returned by the authenticated upload endpoint"
           },
           "thumbnailUrl": {
             "type": "string",
@@ -3560,16 +3562,18 @@
         "type": "object",
         "required": [
           "mediaType",
-          "url"
+          "objectKey"
         ],
         "additionalProperties": false,
         "properties": {
           "mediaType": {
             "$ref": "#/components/schemas/AlbumMediaType"
           },
-          "url": {
+          "objectKey": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 2048,
+            "description": "Object storage key returned by the authenticated upload endpoint"
           },
           "thumbnailUrl": {
             "type": "string",

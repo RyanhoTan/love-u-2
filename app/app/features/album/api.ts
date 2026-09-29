@@ -63,7 +63,7 @@ interface GetAlbumStoryResponse {
 
 export interface CreateAlbumMediaPayload {
   mediaType: AlbumMediaType;
-  url: string;
+  objectKey: string;
   thumbnailUrl?: string;
   takenAt?: string;
   locationName?: string;

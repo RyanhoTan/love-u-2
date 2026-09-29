@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { createAlbumMedia } from "@/app/features/album/api";
+import {
+  createAlbumMedia,
+  uploadAlbumFile,
+} from "@/app/features/album/api";
 import {
   createAlbumUploadRecord,
   markAlbumUploadRecordFailed,
@@ -45,15 +48,26 @@ export function useAlbumUpload(options?: { onSuccess?: () => void }) {
       setIsUploadingMedia(true);
 
       await Promise.all(
-        assets.map((asset) =>
-          createAlbumMedia({
+        assets.map(async (asset) => {
+          const fileName =
+            asset.fileName ||
+            `${asset.id}.${asset.type === "image" ? "jpg" : "mp4"}`;
+          const uploaded = await uploadAlbumFile(
+            asset.uri,
+            fileName,
+            asset.mimeType ||
+              (asset.type === "image" ? "image/jpeg" : "video/mp4"),
+            "album",
+          );
+
+          return createAlbumMedia({
             mediaType: asset.type,
-            url: asset.uri,
+            objectKey: uploaded.key,
             thumbnailUrl: getThumbnailUri(asset),
             latitude: null,
             longitude: null,
-          }),
-        ),
+          });
+        }),
       );
 
       markAlbumUploadRecordSuccess(uploadRecordId);

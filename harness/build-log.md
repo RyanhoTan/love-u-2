@@ -29,6 +29,10 @@
 | 20 — Honest anniversary reminder copy | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/浏览器检查 | None |
 | 21 — Mobile anniversary list honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/后端联调 | None |
 | 22 — Mobile anniversary editing and deletion | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/后端联调 | None |
+| 23 — Wish target-date editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/设备验证 |
+| 24 — Wish budget editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/设备验证 |
+| 25 — Wish location-name editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/设备验证 |
+| 26 — Album object-key write contract | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无 DB/R2/设备集成 |
 
 ## Activity
 
@@ -639,3 +643,18 @@
 - **Limitations:** 未验证数据库 NULL 往返、原生键盘布局或并发关系变化；Web 生成类型与构建并行造成的一次旧声明错误已按序重跑通过，仍有既有 bundle/Zod 警告。
 - **Next action:** 独立提交后继续处理 P0 心愿封面和过程记录能力。
 - **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、Web/App 心愿编辑 UI、`web/openapi.json`、schema 矩阵与 build 输出。
+
+## 2026-09-29T15:45:38+08:00 — Phase 26: album object-key write contract completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 相册与故事媒体登记契约；不包含 signed read UI、Wish/Chat 消费者迁移或媒体回收。
+- **Red:** Web 旧请求使用不存在的 `uploaded.url`，App 相册把设备本地 asset URI 当成服务端媒体地址，故事媒体也登记旧 `url` 字段。
+- **Green:** Web OpenAPI/生成类型改为 `objectKey`；Web 与 App 相册先上传资产再以服务端返回 key 登记；App 故事上传也提交 key。
+- **Verification:** `pnpm --dir web api`、`pnpm --dir web lint`、`pnpm --dir web build`、`pnpm --dir app lint`、`pnpm --dir app exec tsc --noEmit` 和 `git diff --check` 均通过；相册媒体/故事 schema 6 项矩阵通过。
+- **Review:** 静态检查确认 handler 检查对象键当前用户归属，并按活动情侣关系 scope 保存；客户端不再把本地 URI/public URL 作为媒体对象键。
+- **Operational evidence:** 未连接数据库、R2、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** Web build 保留 Zod 注释位置和 >500 kB bundle 警告；未做真实存储集成。媒体 GET 仍返回空旧 `url`，新上传暂不能通过 signed URL 预览；Wish/Chat 上传契约暂未迁移。
+- **Blockers:** None。
+- **Next action:** Phase 27 实现关系授权后的短时签名读取 URL 与相册/故事 UI 接入。
+- **Evidence references:** `server/src/schema/album.ts`、`server/src/router_handler/album.ts`、App/Web 相册上传、故事创建、`web/openapi.json`、schema 矩阵和 workspace 检查输出。
