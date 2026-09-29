@@ -2440,7 +2440,7 @@
                 "type": "null"
               }
             ],
-            "description": "Optional profile date; null clears the stored birthday"
+            "description": "Optional valid YYYY-MM-DD date that cannot be in the future; null clears the stored birthday"
           }
         }
       },

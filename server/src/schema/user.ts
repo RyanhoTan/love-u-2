@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+function isValidDateOnly(value: string) {
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+
+  return (
+    !Number.isNaN(parsed.getTime()) &&
+    parsed.toISOString().slice(0, 10) === value
+  );
+}
+
 export const authSchema = z.object({
   username: z
     .string()
@@ -29,6 +38,11 @@ export const updateUserProfileSchema = z.object({
   birthday: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "birthday must be in YYYY-MM-DD format")
+    .refine(isValidDateOnly, "birthday must be a valid date")
+    .refine(
+      (value) => value <= new Date().toISOString().slice(0, 10),
+      "birthday cannot be in the future",
+    )
     .nullable(),
 });
 

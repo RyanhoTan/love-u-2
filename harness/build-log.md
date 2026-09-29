@@ -9,7 +9,7 @@
 | 00 — Repository workflow foundation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方开始与完成记录 | None |
 | 01 — Repository baseline assessment | Not started | — | — | — | — | Awaiting explicit approval |
 | 02 — Web today real-data baseline | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
-| 03 — Web profile editing | In progress | `refactor/codex-workflow-harness` | 2026-09-29 | — | 下方阶段记录 | None |
+| 03 — Web profile editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -150,3 +150,20 @@
 - **Blockers:** None。
 - **Next action:** 提交 Small point A，然后实现 Web 表单。
 - **Evidence references:** `server/src/schema/user.ts`、`web/openapi.json`、`web/src/api/schemas.d.ts`。
+
+## 2026-09-29T13:33:40+08:00 — Phase 03: Web profile editing completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Phase 03 Small point B。
+- **Changes:** 新增 Web 个人资料表单和 `/userinfo` PUT client；用户可编辑昵称、签名和可选生日，保存成功后刷新 auth session 并返回“我的”；头像和用户名明确只读；服务端补充真实日历日期和未来日期验证；同步 PRD 基线。
+- **Red:** `/me/profile` 修改前由 `PlaceholderPage` 提供，Web API client 没有资料更新调用。
+- **Green:** 路由现在渲染 `ProfilePage`，表单调用 `updateUserInfo`，支持清空生日并覆盖加载、字段错误、提交中和请求失败状态。
+- **Refactor:** 复用现有 `useAuth`、`Input`、`Button`、`PageBody` 与 `QueryError`；没有新增依赖或复制会话状态管理。
+- **Verification:** OpenAPI 类型重新生成；schema 检查得到 `{"nullOk":true,"validOk":true,"invalidRejected":true,"futureRejected":true}`；server lint/build、Web lint/build、静态路由/调用检查和 `git diff --check` 均通过。Vite 仍报告既有的 bundle 大于 500 kB 警告。
+- **Review:** 保存请求保留现有头像；昵称与签名在客户端和服务端均有限长；失败时保留输入且不跳转；未把头像上传、性别、密码或账号删除扩入本阶段。
+- **Operational evidence:** 未连接真实数据库，未读取凭据，未推送或部署。
+- **Limitations:** 未使用真实账号执行浏览器端到端保存；头像仍需移动端更新；真实 MySQL 写入和多时区边界未集成验证。
+- **Blockers:** None。
+- **Next action:** 提交 Small point B，然后从 PRD 选择下一个独立、可验证的小点。
+- **Evidence references:** `web/src/pages/profile-page/index.tsx`、`web/src/api/user.ts`、`web/src/routes/me.tsx`、`server/src/schema/user.ts`、`PRD.md`、server/Web lint/build 输出。

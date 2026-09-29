@@ -1,6 +1,7 @@
 import type { RouteObject } from "react-router-dom";
 import { CouplePage } from "@/pages/couple-page";
 import { MePage } from "@/pages/me-page";
+import { ProfilePage } from "@/pages/profile-page";
 import { body, page } from "./shared";
 import type { RouteHandle } from "./types";
 
@@ -16,14 +17,12 @@ export const meRoutes = [
   },
   {
     path: "me/profile",
-    ...page({
+    handle: {
       navId: "me",
-      title: "个人资料",
-      backTo: "/me",
-      actions: [{ kind: "primary", label: "保存" }],
       placeholder: "个人资料",
       bodyClassName: body.nested,
-    }),
+    } satisfies RouteHandle,
+    Component: ProfilePage,
   },
   {
     path: "me/couple",

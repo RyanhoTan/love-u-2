@@ -16,7 +16,7 @@
 | 00 | Repository workflow foundation | Complete | 无 | 建立适配本仓库的 Codex 协作文件、边界和证据记录方式 |
 | 01 | Repository baseline assessment | Not started | Phase 00 | 形成有证据的现状、风险和候选重构阶段建议，不修改业务代码 |
 | 02 | Web today real-data baseline | Complete | Phase 00、PRD-TODAY-001 | 清除 Web 首页模拟业务内容，只呈现真实数据或诚实空状态 |
-| 03 | Web profile editing | In progress | PRD-AUTH-001、现有 `/userinfo` | 允许清空生日并将 Web 个人资料从占位页改为真实表单 |
+| 03 | Web profile editing | Complete | PRD-AUTH-001、现有 `/userinfo` | 允许清空生日并将 Web 个人资料从占位页改为真实表单 |
 
 ## 阶段顺序
 

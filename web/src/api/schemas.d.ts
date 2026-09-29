@@ -522,7 +522,7 @@ export interface components {
             avatar: string | null;
             /** @description Empty string is stored as null */
             signature: string;
-            /** @description Optional profile date; null clears the stored birthday */
+            /** @description Optional valid YYYY-MM-DD date that cannot be in the future; null clears the stored birthday */
             birthday: components["schemas"]["DateOnly"] | null;
         };
         CoupleInvite: {
