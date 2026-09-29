@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { NavBar, PinkButton, toast } from "@/components/common";
 import { useImageViewer } from "@/hooks/use-image-viewer";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  Ellipsis,
   Clock,
   MapPin,
   Wallet,
   User,
   Heart,
   MessageCircleMore,
+  Pencil,
 } from "lucide-react-native";
 import type { ImageSourcePropType } from "react-native";
 // 引入 Dimensions 用来获取手机屏幕的宽度
@@ -28,7 +28,7 @@ import {
   ImagesAvatarFemalePng,
   ImagesAvatarMalePng,
 } from "@/assets";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   getWishById,
   updateWish,
@@ -47,27 +47,36 @@ export default function WishListDetail() {
   const [wish, setWish] = useState<WishItem | null>(null);
   const [isStartingPlan, setIsStartingPlan] = useState(false);
 
-  useEffect(() => {
-    const parsedWishId = Number(id);
+  useFocusEffect(
+    useCallback(() => {
+      const parsedWishId = Number(id);
 
-    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
-      toast.error("愿望不存在");
-      return;
-    }
-
-    const loadWish = async () => {
-      try {
-        const response = await getWishById(parsedWishId);
-        setWish(response.wish);
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "加载愿望详情失败";
-        toast.error(message);
+      if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
+        toast.error("愿望不存在");
+        return;
       }
-    };
 
-    void loadWish();
-  }, [id]);
+      let active = true;
+      void getWishById(parsedWishId)
+        .then((response) => {
+          if (active) {
+            setWish(response.wish);
+          }
+        })
+        .catch((error: unknown) => {
+          if (!active) {
+            return;
+          }
+          const message =
+            error instanceof Error ? error.message : "加载愿望详情失败";
+          toast.error(message);
+        });
+
+      return () => {
+        active = false;
+      };
+    }, [id]),
+  );
 
   useEffect(() => {
     // 功能：获取图片的原始宽高，并根据屏幕宽度等比例缩放高度
@@ -185,9 +194,15 @@ export default function WishListDetail() {
       {/* 顶部导航栏部分 */}
       <NavBar
         rightContent={
-          <TouchableOpacity onPress={() => toast.info("更多")}>
-            <Ellipsis width={24} height={24} />
-          </TouchableOpacity>
+          wish ? (
+            <TouchableOpacity
+              accessibilityLabel="编辑心愿描述"
+              onPress={() => router.push(`/home/wish-list/${id}/edit`)}
+              hitSlop={8}
+            >
+              <Pencil width={22} height={22} />
+            </TouchableOpacity>
+          ) : null
         }
       />
       <ScrollView>
@@ -214,7 +229,7 @@ export default function WishListDetail() {
               <Tag status={status} />
             </Row>
             <Text style={{ color: "#666" }}>
-              {wish?.description || "description"}
+              {wish?.description || "还没有写下描述"}
             </Text>
           </Column>
           <Row style={styles.divider} />

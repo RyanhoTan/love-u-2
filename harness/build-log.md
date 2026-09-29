@@ -15,6 +15,7 @@
 | 06 — Hide fake mobile daily interactions | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 07 — Mobile today honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 08 — Web wish description editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 09 — Mobile wish description editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -284,3 +285,36 @@
 - **Blockers:** None。
 - **Next action:** 提交 Web 描述编辑小点，然后继续 PRD-WISH-001 的下一个独立缺口。
 - **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、`web/src/api/schemas.d.ts`、Web 心愿详情组件、server/Web 命令输出。
+
+## 2026-09-29T13:58:21+08:00 — Phase 09: mobile wish description editing authorized and started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** 活动 PRD R1/P0 Goal 下的 PRD-WISH-001 小点：移动端心愿描述编辑。
+- **Changes:** 开始扩展移动端 `/wishes/:id` client payload 类型，并在详情页接入独立描述编辑页。
+- **Red:** 修改前移动端详情页“更多”只显示 toast，description 无编辑入口；API payload 类型只允许 `status`。
+- **Green:** Pending。
+- **Refactor:** Pending。
+- **Verification:** Phase 08 已验证并提交服务端 description PATCH 契约；修改前工作树干净。
+- **Review:** 复用服务端现有关系授权和 schema；不引入新数据表或只写本地状态的反馈。
+- **Operational evidence:** 未连接后端或数据库，未读取凭据。
+- **Limitations:** 本阶段只编辑描述，不编辑标题、封面、日期、地点或预算。
+- **Next action:** 完成移动端加载、编辑、保存成功/失败体验并运行 app lint/typecheck 后独立提交。
+- **Evidence references:** `app/app/home/wish-list/[id]/index.tsx`、`app/app/features/wish-list/api.ts`、Phase 08 completion evidence。
+
+## 2026-09-29T14:01:01+08:00 — Phase 09: mobile wish description editing completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 移动端心愿描述编辑小点。
+- **Changes:** 移动端 PATCH payload 类型增加 description-only 更新并保留 status-only 更新；心愿详情铅笔入口打开独立编辑页；编辑页读取现有描述、限制 1000 字符、支持清空、显示加载/错误/保存状态；成功后返回详情并在重新聚焦时刷新；空描述改为诚实空状态；同步 PRD 基线。
+- **Red:** 修改前“更多”按钮只显示 toast，描述不可编辑；清空描述后详情页会显示硬编码 `description`。
+- **Green:** 编辑页发送真实 PATCH，只在请求成功后提示保存并返回；失败时保留输入，读取失败可重试。
+- **Refactor:** 详情数据加载改用 `useFocusEffect` 并在失焦时忽略迟到响应；不新增缓存或本地伪持久化。
+- **Verification:** `pnpm --dir app lint`、`pnpm --dir app exec tsc --noEmit` 和 `git diff --check` 通过。
+- **Review:** 服务端最终校验描述长度和当前关系权限；已有 `status` 更新调用仍通过 TypeScript 检查并保持相同请求格式。
+- **Operational evidence:** 未连接后端、数据库或对象存储，未读取凭据，未推送或部署。
+- **Limitations:** 未运行 Android/iOS 模拟器或真实账号联调；目前只编辑描述，其他字段编辑仍待后续小点。
+- **Blockers:** None。
+- **Next action:** 提交移动端描述编辑，再继续 PRD-WISH-001 其余 P0 缺口。
+- **Evidence references:** `app/app/features/wish-list/api.ts`、`app/app/home/wish-list/[id]/index.tsx`、`app/app/home/wish-list/[id]/edit.tsx`、app lint/TypeScript 输出。

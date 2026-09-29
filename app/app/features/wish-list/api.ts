@@ -96,9 +96,9 @@ export interface CreateWishPayload {
   budgetAmount: number | null;
 }
 
-export interface UpdateWishPayload {
-  status: WishStatus;
-}
+export type UpdateWishPayload =
+  | { status: WishStatus }
+  | { description: string };
 
 export interface CreateWishRecordPayload {
   content: string;
