@@ -40,6 +40,23 @@ interface PartnerChatMessage {
 
 interface PartnerChatMessageRow extends PartnerChatMessage, RowDataPacket {}
 
+type PartnerChatWritePayload =
+  | { messageType: "text"; text: string; clientMessageId?: string }
+  | {
+      messageType: "audio";
+      audioObjectKey?: string;
+      audioUrl?: string;
+      audioDurationSeconds?: number;
+      clientMessageId?: string;
+    };
+
+class PartnerChatIdempotencyConflictError extends Error {
+  constructor() {
+    super("client message id conflicts with a previously saved message");
+    this.name = "PartnerChatIdempotencyConflictError";
+  }
+}
+
 interface ReadReceiptRow extends RowDataPacket {
   id: number;
   read_at: Date | string;
@@ -57,13 +74,13 @@ interface PartnerChatConnection {
   isAlive: boolean;
 }
 
-const incomingPayloadSchema = z.union([
+export const incomingPayloadSchema = z.union([
   z
     .object({
       type: z.literal("message"),
       messageType: z.literal("text"),
       text: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
-      clientMessageId: z.string().trim().max(100).optional(),
+      clientMessageId: z.string().trim().min(1).max(100).optional(),
     })
     .strict(),
   partnerChatAudioMessageSchema,
@@ -100,13 +117,44 @@ export function getPartnerChatDeliveryStatus(
     : "partner_offline";
 }
 
+export function isSamePartnerChatMessagePayload(
+  savedMessage: Pick<
+    PartnerChatMessage,
+    | "message_type"
+    | "text"
+    | "audio_url"
+    | "audio_object_key"
+    | "audio_duration_seconds"
+  >,
+  payload: PartnerChatWritePayload,
+) {
+  if (payload.messageType === "text") {
+    return (
+      savedMessage.message_type === "text" &&
+      savedMessage.text === payload.text &&
+      savedMessage.audio_url === null &&
+      savedMessage.audio_object_key === null &&
+      savedMessage.audio_duration_seconds === null
+    );
+  }
+
+  return (
+    savedMessage.message_type === "audio" &&
+    savedMessage.text === null &&
+    savedMessage.audio_url === (payload.audioUrl ?? null) &&
+    savedMessage.audio_object_key === (payload.audioObjectKey ?? null) &&
+    savedMessage.audio_duration_seconds ===
+      (payload.audioDurationSeconds ?? null)
+  );
+}
+
 function getClientMessageId(payload: unknown) {
   if (!payload || typeof payload !== "object") {
     return undefined;
   }
 
   const candidate = (payload as { clientMessageId?: unknown }).clientMessageId;
-  const parsed = z.string().trim().max(100).safeParse(candidate);
+  const parsed = z.string().trim().min(1).max(100).safeParse(candidate);
   return parsed.success ? parsed.data : undefined;
 }
 
@@ -279,15 +327,7 @@ function createDeliveryPayload(
 
 async function saveMessage(
   connection: PartnerChatConnection,
-  payload:
-    | { messageType: "text"; text: string; clientMessageId?: string }
-    | {
-        messageType: "audio";
-        audioObjectKey?: string;
-        audioUrl?: string;
-        audioDurationSeconds?: number;
-        clientMessageId?: string;
-      }
+  payload: PartnerChatWritePayload
 ) {
   await ensurePartnerChatSchema();
 
@@ -385,13 +425,34 @@ async function saveMessage(
     );
 
     const savedMessage = rows[0];
+    if (!savedMessage) {
+      throw new Error("saved partner chat message could not be loaded");
+    }
+
     if (
-      !savedMessage ||
+      payload.clientMessageId !== undefined &&
+      savedMessage.client_message_id === payload.clientMessageId &&
+      (savedMessage.relationship_id !== connection.relationshipId ||
+        savedMessage.sender_id !== connection.userId ||
+        savedMessage.receiver_id !== connection.partnerId ||
+        !isSamePartnerChatMessagePayload(savedMessage, payload))
+    ) {
+      throw new PartnerChatIdempotencyConflictError();
+    }
+
+    if (
       savedMessage.relationship_id !== connection.relationshipId ||
       savedMessage.sender_id !== connection.userId ||
       savedMessage.receiver_id !== connection.partnerId
     ) {
       throw new Error("saved partner chat message could not be loaded");
+    }
+
+    if (
+      payload.clientMessageId !== undefined &&
+      !isSamePartnerChatMessagePayload(savedMessage, payload)
+    ) {
+      throw new PartnerChatIdempotencyConflictError();
     }
 
     await databaseConnection.commit();
@@ -715,6 +776,16 @@ async function handleIncomingPayload(connection: PartnerChatConnection, rawData:
           }
     );
   } catch (error) {
+    if (error instanceof PartnerChatIdempotencyConflictError) {
+      sendJson(connection.socket, {
+        type: "error",
+        code: "client_message_id_conflict",
+        message: "message id was already used for a different message",
+        clientMessageId: parsed.data.clientMessageId,
+      });
+      return;
+    }
+
     console.error("failed to save partner chat message", error);
     sendJson(connection.socket, {
       type: "error",

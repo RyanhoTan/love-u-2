@@ -14,7 +14,7 @@ export const partnerChatAudioMessageSchema = z
     audioObjectKey: audioObjectKeySchema.optional(),
     audioUrl: z.string().trim().min(1).max(2048).optional(),
     audioDurationSeconds: z.number().positive().max(600).optional(),
-    clientMessageId: z.string().trim().max(100).optional(),
+    clientMessageId: z.string().trim().min(1).max(100).optional(),
   })
   .strict()
   .refine(

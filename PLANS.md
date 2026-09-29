@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–34 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–35 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -48,6 +48,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 32 | Revoke partner chat sockets after unbind | Complete | PRD-CHAT-001、Phase 31 | 解绑提交后关闭既有连接，并在消息/已读事件和心跳周期重新验证当前关系 |
 | 33 | Server-backed partner chat history | Complete | PRD-CHAT-001、Phase 32 | 增加当前绑定关系授权的历史分页，并由 Web/App 在连接后读取及按需加载旧消息 |
 | 34 | Accurate partner chat delivery states | Complete | PRD-CHAT-001、Phase 33 | 根据对方可用连接与持久化 delivered_at 回报离线/送达状态，并在两端显示状态 |
+| 35 | Reject conflicting partner chat idempotency keys | Complete | PRD-CHAT-001、Phase 34 | 同一 clientMessageId 重试保持幂等；复用 ID 发送不同内容时明确拒绝，避免发送端/接收端内容分叉 |
 
 ## 阶段顺序
 
@@ -241,6 +242,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 仅在消息已交给当前关系下开放的接收方 WebSocket 时标记送达；没有可用连接时回报 `partner_offline`，离线重放也只确认实际提交到开放 socket 的消息；两端展示已送达状态。`sent` 表示服务端交给开放连接，不代表客户端界面已渲染；`read` 仍由已读事件单独确认。详细计划见
 `harness/build/phase-34-chat-delivery-state.md`。
+
+### Phase 35 — Reject conflicting partner chat idempotency keys
+
+保留现有 `(sender_id, client_message_id)` 唯一约束；同 ID、同内容的重试返回原消息，若同 ID 被用于不同文本/语音内容或另一关系，则返回明确冲突，不向接收方广播旧内容。详细计划见
+`harness/build/phase-35-chat-idempotency-conflict.md`。
 
 ## 后续阶段的准入条件
 

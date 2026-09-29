@@ -489,7 +489,11 @@ export function usePartnerChat(
             ),
           );
         }
-        setErrorMessage(payload.message);
+        setErrorMessage(
+          payload.code === "client_message_id_conflict"
+            ? "消息标识冲突，请重新发送"
+            : payload.message,
+        );
       }
     };
 

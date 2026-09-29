@@ -41,6 +41,7 @@
 | 32 — Revoke partner chat sockets after unbind | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/WS/跨进程/设备集成 |
 | 33 — Server-backed partner chat history | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/浏览器/移动设备集成 |
 | 34 — Accurate partner chat delivery states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-30 | 下方阶段记录 | 无真实 DB/WS/双端设备集成 |
+| 35 — Reject conflicting partner chat idempotency keys | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 MySQL/WS 集成 |
 
 ## Activity
 
@@ -883,3 +884,30 @@
 - **Blockers:** None for this scoped behavior.
 - **Next action:** Continue PRD-CHAT-001 review for client-message idempotency, delivery acknowledgement boundaries, and offline/reconnect ordering.
 - **Evidence references:** `server/src/ws/partnerChat.ts`, App `interact.tsx`, Web `messages-page/index.tsx`, Phase 34 build/context docs.
+
+## 2026-09-30 — Phase 35: reject conflicting partner chat idempotency keys started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 duplicate client-message ID behavior for current text/audio writes; preserve existing unique constraint and accepted identical retries.
+- **Red:** The database prevents a duplicate row for `(sender_id, client_message_id)` and the saved row is checked against the active relationship, but a repeated ID with different content silently returns/broadcasts the old saved content while the sender keeps its new optimistic draft.
+- **Decision:** Treat client ID as an idempotency key: same sender/relationship/content returns the original persisted message; any reuse for a different payload or a conflicting historical relationship returns a specific non-content-revealing conflict and is not relayed. No new schema or client ID policy.
+- **Operational evidence:** Phase 34 committed as `6bba380`; workspace was clean at start. No DB or live WS was accessed.
+- **Verification:** Completed; see Phase 35 completion entry below.
+- **Limitations:** No MySQL unique-index/concurrent-transaction or live WebSocket test; identical retry relies on the existing unique key.
+- **Blockers:** None.
+- **Next action:** Continue PRD-CHAT-001 review for receiver acknowledgement, cross-process delivery, and app restart retry behavior.
+- **Evidence references:** `server/src/db/schema.ts` unique key, `server/src/ws/partnerChat.ts` `saveMessage`, Web/App WS error handling.
+
+## 2026-09-30 — Phase 35: reject conflicting partner chat idempotency keys completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Before commit/fanout, the server compares the loaded row's persisted type/content against the normalized retry. Identical text or audio payloads reuse the existing row. Reusing a key for different text/type/object key/legacy URL/duration or another relationship returns `client_message_id_conflict` without relaying old content. Web/App show “消息标识冲突，请重新发送” and mark the optimistic item failed.
+- **Verification:** Server lint/build, Web API generation/lint/build, App lint/typecheck, and `git diff --check` passed. A compiled 14-case payload/schema matrix passed. Web build emitted existing Zod Rollup annotation and >500 kB chunk warnings.
+- **Review:** Text compares exact trimmed payload plus null audio fields. Audio compares exactly one normalized key/legacy URL and nullable duration. Conflict is thrown before the DB transaction commits; handler returns conflict before recipient fanout. Error body contains no saved content or key. Supplied empty/whitespace client IDs are rejected while an omitted optional ID remains compatible.
+- **Operational evidence:** No MySQL, WebSocket server, browser, or device was accessed; no credentials were read, no push/deploy occurred.
+- **Limitations:** The no-extra-row identical retry guarantee depends on the existing MySQL unique index, which was not exercised against a real instance; transaction locking and WebSocket conflict presentation also need integration coverage. Payloads without `clientMessageId` remain non-idempotent for legacy compatibility.
+- **Blockers:** None for this scoped fix.
+- **Next action:** Continue PRD-CHAT-001 review for receiver acknowledgement, cross-process delivery, and app restart retry behavior.
+- **Evidence references:** `server/src/db/schema.ts`, `server/src/ws/partnerChat.ts`, Web/App `use-partner-chat.ts`, Phase 35 build/context docs.

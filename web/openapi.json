@@ -3911,6 +3911,7 @@
           },
           "clientMessageId": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 100
           }
         }
@@ -3960,6 +3961,7 @@
           },
           "clientMessageId": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 100
           }
         }
@@ -3998,6 +4000,7 @@
           },
           "clientMessageId": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 100
           }
         }
