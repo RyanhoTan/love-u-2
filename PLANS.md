@@ -21,6 +21,7 @@
 | 05 | Hide unfinished mobile settings | Complete | Phase 04、PRD 7.4、R1 可信核心闭环 | 隐藏移动端通知、报告和主题入口并去除通知假保存页 |
 | 06 | Hide fake mobile daily interactions | Complete | PRD-STATUS-001、R1 可信核心闭环 | 隐藏移动端硬编码状态/一句话入口并删除假成功页面 |
 | 07 | Mobile today honest states | Complete | Phase 06、PRD-TODAY-001 | 移动端首页区分加载、失败、未绑定与真实已绑定数据 |
+| 08 | Web wish description editing | Complete | PRD-WISH-001 | 通过受关系授权的 PATCH 支持 Web 用户编辑心愿描述 |
 
 ## 阶段顺序
 
@@ -77,6 +78,12 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 该阶段补齐移动端首页的真实状态边界：请求期间显示加载，失败时允许重试，未绑定时引导建立关系，
 只有服务端确认已绑定后才展示情侣天数、心愿和纪念日。详细计划见
 `harness/build/phase-07-mobile-today-honest-states.md`。
+
+### Phase 08 — Web wish description editing
+
+该阶段补齐 Web 心愿详情上明确标记的描述编辑缺口，并扩展 `/wishes/:id` PATCH 契约；状态修改
+仍然兼容，描述保存失败时保留输入并显示错误。详细计划见
+`harness/build/phase-08-web-wish-description-editing.md`。
 
 ## 后续阶段的准入条件
 

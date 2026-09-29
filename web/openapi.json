@@ -2992,16 +2992,19 @@
       },
       "UpdateWishRequest": {
         "type": "object",
-        "required": [
-          "status"
-        ],
+        "minProperties": 1,
         "additionalProperties": false,
         "properties": {
           "status": {
             "$ref": "#/components/schemas/WishStatus"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Updated wish description; an empty string clears it"
           }
         },
-        "description": "Current backend only allows status changes"
+        "description": "PATCH at least one supported field: status or description"
       },
       "WishRecordMedia": {
         "type": "object",

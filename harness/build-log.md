@@ -14,6 +14,7 @@
 | 05 — Hide unfinished mobile settings | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 06 — Hide fake mobile daily interactions | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 07 — Mobile today honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 08 — Web wish description editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -250,3 +251,36 @@
 - **Review:** Phase 01 的只读评估仍未实施，不把它误标成完成；待确认的业务决策仍需在具体功能遇到时停止并请求用户输入。
 - **Operational evidence:** 未改业务代码，未连接外部服务或读取凭据，未推送或部署。
 - **Next action:** 提交此路线图修正，然后继续检查当前 PRD P0 未完成项。
+
+## 2026-09-29T13:50:00+08:00 — Phase 08: Web wish description editing authorized and started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** 活动 PRD R1/P0 Goal 下的 PRD-WISH-001 小点：Web 心愿描述编辑。
+- **Changes:** 开始扩展受范围授权的 PATCH 请求以支持更新描述，并在 Web 心愿详情提供编辑与保存交互。
+- **Red:** `WishDetailInfo` 含“心愿描述改为可编辑”的 TODO；`updateWishSchema` 只接受 status；详情页没有编辑入口。
+- **Green:** Pending。
+- **Refactor:** Pending。
+- **Verification:** 修改前工作树干净；当前实现证据来自 `web/src/pages/wishes-page/detail-info.tsx`、`server/src/schema/wish.ts`、`server/src/router_handler/wish.ts` 与现有 generated API contract。
+- **Review:** `findWishById` 会按当前关系或个人范围校验目标心愿；本阶段还会让 UPDATE 语句再次约束当前授权范围，以覆盖校验与写入之间关系变化的窗口。
+- **Operational evidence:** 未读取环境变量、连接数据库或访问外部系统。
+- **Limitations:** 暂不支持移动端编辑，也不修改心愿标题、地点、日期、预算、封面或状态流转以外的字段。
+- **Next action:** 完成 Web 描述编辑、契约生成与 server/Web lint/build 后独立提交。
+- **Evidence references:** `PRD.md` PRD-WISH-001、`web/src/pages/wishes-page/detail-info.tsx`、server wish schema/handler。
+
+## 2026-09-29T13:56:56+08:00 — Phase 08: Web wish description editing completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 的 Web 描述编辑小点；支持 status-only PATCH 的兼容性。
+- **Changes:** `/wishes/:id` PATCH 支持 `description`；详情页可编辑、清空并保存描述；请求成功后 TanStack Query 刷新；同步 OpenAPI、生成 Web 类型和 PRD 基线。
+- **Red:** 修改前 schema 只接受必填 `status`，详情信息组件存在编辑 TODO，用户没有可编辑描述的入口。
+- **Green:** Web modal 发送 `{ description }`，显示提交中与错误状态；失败保留草稿，可取消或重试；空字符串清空描述；原状态流转仍走同一 PATCH。
+- **Refactor:** PATCH 查询只拼接代码中列出的可更新列，值全部使用 SQL 参数；UPDATE 同时检查心愿 id、未删除状态、原关系仍绑定且当前用户属于该关系，或个人心愿仍是未绑定状态与创建者范围。
+- **Verification:** OpenAPI 类型重新生成；schema 解析验证 `statusOk/descriptionOk/clearDescriptionOk` 为 true，`emptyRejected/overlongRejected/invalidStatusRejected` 为 true；server lint/build、Web lint/build 和 `git diff --check` 通过。Vite 保留已有 Zod 注释解析和大于 500 kB bundle 警告。
+- **Review:** 没有新增数据库字段；服务端仍是最终权限边界；没有连接 MySQL 或执行真实情侣账号编辑。
+- **Operational evidence:** 未读取凭据，未访问数据库/对象存储，未推送或部署。
+- **Limitations:** 本阶段仅 Web 编辑描述，不含移动端和标题/封面/日期/地点/预算编辑；尚未进行浏览器后端联调。
+- **Blockers:** None。
+- **Next action:** 提交 Web 描述编辑小点，然后继续 PRD-WISH-001 的下一个独立缺口。
+- **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、`web/src/api/schemas.d.ts`、Web 心愿详情组件、server/Web 命令输出。

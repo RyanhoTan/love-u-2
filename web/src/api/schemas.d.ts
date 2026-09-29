@@ -672,9 +672,11 @@ export interface components {
             /** @default null */
             budgetAmount: number | null;
         };
-        /** @description Current backend only allows status changes */
+        /** @description PATCH at least one supported field: status or description */
         UpdateWishRequest: {
-            status: components["schemas"]["WishStatus"];
+            status?: components["schemas"]["WishStatus"];
+            /** @description Updated wish description; an empty string clears it */
+            description?: string;
         };
         WishRecordMedia: {
             /** Format: uri */

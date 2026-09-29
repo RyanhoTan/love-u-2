@@ -24,11 +24,13 @@ export function WishDetailInfo({
   creator,
   onMarkDone,
   onAddRecord,
+  onEditDescription,
 }: {
   wish: WishItem;
   creator: Creator | null;
   onMarkDone: () => void;
   onAddRecord: () => void;
+  onEditDescription: () => void;
 }) {
   const isDone = wish.status === "done";
 
@@ -61,12 +63,18 @@ export function WishDetailInfo({
           </span>
         ) : null}
       </div>
-        {/* TODO: 心愿描述改为可编辑的 */}
-      {wish.description ? (
-        <p className="text-base leading-[1.45] tracking-[-0.1px] text-fg">
-          {wish.description}
+      <div className="flex items-start justify-between gap-3">
+        <p className="min-w-0 flex-1 whitespace-pre-wrap text-base leading-[1.45] tracking-[-0.1px] text-fg">
+          {wish.description || "还没有写下描述"}
         </p>
-      ) : null}
+        <Button
+          variant="ghost"
+          className="shrink-0"
+          onClick={onEditDescription}
+        >
+          编辑描述
+        </Button>
+      </div>
 
       <div className="overflow-hidden rounded-[12px] bg-surface">
         <MetaRow

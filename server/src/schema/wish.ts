@@ -35,9 +35,18 @@ export const createWishSchema = z.object({
   budgetAmount: z.number().int().min(0).nullable().optional().default(null),
 });
 
-export const updateWishSchema = z.object({
-  status: wishStatusSchema,
-});
+export const updateWishSchema = z
+  .object({
+    status: wishStatusSchema.optional(),
+    description: z
+      .string()
+      .trim()
+      .max(1000, "description must be at most 1000 characters")
+      .optional(),
+  })
+  .refine((payload) => Object.keys(payload).length > 0, {
+    message: "at least one wish field is required",
+  });
 
 export const createWishRecordSchema = z.object({
   content: z

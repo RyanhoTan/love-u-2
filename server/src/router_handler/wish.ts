@@ -588,32 +588,79 @@ export async function updateWish(req: Request, res: Response) {
     throw new HttpError(404, "wish not found");
   }
 
+  const assignments: string[] = [];
+  const values: (string | number | null)[] = [];
+
+  if (payload.status !== undefined) {
+    assignments.push("status = ?");
+    values.push(payload.status);
+  }
+
+  if (payload.description !== undefined) {
+    assignments.push("description = ?");
+    values.push(payload.description || null);
+  }
+
+  assignments.push("updated_at = CURRENT_TIMESTAMP");
+
+  const isCoupleWish = existingWish.relationship_id !== null;
+  const authorizationCondition = isCoupleWish
+    ? `relationship_id = ? AND EXISTS (
+        SELECT 1
+        FROM couple_relationships AS authorized_relationship
+        WHERE authorized_relationship.id = ?
+          AND authorized_relationship.id = wishes.relationship_id
+          AND authorized_relationship.status = 'bound'
+          AND (
+            authorized_relationship.user_a_id = ?
+            OR authorized_relationship.user_b_id = ?
+          )
+      )`
+    : `relationship_id IS NULL
+       AND created_by_user_id = ?
+       AND NOT EXISTS (
+         SELECT 1
+         FROM couple_relationships AS active_relationship
+         WHERE active_relationship.status = 'bound'
+           AND (
+             active_relationship.user_a_id = ?
+             OR active_relationship.user_b_id = ?
+           )
+       )`;
+  const authorizationValues = isCoupleWish
+    ? [
+        existingWish.relationship_id!,
+        existingWish.relationship_id!,
+        userId,
+        userId,
+      ]
+    : [userId, userId, userId];
+
   await db.query<ResultSetHeader>(
     `
       UPDATE wishes
-      SET
-        status = ?,
-        updated_at = CURRENT_TIMESTAMP
+      SET ${assignments.join(", ")}
       WHERE id = ?
+        AND ${authorizationCondition}
+        AND deleted_at IS NULL
       LIMIT 1
     `,
-    [payload.status, wishId]
+    [...values, wishId, ...authorizationValues]
   );
 
-  const [rows] = await db.query<WishRow[]>(
-    `
-      SELECT
-        ${wishSelectFields}
-      FROM wishes
-      WHERE id = ?
-      LIMIT 1
-    `,
-    [existingWish.id]
-  );
+  const wish = await findWishById(userId, wishId);
+  if (!wish || wish.relationship_id !== existingWish.relationship_id) {
+    throw new HttpError(404, "wish not found");
+  }
 
-  const wish = rows[0];
-  if (!wish) {
-    throw new HttpError(500, "failed to update wish");
+  if (isCoupleWish) {
+    const currentRelationship = await findActiveRelationshipByUserId(userId);
+    if (
+      !currentRelationship ||
+      currentRelationship.id !== existingWish.relationship_id
+    ) {
+      throw new HttpError(404, "wish not found");
+    }
   }
 
   res.status(200).json({
