@@ -23,6 +23,7 @@ import {
   createWish,
   uploadWishFile,
 } from "@/app/features/wish-list/api";
+import { formatLocalDateOnly } from "@/app/features/wish-list/date";
 import { router } from "expo-router";
 
 type SelectedLocation = {
@@ -94,7 +95,7 @@ export default function CreateWishList() {
         title: title.trim(),
         description: text.trim(),
         cover: coverUrl,
-        targetDate: date.toISOString().slice(0, 10),
+        targetDate: formatLocalDateOnly(date),
         locationName: selectedLocation ? selectedLocation.name : "",
         latitude: selectedLocation ? selectedLocation.latitude : null,
         longitude: selectedLocation ? selectedLocation.longitude : null,

@@ -19,6 +19,7 @@
 | 10 — Mobile wish detail honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 11 — Web wish title editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 12 — Mobile wish title editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 13 — Mobile wish date-only serialization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -423,3 +424,34 @@
 - **Blockers:** None。
 - **Next action:** 独立提交本小点，再继续 PRD R1/P0 剩余内容。
 - **Evidence references:** `app/app/features/wish-list/api.ts`、`app/app/home/wish-list/[id]/index.tsx`、`app/app/home/wish-list/[id]/edit.tsx`、app lint/typecheck 输出。
+
+## 2026-09-29T14:24:00+08:00 — Phase 13: mobile wish date-only serialization started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001、跨端日期一致性下的移动端心愿与过程记录提交日期。
+- **Red:** 源码中的两处 `date.toISOString().slice(0, 10)` 将选择器显示的本地日期转换为 UTC。用 `TZ=Asia/Shanghai` 构造 2026-09-29 00:30，旧表达式输出 `2026-09-28`；用 `TZ=America/Los_Angeles` 构造同日 23:30，输出 `2026-09-30`。
+- **Changes:** 开始添加共用本地日期格式化并替换两处提交表达式。
+- **Verification:** 开始前工作树干净；后续运行两时区聚焦检查、app lint/typecheck 和 diff 检查。
+- **Review:** `DatePickerModal` 以 `mode="date"` 显示本地日历日；应读取 `Date` 的本地年、月、日，生成 API `YYYY-MM-DD`。
+- **Operational evidence:** 未访问数据库、凭据或外部服务。
+- **Limitations:** 本阶段不改后端日期列、纪念日行为或目标日可空策略；原生日期选择器需后续真机验证。
+- **Blockers:** None。
+- **Evidence references:** `app/app/home/wish-list/create.tsx`、`app/app/home/wish-list/[id]/records/create.tsx`、`app/components/wish-list/date-picker-modal.tsx`、聚焦 Node 输出。
+
+## 2026-09-29T14:26:18+08:00 — Phase 13: mobile wish date-only serialization completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Changes:** 新增心愿域 `formatLocalDateOnly`，用设备本地 `getFullYear/getMonth/getDate` 输出 `YYYY-MM-DD`；心愿创建和过程记录创建都改为调用它。
+- **Red:** 旧 UTC 切片在上海本地 2026-09-29 00:30 得到 `2026-09-28`，在洛杉矶同日 23:30 得到 `2026-09-30`。
+- **Green:** 对实际导出的函数分别设置 `TZ=Asia/Shanghai` 和 `TZ=America/Los_Angeles`，两次断言均输出 `2026-09-29`；两处 payload 静态检查只命中新函数，不再命中 UTC 切片。
+- **Refactor:** 两条心愿路径共用一个格式化函数；纪念日已有本地日期格式化，语义一致。
+- **Verification:** `pnpm --dir app lint`、`pnpm --dir app exec tsc --noEmit`、两时区聚焦断言和 `git diff --check` 均通过。
+- **Review:** `DatePickerModal` 仍返回本地日期模式的 `Date`；API 字段名、格式和服务端/数据库未变。没有持久化 schema 变更或历史数据重写。
+- **Operational evidence:** 未连接后端、MySQL 或对象存储，未读取凭据，未推送或部署。
+- **Limitations:** 未运行 Android/iOS 模拟器及真实后端联调；目标日期可空策略和服务端日历日期校验仍需独立处理。
+- **Log chronology:** 前一阶段完成标题的 14:26:00 是先前记录的约略时间，与本阶段开始时间交错；Git 提交顺序和本阶段的实际命令输出作为先后证据。
+- **Blockers:** None。
+- **Next action:** 单独提交此修复，继续处理 PRD P0 的日期和心愿字段一致性。
+- **Evidence references:** `app/app/features/wish-list/date.ts`、两处 create 页面、`harness/context/phase-13-mobile-wish-date-only-serialization-context.md`、聚焦断言与 app 命令输出。
