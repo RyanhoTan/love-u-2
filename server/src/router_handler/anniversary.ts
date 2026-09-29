@@ -350,6 +350,26 @@ async function findActiveAnniversaryForUser(userId: number, anniversaryId: numbe
   return rows[0] ?? null;
 }
 
+function buildAnniversaryWriteAuthorization(
+  relationshipId: number,
+  userId: number
+) {
+  return {
+    sql: `relationship_id = ?
+      AND EXISTS (
+        SELECT 1
+        FROM couple_relationships AS authorized_relationship
+        WHERE authorized_relationship.id = anniversaries.relationship_id
+          AND authorized_relationship.status = 'bound'
+          AND (
+            authorized_relationship.user_a_id = ?
+            OR authorized_relationship.user_b_id = ?
+          )
+      )`,
+    values: [relationshipId, userId, userId],
+  };
+}
+
 function parseAnniversaryId(raw: string) {
   const anniversaryId = Number(raw);
   if (!Number.isInteger(anniversaryId) || anniversaryId <= 0) {
@@ -369,6 +389,10 @@ export async function updateAnniversary(req: Request, res: Response) {
     throw new HttpError(404, "anniversary not found");
   }
 
+  const authorization = buildAnniversaryWriteAuthorization(
+    existing.relationship_id,
+    userId
+  );
   const [result] = await db.query<ResultSetHeader>(
     `
       UPDATE ${ANNIVERSARIES_TABLE}
@@ -380,6 +404,7 @@ export async function updateAnniversary(req: Request, res: Response) {
         reminder_days_before = ?,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
+        AND ${authorization.sql}
         AND status = 'active'
       LIMIT 1
     `,
@@ -390,6 +415,7 @@ export async function updateAnniversary(req: Request, res: Response) {
       payload.repeatType,
       payload.reminderDaysBefore,
       anniversaryId,
+      ...authorization.values,
     ]
   );
 
@@ -418,6 +444,10 @@ export async function deleteAnniversary(req: Request, res: Response) {
     throw new HttpError(404, "anniversary not found");
   }
 
+  const authorization = buildAnniversaryWriteAuthorization(
+    existing.relationship_id,
+    userId
+  );
   const [result] = await db.query<ResultSetHeader>(
     `
       UPDATE ${ANNIVERSARIES_TABLE}
@@ -426,10 +456,11 @@ export async function deleteAnniversary(req: Request, res: Response) {
         deleted_at = CURRENT_TIMESTAMP,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
+        AND ${authorization.sql}
         AND status = 'active'
       LIMIT 1
     `,
-    [anniversaryId]
+    [anniversaryId, ...authorization.values]
   );
 
   if (result.affectedRows === 0) {
@@ -440,4 +471,3 @@ export async function deleteAnniversary(req: Request, res: Response) {
     message: "delete anniversary success",
   });
 }
-

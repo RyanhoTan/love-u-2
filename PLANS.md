@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–17 是这项授权下已完成的
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–18 是这项授权下已完成的
 阶段。Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -31,6 +31,7 @@
 | 15 | Wish deletion lifecycle authorization | Complete | PRD-WISH-001、Phase 08 | 删除、恢复和永久删除在实际写入时重新约束当前关系授权 |
 | 16 | Wish record creation authorization | Complete | Phase 15、PRD-WISH-001 | 过程记录插入与当前心愿/关系授权合为同一 SQL 语句 |
 | 17 | Anniversary calendar date validation | Complete | PRD-DAY-001、Phase 14 | 服务端拒绝不真实或超出当前 DATE 范围的纪念日日期 |
+| 18 | Anniversary mutation authorization | Complete | PRD-DAY-001、Phase 17 | 编辑与删除纪念日的最终 UPDATE 重新约束当前关系成员资格 |
 
 ## 阶段顺序
 
@@ -139,6 +140,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 复用心愿日期校验规则，对纪念日创建和全量更新的 `originalDate` 校验真实日历日与数据库日期范围；同步 OpenAPI 字段描述。详细计划见
 `harness/build/phase-17-anniversary-calendar-date-validation.md`。
+
+### Phase 18 — Anniversary mutation authorization
+
+纪念日编辑和删除在预读后写入时重新确认目标仍属于同一当前 bound 关系，且用户是关系成员。详细计划见
+`harness/build/phase-18-anniversary-mutation-authorization.md`。
 
 ## 后续阶段的准入条件
 

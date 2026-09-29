@@ -24,6 +24,7 @@
 | 15 — Wish deletion lifecycle authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 | 16 — Wish record creation authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 | 17 — Anniversary calendar date validation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
+| 18 — Anniversary mutation authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 
 ## Activity
 
@@ -528,3 +529,16 @@
 - **Limitations:** 未验证真实数据库或服务器/设备时区边界；纪念日提醒尚无发送闭环。
 - **Next action:** 独立提交；继续 PRD-DAY-001 的服务端关系授权缺口。
 - **Evidence references:** `server/src/schema/dateOnly.ts`、`server/src/schema/anniversary.ts`、`server/src/schema/wish.ts`、`web/openapi.json`、聚焦矩阵和构建输出。
+## 2026-09-29T14:44:04+08:00 — Phase 18: anniversary mutation authorization completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-DAY-001 编辑与删除纪念日的最终写入授权；不改变读取、创建、解绑历史数据策略或客户端。
+- **Red:** 两个 handler 原先预读时核对当前 bound 关系，但最终 UPDATE 只按 id/active 写入；预读后解绑或更换关系仍可修改原纪念日。
+- **Green:** 共用参数化的最终 SQL 谓词，固定原 relationship id，并要求关系仍 bound 且用户为成员；原有零行 404 分支保留。
+- **Verification:** `pnpm --dir server lint`、`pnpm --dir server build`、`git diff --check` 通过；聚焦静态检查确认两个 UPDATE 引用同一授权条件、参数和零行保护。
+- **Review:** 未登录由身份函数拒绝；非成员/跨关系预读 404；预读后解绑、换关系、已删除或状态变化由最终 UPDATE 零行 404 处理。成功响应及字段不变。
+- **Operational evidence:** 未连接 MySQL、未运行真实多账号请求、未读取凭据、未推送或部署。
+- **Limitations:** 缺隔离 MySQL 集成和并发时序验证；纪念日创建接口仍有预查到 INSERT 的授权间隙，留待独立小点。
+- **Next action:** 独立提交；处理纪念日创建的当前关系授权。
+- **Evidence references:** `server/src/router_handler/anniversary.ts`、`harness/context/phase-18-anniversary-mutation-authorization-context.md`、server lint/build 和聚焦检查输出。
