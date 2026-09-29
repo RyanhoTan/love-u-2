@@ -18,6 +18,7 @@
 | 02 | Web today real-data baseline | Complete | Phase 00、PRD-TODAY-001 | 清除 Web 首页模拟业务内容，只呈现真实数据或诚实空状态 |
 | 03 | Web profile editing | Complete | PRD-AUTH-001、现有 `/userinfo` | 允许清空生日并将 Web 个人资料从占位页改为真实表单 |
 | 04 | Hide unfinished Web settings | Complete | PRD 7.4、R1 可信核心闭环 | 隐藏并移除 Web 个人中心尚无真实能力的入口和占位路由 |
+| 05 | Hide unfinished mobile settings | Complete | Phase 04、PRD 7.4、R1 可信核心闭环 | 隐藏移动端通知、报告和主题入口并去除通知假保存页 |
 
 ## 阶段顺序
 
@@ -55,6 +56,12 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 该阶段落实 PRD 7.4 的诚实入口原则：从 Web 个人中心隐藏通知、恋爱报告和外观入口，并移除对应
 占位路由；真实资料编辑和情侣空间保持不变。详细计划见
 `harness/build/phase-04-hide-unfinished-web-settings.md`。
+
+### Phase 05 — Hide unfinished mobile settings
+
+该阶段把相同的诚实入口原则应用到移动端：通知偏好尚未持久化，报告和主题也没有业务实现，因此
+隐藏三个入口并移除通知设置的本地假保存页。详细计划见
+`harness/build/phase-05-hide-unfinished-mobile-settings.md`。
 
 ## 后续阶段的准入条件
 

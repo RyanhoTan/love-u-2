@@ -11,6 +11,7 @@
 | 02 — Web today real-data baseline | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 03 — Web profile editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 04 — Hide unfinished Web settings | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 05 — Hide unfinished mobile settings | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -185,3 +186,20 @@
 - **Blockers:** None。
 - **Next action:** 提交本小点，再选择下一项 R1 假成功或契约一致性问题。
 - **Evidence references:** `web/src/pages/me-page/index.tsx`、`web/src/routes/me.tsx`、`PRD.md`、Web lint/build 输出。
+
+## 2026-09-29T13:36:19+08:00 — Phase 05: unfinished mobile settings hidden
+
+- **Status:** `Not started` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD 7.4、R1 通知假成功清理和 Phase 04 的移动端对应小点。
+- **Changes:** 从移动端“我的”隐藏通知设置、主题换肤和恋爱报告；删除只维护组件内状态、点击即显示保存成功的通知设置页；同步产品基线。
+- **Red:** 修改前静态检查命中三个菜单入口，通知页没有 API 或持久化却执行 `toast.success("通知设置已保存")`。
+- **Green:** 三个入口和通知假保存页面均从移动端生产路由中移除，真实资料与情侣空间入口不变。
+- **Refactor:** 清理对应未使用图标 import，不改动通知依赖或未来真实通知实现空间。
+- **Verification:** app lint、目标字符串静态检查和 `git diff --check` 通过。
+- **Review:** 隐私与安全、关于我们当前仍为信息提示入口，未纳入本阶段；未来通知偏好应由账户级 API、持久化和实际发送链路共同驱动。
+- **Operational evidence:** 未请求系统通知权限，未访问后端、数据库、凭据或外部服务，未推送或部署。
+- **Limitations:** 未运行 Android/iOS 模拟器；删除页可从 Git 历史恢复，待真实通知闭环设计完成后应以新实现重新引入。
+- **Blockers:** None。
+- **Next action:** 提交本小点，再选择一个能够独立验证的 R1 核心一致性问题。
+- **Evidence references:** `app/app/home/(tabs)/mine.tsx`、删除的 `app/app/home/(mine)/notification-settings/index.tsx`、`PRD.md`、app lint 输出。
