@@ -114,16 +114,6 @@ export default function CreateStory() {
     );
   };
 
-  const getThumbnailUri = (asset: PickedMediaItem) => {
-    const source = asset.thumbnailSource;
-
-    if (source && typeof source === "object" && "uri" in source) {
-      return typeof source.uri === "string" ? source.uri : "";
-    }
-
-    return "";
-  };
-
   const handleCreate = async () => {
     if (isCreating) {
       return;
@@ -151,7 +141,6 @@ export default function CreateStory() {
         media.push({
           mediaType: item.type,
           objectKey: upload.key,
-          thumbnailUrl: item.type === "video" ? getThumbnailUri(item) : "",
         });
       }
 

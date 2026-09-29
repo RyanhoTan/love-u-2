@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
@@ -47,9 +47,11 @@ export default function Stories() {
     }
   }, []);
 
-  useEffect(() => {
-    void refreshStories();
-  }, [refreshStories]);
+  useFocusEffect(
+    useCallback(() => {
+      void refreshStories();
+    }, [refreshStories]),
+  );
 
   const renderRow = ({ item: row }: { item: AlbumStory[] }) => (
     <Row gap={GAP}>
@@ -62,8 +64,11 @@ export default function Stories() {
           <Column gap={6}>
             <Image
               source={
-                story.coverThumbnailUrl || story.coverUrl
-                  ? { uri: story.coverThumbnailUrl || story.coverUrl }
+                story.coverMediaType !== "video" &&
+                (story.coverThumbnailUrl || story.coverUrl)
+                  ? {
+                      uri: story.coverThumbnailUrl || story.coverUrl,
+                    }
                   : ImagesCoverPng
               }
               style={{

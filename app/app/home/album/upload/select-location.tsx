@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { router } from "expo-router";
+import { useCallback, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
 import { Check, FolderClosed, Plus } from "lucide-react-native";
 import {
   Image,
@@ -34,9 +34,11 @@ export default function SelectLocation() {
     }
   }, []);
 
-  useEffect(() => {
-    void refreshStories();
-  }, [refreshStories]);
+  useFocusEffect(
+    useCallback(() => {
+      void refreshStories();
+    }, [refreshStories]),
+  );
 
   const toggleUncategorized = () => {
     setSelectedUncategorized((current) => {
@@ -125,8 +127,11 @@ export default function SelectLocation() {
               >
                 <Image
                   source={
-                    story.coverThumbnailUrl || story.coverUrl
-                      ? { uri: story.coverThumbnailUrl || story.coverUrl }
+                    story.coverMediaType !== "video" &&
+                    (story.coverThumbnailUrl || story.coverUrl)
+                      ? {
+                          uri: story.coverThumbnailUrl || story.coverUrl,
+                        }
                       : ImagesCoverPng
                   }
                   style={styles.storyCover}

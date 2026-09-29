@@ -33,6 +33,7 @@
 | 24 — Wish budget editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/设备验证 |
 | 25 — Wish location-name editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/设备验证 |
 | 26 — Album object-key write contract | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无 DB/R2/设备集成 |
+| 27 — Private album reads with short-lived signed URLs | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无 DB/R2/浏览器/设备集成 |
 
 ## Activity
 
@@ -658,3 +659,32 @@
 - **Blockers:** None。
 - **Next action:** Phase 27 实现关系授权后的短时签名读取 URL 与相册/故事 UI 接入。
 - **Evidence references:** `server/src/schema/album.ts`、`server/src/router_handler/album.ts`、App/Web 相册上传、故事创建、`web/openapi.json`、schema 矩阵和 workspace 检查输出。
+
+## 2026-09-29T15:53:18+08:00 — Phase 27: authorized signed reads started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 相册/故事读取 object-key 媒体的短期签名 URL；不扩 Wish/Chat 和存储生命周期。
+- **Red:** Phase 26 已创建私有对象键记录，但相册与故事 serializer 仍返回旧 `url` 列，新记录该列为空；现有 `/media/:id/url` 有关系 scope 与 300 秒签名，但 UI 未接入。
+- **Decision:** 在完成关系 scope 的相册/故事读取后签名 object-key 媒体并置 `Cache-Control: private, no-store`；旧 URL 兼容保留。对私有对象 suppress 本地 `file://` 缩略图，视频封面以安全占位符表示。
+- **Verification:** Pending。
+- **Operational evidence:** 开始时工作树干净，当前分支为 `refactor/codex-workflow-harness`；未连接数据库、R2 或真实客户端。
+- **Limitations:** Pending。
+- **Blockers:** None。
+- **Next action:** 完成服务端授权读取、响应类型与 Web/App 渲染后验证并单独提交。
+- **Evidence references:** `server/src/router_handler/media.ts`、`server/src/router_handler/album.ts`、Web PhotosPage、App 故事列表/详情、Phase 26。
+
+## 2026-09-29T16:03:43+08:00 — Phase 27: private album signed reads completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 相册媒体、故事封面与故事详情的短期受控读取；不扩 Wish/Chat 或生命周期。
+- **Red:** 已写入的 `object_key` 媒体读取时仍返回空旧 `url`；故事封面没有媒体类型，故事详情媒体 SQL 只按 `source_id` 选取。
+- **Green:** Web/App album serializers 对 key-backed media/cover 生成 300 秒签名 URL；响应禁止缓存；故事封面/媒体查询受当前关系 scope 限制；两端页面显示签名链接，App 返回屏幕时刷新，视频缩略位使用占位图。
+- **Verification:** server lint/build、Web API 生成/lint/build、App lint/typecheck、`git diff --check` 均通过；OpenAPI 生成类型包含新 cover media 类型和签名 URL 说明。
+- **Review:** 七条包含签名媒体 URL 的 album read/create/favorite 响应均设置 `private, no-store`；不序列化对象键，不写回 signed URL；私有媒体的本地 thumbnail URI suppressed；视频点击仍走播放器。
+- **Operational evidence:** 未连接数据库/R2、未打开浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 没有真实 R2/设备验证、跨用户访问或真实 300 秒过期测试；服务端无自动测试脚本；未分页的 album/story 列表会给所有返回的私有对象签名；Web build 保留 Zod 注释与 >500 kB bundle 警告。
+- **Blockers:** None。
+- **Next action:** 继续评估并迁移 Wish/Chat 媒体消费，以及对象生命周期和上传失败补偿。
+- **Evidence references:** `server/src/router_handler/album.ts`、`server/src/router_handler/media.ts`、Web PhotosPage/query、App 故事 API/页面、`web/openapi.json`、workspace 检查输出。

@@ -762,8 +762,9 @@ export interface components {
             mediaType: components["schemas"]["AlbumMediaType"];
             sourceType: components["schemas"]["AlbumMediaSourceType"];
             sourceId: number | null;
+            /** @description Short-lived signed URL for object-key media (300 seconds); legacy media may return its existing URL */
             url: string;
-            /** @description Empty string when absent */
+            /** @description Empty for object-key media without a stored cross-device thumbnail */
             thumbnailUrl: string;
             /**
              * @description Date-only when set; empty string when unset
@@ -806,7 +807,11 @@ export interface components {
             title: string;
             description: string;
             coverMediaId: number | null;
+            /** @description Media type of the selected cover, or null when unset */
+            coverMediaType: components["schemas"]["AlbumMediaType"] | null;
+            /** @description Short-lived signed URL for an object-key cover (300 seconds); legacy stories may return their existing URL */
             coverUrl: string;
+            /** @description Empty for object-key covers without a stored cross-device thumbnail */
             coverThumbnailUrl: string;
             /** @description Count of image media (API name photos, not photoCount) */
             photos: number;

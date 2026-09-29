@@ -9,6 +9,7 @@ export function useAlbumMediaQuery() {
   return useQuery({
     queryKey: albumKeys.media,
     queryFn: getAlbumMedia,
+    refetchOnWindowFocus: true,
   });
 }
 

@@ -3319,11 +3319,12 @@
             ]
           },
           "url": {
-            "type": "string"
+            "type": "string",
+            "description": "Short-lived signed URL for object-key media (300 seconds); legacy media may return its existing URL"
           },
           "thumbnailUrl": {
             "type": "string",
-            "description": "Empty string when absent"
+            "description": "Empty for object-key media without a stored cross-device thumbnail"
           },
           "takenAt": {
             "type": "string",
@@ -3442,6 +3443,7 @@
           "title",
           "description",
           "coverMediaId",
+          "coverMediaType",
           "coverUrl",
           "coverThumbnailUrl",
           "photos",
@@ -3476,11 +3478,24 @@
               "null"
             ]
           },
+          "coverMediaType": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AlbumMediaType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Media type of the selected cover, or null when unset"
+          },
           "coverUrl": {
-            "type": "string"
+            "type": "string",
+            "description": "Short-lived signed URL for an object-key cover (300 seconds); legacy stories may return their existing URL"
           },
           "coverThumbnailUrl": {
-            "type": "string"
+            "type": "string",
+            "description": "Empty for object-key covers without a stored cross-device thumbnail"
           },
           "photos": {
             "type": "integer",

@@ -31,6 +31,7 @@ export interface AlbumStory {
   title: string;
   description: string;
   coverMediaId: number | null;
+  coverMediaType: AlbumMediaType | null;
   coverUrl: string;
   coverThumbnailUrl: string;
   photos: number;

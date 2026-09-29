@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
@@ -106,9 +106,11 @@ export default function StoryDetail() {
     }
   }, [id]);
 
-  useEffect(() => {
-    void refreshStory();
-  }, [refreshStory]);
+  useFocusEffect(
+    useCallback(() => {
+      void refreshStory();
+    }, [refreshStory]),
+  );
 
   const handleToggleFavorite = async () => {
     if (!story || isUpdatingFavorite) {
@@ -186,8 +188,8 @@ export default function StoryDetail() {
                 >
                   {imageSize > 0 &&
                     group.items.map((item) => {
-                      const uri = item.thumbnailUrl || item.url;
                       const isVideo = item.mediaType === "video";
+                      const uri = item.thumbnailUrl || item.url;
 
                       return (
                         <TouchableOpacity
@@ -202,14 +204,23 @@ export default function StoryDetail() {
                           }}
                         >
                           <View>
-                            <Image
-                              source={{ uri }}
-                              style={{
-                                width: imageSize,
-                                height: imageSize,
-                                borderRadius: 6,
-                              }}
-                            />
+                            {isVideo ? (
+                              <View
+                                style={[
+                                  styles.videoThumbnail,
+                                  { width: imageSize, height: imageSize },
+                                ]}
+                              />
+                            ) : (
+                              <Image
+                                source={{ uri }}
+                                style={{
+                                  width: imageSize,
+                                  height: imageSize,
+                                  borderRadius: 6,
+                                }}
+                              />
+                            )}
                             {isVideo ? (
                               <View style={styles.videoOverlay}>
                                 <Play color="#fff" fill="#fff" size={16} />
@@ -271,6 +282,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#00000066",
     alignItems: "center",
     justifyContent: "center",
+  },
+  videoThumbnail: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 6,
+    backgroundColor: "#34252D",
   },
   favoriteButton: {
     padding: 6,
