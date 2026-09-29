@@ -18,11 +18,13 @@ import {
 import { NavBar, toast } from "@/components/common";
 
 const MAX_DESCRIPTION_LENGTH = 1000;
+const MAX_TITLE_LENGTH = 100;
 
-export default function EditWishDescription() {
+export default function EditWish() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const wishId = Number(id);
   const [wish, setWish] = useState<WishItem | null>(null);
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     "loading",
@@ -30,6 +32,10 @@ export default function EditWishDescription() {
   const [loadError, setLoadError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
+  const normalizedTitle = title.trim();
+  const hasChanges =
+    wish !== null &&
+    (normalizedTitle !== wish.title || description !== wish.description);
 
   const loadWish = useCallback(async () => {
     if (!Number.isInteger(wishId) || wishId <= 0) {
@@ -43,6 +49,7 @@ export default function EditWishDescription() {
       setLoadError("");
       const response = await getWishById(wishId);
       setWish(response.wish);
+      setTitle(response.wish.title);
       setDescription(response.wish.description);
       setLoadState("ready");
     } catch (error) {
@@ -58,15 +65,24 @@ export default function EditWishDescription() {
   }, [loadWish]);
 
   async function handleSave() {
-    if (!wish || saving) {
+    if (!wish || saving || normalizedTitle.length === 0 || !hasChanges) {
       return;
     }
+
+    const titleChanged = normalizedTitle !== wish.title;
+    const descriptionChanged = description !== wish.description;
+    const payload =
+      titleChanged && descriptionChanged
+        ? { title: normalizedTitle, description: description.trim() }
+        : titleChanged
+          ? { title: normalizedTitle }
+          : { description: description.trim() };
 
     try {
       setSaving(true);
       setSaveError("");
-      await updateWish(wish.id, { description: description.trim() });
-      toast.success("描述保存成功");
+      await updateWish(wish.id, payload);
+      toast.success("心愿保存成功");
       router.back();
     } catch (error) {
       setSaveError(
@@ -79,7 +95,7 @@ export default function EditWishDescription() {
 
   return (
     <SafeAreaView style={styles.page}>
-      <NavBar title="编辑心愿描述" />
+      <NavBar title="编辑心愿" />
 
       {loadState === "loading" ? (
         <View style={styles.centerState}>
@@ -102,10 +118,34 @@ export default function EditWishDescription() {
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
           >
+            <Text style={styles.label}>标题</Text>
+            <TextInput
+              value={title}
+              onChangeText={(value) => {
+                setTitle(value);
+                setSaveError("");
+              }}
+              placeholder="写下你们想一起做的事"
+              placeholderTextColor="#C3B8BE"
+              maxLength={MAX_TITLE_LENGTH}
+              editable={!saving}
+              accessibilityLabel="心愿标题"
+              style={styles.titleInput}
+            />
+            <Text style={styles.counter}>
+              {title.length}/{MAX_TITLE_LENGTH}
+            </Text>
+            {normalizedTitle.length === 0 ? (
+              <Text style={styles.errorText}>标题不能为空</Text>
+            ) : null}
+
             <Text style={styles.label}>描述</Text>
             <TextInput
               value={description}
-              onChangeText={setDescription}
+              onChangeText={(value) => {
+                setDescription(value);
+                setSaveError("");
+              }}
               placeholder="写下你们想一起做这件事的理由"
               placeholderTextColor="#C3B8BE"
               maxLength={MAX_DESCRIPTION_LENGTH}
@@ -126,7 +166,7 @@ export default function EditWishDescription() {
 
           <TouchableOpacity
             accessibilityRole="button"
-            disabled={saving || !wish}
+            disabled={saving || !wish || !hasChanges || normalizedTitle.length === 0}
             onPress={() => void handleSave()}
             style={[styles.saveButton, saving && styles.disabledButton]}
           >
@@ -155,6 +195,16 @@ const styles = StyleSheet.create({
     color: "#2E2430",
     fontSize: 15,
     fontWeight: "700",
+  },
+  titleInput: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#EADDE3",
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 14,
+    color: "#2E2430",
+    fontSize: 15,
   },
   input: {
     minHeight: 180,

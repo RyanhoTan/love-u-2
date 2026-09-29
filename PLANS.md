@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–11 是这项授权下已完成的
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–12 是这项授权下已完成的
 阶段。Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -25,6 +25,7 @@
 | 09 | Mobile wish description editing | Complete | Phase 08、PRD-WISH-001 | 移动端从心愿详情编辑描述并在成功后刷新详情 |
 | 10 | Mobile wish detail honest states | Complete | PRD-WISH-001 | 加载失败时不展示假心愿字段或状态，并允许重试 |
 | 11 | Web wish title editing | Complete | Phase 08、PRD-WISH-001 | Web 用户可通过受授权的 PATCH 修改非空心愿标题 |
+| 12 | Mobile wish title editing | Complete | Phase 11、PRD-WISH-001 | 移动端可编辑非空标题，PATCH 只提交实际修改字段 |
 
 ## 阶段顺序
 
@@ -103,6 +104,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 在现有描述/状态 PATCH 上增加受范围授权的标题更新，并在 Web 心愿详情展示真实标题及编辑入口。标题去除首尾空白，长度为 1–100；保留描述清空和状态更新兼容。移动端及其他心愿字段不纳入。详细计划见
 `harness/build/phase-11-web-wish-title-editing.md`。
+
+### Phase 12 — Mobile wish title editing
+
+在现有移动端描述编辑页补充标题输入，并复用 Phase 11 服务端 PATCH。编辑页分别比较标题和描述，只提交已变化字段，避免保存标题时覆盖另一端刚更新的描述。详细计划见
+`harness/build/phase-12-mobile-wish-title-editing.md`。
 
 ## 后续阶段的准入条件
 

@@ -18,6 +18,7 @@
 | 09 — Mobile wish description editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 10 — Mobile wish detail honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 11 — Web wish title editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 12 — Mobile wish title editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -388,3 +389,37 @@
 - **Blockers:** None。
 - **Next action:** 独立提交本阶段，然后继续 PRD R1/P0 余项。
 - **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、`web/src/api/schemas.d.ts`、Web 心愿详情 UI、server/Web 验证输出。
+
+## 2026-09-29T14:22:00+08:00 — Phase 12: mobile wish title editing authorized and started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** 活动 PRD R1/P0 Goal 中 PRD-WISH-001 的移动端心愿标题编辑。
+- **Changes:** 开始在现有移动端心愿编辑页添加标题字段，并扩展 app API payload 类型使用 Phase 11 已有的服务端 PATCH。
+- **Red:** 修改前移动端编辑页只能加载/更新描述；app `UpdateWishPayload` 仅允许 status 或 description。
+- **Green:** Pending。
+- **Refactor:** Pending。
+- **Verification:** 修改前分支为 `refactor/codex-workflow-harness`，工作树干净；Phase 11 的服务端 title PATCH/OpenAPI 已验证并提交。
+- **Review:** 编辑页比较加载时的 title/description，只发送实际改变字段，避免标题编辑覆盖并发更新的描述；空标题在客户端阻止并由服务端再次校验。
+- **Operational evidence:** 不改服务端、数据库、OpenAPI 或 Web；未连接后端、未读取凭据。
+- **Limitations:** 本阶段不编辑目标日期、地点、预算、封面，不做真机或真实账号后端联调。
+- **Blockers:** None。
+- **Next action:** 完成表单/API 类型，运行 app lint 与 TypeScript 后单独提交。
+- **Evidence references:** `app/app/features/wish-list/api.ts`、`app/app/home/wish-list/[id]/edit.tsx`、Phase 11 server PATCH。
+
+## 2026-09-29T14:26:00+08:00 — Phase 12: mobile wish title editing completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 移动端心愿标题编辑；保留已有描述与状态请求。
+- **Changes:** 移动端编辑页读取标题和描述真实初值；title 支持 trim 后非空、最多 100 字符，description 最多 1000 字符且可清空；更新 payload 支持 title-only、description-only 和两字段一起更新；详情编辑入口及编辑页标题同步更新。
+- **Red:** 修改前编辑页只有描述输入，API payload 类型仅有 status/description，无法发送 title。
+- **Green:** 保存时比较初始值，只把改变字段放入 PATCH；标题不变时编辑描述不会附带 title，描述不变时编辑标题不会附带旧 description；无改动不发送空 PATCH。
+- **Refactor:** 更新通用提示为“编辑心愿/心愿保存成功”；输入变化后清除旧错误；服务端 title 校验与原描述/状态边界不变。
+- **Verification:** `pnpm --dir app lint`、`pnpm --dir app exec tsc --noEmit`、payload 静态 review 和 `git diff --check` 通过。
+- **Review:** app 中状态更新调用仍通过 TypeScript 检查；API 失败时保持两个字段草稿，成功 toast 仅在服务端 PATCH 成功后显示并返回详情。
+- **Operational evidence:** 未连接后端、数据库或对象存储，未读取凭据，未推送或部署。
+- **Limitations:** 未用 Android/iOS 模拟器、真实账号或数据库执行端到端验证；其他心愿元数据字段仍不能编辑。
+- **Blockers:** None。
+- **Next action:** 独立提交本小点，再继续 PRD R1/P0 剩余内容。
+- **Evidence references:** `app/app/features/wish-list/api.ts`、`app/app/home/wish-list/[id]/index.tsx`、`app/app/home/wish-list/[id]/edit.tsx`、app lint/typecheck 输出。

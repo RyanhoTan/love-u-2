@@ -215,7 +215,7 @@ export default function WishListDetail() {
         rightContent={
           wish ? (
             <TouchableOpacity
-              accessibilityLabel="编辑心愿描述"
+              accessibilityLabel="编辑心愿标题和描述"
               onPress={() => router.push(`/home/wish-list/${id}/edit`)}
               hitSlop={8}
             >
