@@ -28,7 +28,8 @@ export const updateUserProfileSchema = z.object({
     .max(200, "signature must be at most 200 characters"),
   birthday: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "birthday must be in YYYY-MM-DD format"),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "birthday must be in YYYY-MM-DD format")
+    .nullable(),
 });
 
 export type UpdateUserProfileInput = z.infer<typeof updateUserProfileSchema>;

@@ -522,8 +522,8 @@ export interface components {
             avatar: string | null;
             /** @description Empty string is stored as null */
             signature: string;
-            /** @description Required by current Zod schema; cannot be cleared to null via API */
-            birthday: components["schemas"]["DateOnly"];
+            /** @description Optional profile date; null clears the stored birthday */
+            birthday: components["schemas"]["DateOnly"] | null;
         };
         CoupleInvite: {
             code: string;

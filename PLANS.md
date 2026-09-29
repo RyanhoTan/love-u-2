@@ -16,6 +16,7 @@
 | 00 | Repository workflow foundation | Complete | 无 | 建立适配本仓库的 Codex 协作文件、边界和证据记录方式 |
 | 01 | Repository baseline assessment | Not started | Phase 00 | 形成有证据的现状、风险和候选重构阶段建议，不修改业务代码 |
 | 02 | Web today real-data baseline | Complete | Phase 00、PRD-TODAY-001 | 清除 Web 首页模拟业务内容，只呈现真实数据或诚实空状态 |
+| 03 | Web profile editing | In progress | PRD-AUTH-001、现有 `/userinfo` | 允许清空生日并将 Web 个人资料从占位页改为真实表单 |
 
 ## 阶段顺序
 
@@ -41,6 +42,12 @@
 该阶段由用户直接授权启动，可以在尚未执行 Phase 01 时独立完成。它只处理 PRD-TODAY-001 中
 Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力。详细计划见
 `harness/build/phase-02-web-today-real-data.md`。
+
+### Phase 03 — Web profile editing
+
+该阶段补齐 Web 个人资料编辑。先以独立小提交修复生日无法清空的 API 契约，再以第二个提交替换
+占位路由并接入真实 PUT 与 session 刷新。详细计划见
+`harness/build/phase-03-web-profile-editing.md`。
 
 ## 后续阶段的准入条件
 

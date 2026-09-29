@@ -9,6 +9,7 @@
 | 00 — Repository workflow foundation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方开始与完成记录 | None |
 | 01 — Repository baseline assessment | Not started | — | — | — | — | Awaiting explicit approval |
 | 02 — Web today real-data baseline | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 03 — Web profile editing | In progress | `refactor/codex-workflow-harness` | 2026-09-29 | — | 下方阶段记录 | None |
 
 ## Activity
 
@@ -115,3 +116,37 @@
 - **Blockers:** None。
 - **Next action:** 提交本阶段改动，然后选择下一个小型 PRD 需求。
 - **Evidence references:** `PRD.md` PRD-TODAY-001、`web/src/pages/today-page/index.tsx`、`web/src/pages/login-page/index.tsx`、Web lint/build 输出。
+
+## 2026-09-29T13:28:57+08:00 — Phase 03: authorized and started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-AUTH-001 的 Web 个人资料编辑，拆成 nullable birthday 契约与表单两个小提交。
+- **Changes:** 开始修复 `/userinfo` 更新契约中数据库可空、返回可空但请求强制生日的问题。
+- **Red:** Zod schema 对 `{ nickname, avatar: null, signature, birthday: null }` 返回 `Invalid input: expected string, received null`。
+- **Green:** Pending。
+- **Refactor:** Pending。
+- **Verification:** 修改前 server lint/build 通过；Web lint/build 已在上一阶段通过。
+- **Review:** 观察到服务端不支持更新 gender；本阶段不伪造该字段，也不扩展范围。
+- **Operational evidence:** 未读取环境变量或连接数据库。
+- **Limitations:** 头像上传、性别、密码和账号生命周期不在本阶段。
+- **Blockers:** None。
+- **Next action:** 完成 nullable birthday 契约、验证并独立提交。
+- **Evidence references:** `server/src/schema/user.ts`、`server/src/router_handler/userinfo.ts`、`web/openapi.json`、`harness/build/phase-03-web-profile-editing.md`。
+
+## 2026-09-29T13:29:57+08:00 — Phase 03: nullable birthday contract completed
+
+- **Status:** `In progress` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Phase 03 Small point A。
+- **Changes:** `/userinfo` 更新 schema 接受 `birthday: null`；OpenAPI 与生成 Web 类型同步为 `DateOnly | null`。
+- **Red:** 修改前 null 被 Zod 拒绝。
+- **Green:** 修改后 null 通过，`2026/09/29` 等错误格式仍被拒绝。
+- **Refactor:** 保持字段必传以维持完整 PUT 语义，只扩展值域支持明确清空。
+- **Verification:** schema 解析检查通过；server lint/build 通过；Web lint/build 通过；生成类型检查和 `git diff --check` 通过。Vite 保留既有 bundle size 警告。
+- **Review:** 变更向后兼容，现有字符串生日请求行为不变；handler 已将 null 作为 SQL 参数写入。
+- **Operational evidence:** 未连接数据库，未访问凭据或外部系统。
+- **Limitations:** 尚未运行真实 MySQL 集成；Web 表单仍待 Small point B。
+- **Blockers:** None。
+- **Next action:** 提交 Small point A，然后实现 Web 表单。
+- **Evidence references:** `server/src/schema/user.ts`、`web/openapi.json`、`web/src/api/schemas.d.ts`。

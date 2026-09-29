@@ -2432,8 +2432,15 @@
             "description": "Empty string is stored as null"
           },
           "birthday": {
-            "$ref": "#/components/schemas/DateOnly",
-            "description": "Required by current Zod schema; cannot be cleared to null via API"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DateOnly"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional profile date; null clears the stored birthday"
           }
         }
       },
