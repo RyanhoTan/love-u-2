@@ -1,11 +1,11 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Love-U API",
+    "title": "InSync API",
     "description": "Formal HTTP API contract derived from the current server/ implementation.\n\nSource of truth: Express routers and serialize* functions.\n\nCompatibility: OpenAPI 3.0.3 (Apifox / Swagger friendly).\nCoupleSummary (inside /userinfo) and CoupleSpace (/couple-space) are different models.\nUpload success body is { key, url } without message. Lists are not paginated.\n",
     "version": "1.0.0",
     "contact": {
-      "name": "Love-U"
+      "name": "InSync"
     }
   },
   "tags": [
@@ -1112,9 +1112,9 @@
         ]
       },
       "patch": {
-        "summary": "更新心愿状态",
+        "summary": "更新心愿",
         "deprecated": false,
-        "description": "当前仅允许修改 `status` 字段。",
+        "description": "可修改标题、描述、状态或目标日期；至少提供一个字段。",
         "operationId": "updateWish",
         "tags": [
           "Wish"
@@ -2432,8 +2432,15 @@
             "description": "Empty string is stored as null"
           },
           "birthday": {
-            "$ref": "#/components/schemas/DateOnly",
-            "description": "Required by current Zod schema; cannot be cleared to null via API"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DateOnly"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional valid YYYY-MM-DD date that cannot be in the future; null clears the stored birthday"
           }
         }
       },
@@ -2739,7 +2746,8 @@
             "$ref": "#/components/schemas/AnniversaryType"
           },
           "originalDate": {
-            "$ref": "#/components/schemas/DateOnly"
+            "$ref": "#/components/schemas/DateOnly",
+            "description": "Real calendar date in YYYY-MM-DD format, year 1000–9999; invalid dates return 400"
           },
           "repeatType": {
             "$ref": "#/components/schemas/AnniversaryRepeatType"
@@ -2948,7 +2956,8 @@
             "default": ""
           },
           "targetDate": {
-            "$ref": "#/components/schemas/DateOnly"
+            "$ref": "#/components/schemas/DateOnly",
+            "description": "Valid calendar date from 1000-01-01 through 9999-12-31"
           },
           "locationName": {
             "type": "string",
@@ -2985,16 +2994,29 @@
       },
       "UpdateWishRequest": {
         "type": "object",
-        "required": [
-          "status"
-        ],
+        "minProperties": 1,
         "additionalProperties": false,
         "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Updated wish title; trimmed by the server"
+          },
           "status": {
             "$ref": "#/components/schemas/WishStatus"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Updated wish description; an empty string clears it"
+          },
+          "targetDate": {
+            "$ref": "#/components/schemas/DateOnly",
+            "description": "Updated target date; a real calendar date in YYYY-MM-DD format, year 1000–9999"
           }
         },
-        "description": "Current backend only allows status changes"
+        "description": "PATCH at least one supported field: title, status, description, or targetDate"
       },
       "WishRecordMedia": {
         "type": "object",
@@ -3155,7 +3177,8 @@
             "default": ""
           },
           "recordDate": {
-            "$ref": "#/components/schemas/DateOnly"
+            "$ref": "#/components/schemas/DateOnly",
+            "description": "Valid calendar date from 1000-01-01 through 9999-12-31"
           },
           "mood": {
             "type": "string",

@@ -49,6 +49,7 @@ import {
   type WishRecordMediaItem,
   type WishItem,
 } from "@/app/features/wish-list/api";
+import { formatLocalDateOnly } from "@/app/features/wish-list/date";
 import {
   clearWishRecordDraft,
   loadWishRecordDraft,
@@ -269,7 +270,7 @@ export default function CreateRecord() {
       const media = await uploadSelectedMedia();
       await createWishRecord(parsedWishId, {
         content: text.trim(),
-        recordDate: date.toISOString().slice(0, 10),
+        recordDate: formatLocalDateOnly(date),
         mood: selectedStatus || "",
         locationName: selectedLocation?.name || "",
         latitude: selectedLocation?.latitude ?? null,

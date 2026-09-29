@@ -206,8 +206,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * 更新心愿状态
-         * @description 当前仅允许修改 `status` 字段。
+         * 更新心愿
+         * @description 可修改标题、描述、状态或目标日期；至少提供一个字段。
          */
         patch: operations["updateWish"];
         trace?: never;
@@ -522,8 +522,8 @@ export interface components {
             avatar: string | null;
             /** @description Empty string is stored as null */
             signature: string;
-            /** @description Required by current Zod schema; cannot be cleared to null via API */
-            birthday: components["schemas"]["DateOnly"];
+            /** @description Optional valid YYYY-MM-DD date that cannot be in the future; null clears the stored birthday */
+            birthday: components["schemas"]["DateOnly"] | null;
         };
         CoupleInvite: {
             code: string;
@@ -604,6 +604,7 @@ export interface components {
         AnniversaryPayload: {
             title: string;
             type: components["schemas"]["AnniversaryType"];
+            /** @description Real calendar date in YYYY-MM-DD format, year 1000–9999; invalid dates return 400 */
             originalDate: components["schemas"]["DateOnly"];
             repeatType: components["schemas"]["AnniversaryRepeatType"];
             reminderDaysBefore: number;
@@ -662,6 +663,7 @@ export interface components {
              * @default
              */
             cover: string;
+            /** @description Valid calendar date from 1000-01-01 through 9999-12-31 */
             targetDate: components["schemas"]["DateOnly"];
             /** @default  */
             locationName: string;
@@ -672,9 +674,15 @@ export interface components {
             /** @default null */
             budgetAmount: number | null;
         };
-        /** @description Current backend only allows status changes */
+        /** @description PATCH at least one supported field: title, status, description, or targetDate */
         UpdateWishRequest: {
-            status: components["schemas"]["WishStatus"];
+            /** @description Updated wish title; trimmed by the server */
+            title?: string;
+            status?: components["schemas"]["WishStatus"];
+            /** @description Updated wish description; an empty string clears it */
+            description?: string;
+            /** @description Updated target date; a real calendar date in YYYY-MM-DD format, year 1000–9999 */
+            targetDate?: components["schemas"]["DateOnly"];
         };
         WishRecordMedia: {
             /** Format: uri */
@@ -715,6 +723,7 @@ export interface components {
         CreateWishRecordRequest: {
             /** @default  */
             content: string;
+            /** @description Valid calendar date from 1000-01-01 through 9999-12-31 */
             recordDate: components["schemas"]["DateOnly"];
             /** @default  */
             mood: string;

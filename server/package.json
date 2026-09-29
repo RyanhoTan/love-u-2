@@ -1,5 +1,5 @@
 {
-  "name": "love-u-server",
+  "name": "insync-server",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.888.0",
+    "@aws-sdk/s3-request-presigner": "3.1087.0",
     "@smithy/node-http-handler": "^4.9.6",
     "@types/jsonwebtoken": "^9.0.10",
     "bcrypt": "^6.0.0",

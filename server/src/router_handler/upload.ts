@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { Request, Response } from "express";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { getAuthenticatedUserId } from "../auth.js";
@@ -23,6 +28,17 @@ const r2Client = new S3Client({
       }
     : {}),
 });
+
+export async function createMediaReadUrl(objectKey: string, expiresIn = 300) {
+  return getSignedUrl(
+    r2Client,
+    new GetObjectCommand({
+      Bucket: config.r2Bucket,
+      Key: objectKey,
+    }),
+    { expiresIn },
+  );
+}
 
 function getExtension(fileName: string) {
   const parts = fileName.split(".");
@@ -67,5 +83,9 @@ export async function uploadMedia(req: Request, res: Response) {
     req.body as Buffer,
   );
 
-  res.status(201).json(result);
+  // Do not expose the public object URL. Access URLs will be generated
+  // separately after the caller has passed the media authorization check.
+  res.status(201).json({
+    key: result.key,
+  });
 }

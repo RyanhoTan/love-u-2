@@ -1,4 +1,6 @@
-# Love U 2 Full Stack Starter
+# InSync（合拍）
+
+品牌名称统一维护在根目录的 `brand.json` 中。
 
 `app + server` two-project setup:
 
@@ -42,7 +44,7 @@ EXPO_PUBLIC_API_URL=http://localhost:3001
 Backend (`server/.env`):
 
 ```env
-MYSQL_URL="mysql://root:password@127.0.0.1:3306/love_u_2"
+MYSQL_URL="mysql://root:password@127.0.0.1:3306/insync"
 PORT=3001
 ```
 
@@ -50,6 +52,10 @@ PORT=3001
 
 The old Prisma + SQLite backend has been cleared.
 `server` is now a clean Express + TypeScript scaffold prepared for a `mysql2` rebuild.
+
+When the backend starts, it checks the required MySQL tables and columns. Missing tables
+are created, and missing columns are added with `ALTER TABLE`; existing rows are not deleted.
+The MySQL user in `MYSQL_URL` therefore needs permission to create and alter tables.
 
 Current API behavior:
 

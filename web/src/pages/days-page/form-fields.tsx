@@ -99,6 +99,9 @@ export function DayFormFields({
           {errors.date ? <FieldError message={errors.date.message} /> : null}
         </div>
 
+        <p className="text-xs leading-[1.5] text-fg-muted">
+          提醒时间仅保存为计划；通知功能尚未上线，当前不会发送通知。
+        </p>
         <div className="overflow-hidden rounded-control bg-surface">
           <Controller
             name="remind7"
@@ -106,7 +109,7 @@ export function DayFormFields({
             render={({ field }) => (
               <SwitchRow
                 title="提前 7 天提醒"
-                description="到日子前一周轻轻提醒双方"
+                description="记录提前一周的计划时间"
                 checked={field.value}
                 disabled={disabled}
                 onChange={field.onChange}
@@ -120,7 +123,7 @@ export function DayFormFields({
             render={({ field }) => (
               <SwitchRow
                 title="当天提醒"
-                description="当天早上出现在首页"
+                description="记录当天的计划时间"
                 checked={field.value}
                 disabled={disabled}
                 onChange={field.onChange}

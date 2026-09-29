@@ -24,11 +24,17 @@ export function WishDetailInfo({
   creator,
   onMarkDone,
   onAddRecord,
+  onEditTitle,
+  onEditDescription,
+  onEditTargetDate,
 }: {
   wish: WishItem;
   creator: Creator | null;
   onMarkDone: () => void;
   onAddRecord: () => void;
+  onEditTitle: () => void;
+  onEditDescription: () => void;
+  onEditTargetDate: () => void;
 }) {
   const isDone = wish.status === "done";
 
@@ -46,6 +52,15 @@ export function WishDetailInfo({
         </div>
       )}
 
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="min-w-0 flex-1 whitespace-pre-wrap break-words text-[22px] font-semibold leading-[1.35] tracking-[-0.4px] text-fg">
+          {wish.title}
+        </h2>
+        <Button variant="ghost" className="shrink-0" onClick={onEditTitle}>
+          编辑标题
+        </Button>
+      </div>
+
       <div className="flex items-center gap-2">
         <span
           className={cx(
@@ -61,18 +76,25 @@ export function WishDetailInfo({
           </span>
         ) : null}
       </div>
-        {/* TODO: 心愿描述改为可编辑的 */}
-      {wish.description ? (
-        <p className="text-base leading-[1.45] tracking-[-0.1px] text-fg">
-          {wish.description}
+      <div className="flex items-start justify-between gap-3">
+        <p className="min-w-0 flex-1 whitespace-pre-wrap text-base leading-[1.45] tracking-[-0.1px] text-fg">
+          {wish.description || "还没有写下描述"}
         </p>
-      ) : null}
+        <Button
+          variant="ghost"
+          className="shrink-0"
+          onClick={onEditDescription}
+        >
+          编辑描述
+        </Button>
+      </div>
 
       <div className="overflow-hidden rounded-[12px] bg-surface">
         <MetaRow
           icon={<Calendar className="size-[18px]" strokeWidth={2} />}
           label="目标日"
           value={isoToDotDate(wish.targetDate) || "—"}
+          onEdit={onEditTargetDate}
         />
         <div className="h-px bg-border" />
         <MetaRow
@@ -126,16 +148,27 @@ function MetaRow({
   icon,
   label,
   value,
+  onEdit,
 }: {
   icon: ReactNode;
   label: string;
   value: string;
+  onEdit?: () => void;
 }) {
   return (
     <div className="flex h-12 items-center gap-3 px-4">
       <span className="text-fg-secondary">{icon}</span>
       <span className="text-sm font-medium text-fg-secondary">{label}</span>
       <span className="ml-auto text-sm font-medium text-fg">{value}</span>
+      {onEdit ? (
+        <button
+          type="button"
+          className="rounded-control px-1.5 py-1 text-xs font-semibold text-accent transition-colors hover:bg-accent-soft"
+          onClick={onEdit}
+        >
+          编辑
+        </button>
+      ) : null}
     </div>
   );
 }

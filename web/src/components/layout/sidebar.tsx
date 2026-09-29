@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import BRAND from "@brand";
 import { useAuth } from "@/features/auth/context";
 import { displayName } from "@/lib/user";
 import { NAV_ITEMS } from "@/routes/nav";
@@ -26,7 +27,7 @@ export function Sidebar() {
             <Heart className="size-3.5 fill-inverse text-inverse" strokeWidth={2} />
           </span>
           <span className="text-[15px] font-semibold tracking-[-0.3px] text-fg">
-            Love U 2
+            {BRAND.displayName}
           </span>
         </Link>
 

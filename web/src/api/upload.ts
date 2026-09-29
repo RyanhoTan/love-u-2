@@ -1,5 +1,5 @@
-import { API_BASE_URL } from "@/api/client";
-import { readAuthSession } from "@/api/session";
+import { ApiError, API_BASE_URL } from "@/api/client";
+import { invalidateAuthSession, readAuthSession } from "@/api/session";
 import type { SchemaUploadMediaResponse } from "@/api/schemas";
 
 export async function uploadMedia(file: File, folder = "album") {
@@ -31,7 +31,12 @@ export async function uploadMedia(file: File, folder = "album") {
       data && typeof data === "object" && "message" in data
         ? data.message
         : "upload failed";
-    throw new Error(message || "upload failed");
+
+    if (response.status === 401) {
+      invalidateAuthSession(token);
+    }
+
+    throw new ApiError(message || "upload failed", response.status);
   }
 
   return data as SchemaUploadMediaResponse;

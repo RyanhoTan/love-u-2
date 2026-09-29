@@ -18,7 +18,7 @@ export const DAY_REPEAT_OPTIONS: {
   label: string;
   description: string;
 }[] = [
-  { value: "none", label: "不重复", description: "只提醒这一次" },
+  { value: "none", label: "不重复", description: "只记录这一次" },
   { value: "yearly", label: "每年", description: "每年同一天倒数" },
 ];
 

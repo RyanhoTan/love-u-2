@@ -10,13 +10,10 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import {
-  BarChart3,
-  Bell,
   ChevronRight,
   Heart,
   Info,
   type LucideProps,
-  Palette,
   Shield,
   User,
 } from "lucide-react-native";
@@ -56,27 +53,6 @@ export default function Mine() {
       icon: Heart,
       iconColor: "#FF5C8A",
       onPress: () => router.push("/home/couple-space/bind"),
-    },
-    {
-      id: "notification",
-      title: "通知设置",
-      icon: Bell,
-      iconColor: "#FFB020",
-      onPress: () => router.push("/home/notification-settings"),
-    },
-    {
-      id: "theme",
-      title: "主题换肤",
-      icon: Palette,
-      iconColor: "#6C63FF",
-      onPress: () => toast.info("主题换肤"),
-    },
-    {
-      id: "report",
-      title: "恋爱报告",
-      icon: BarChart3,
-      iconColor: "#9C4DFF",
-      onPress: () => toast.info("恋爱报告"),
     },
     {
       id: "privacy",

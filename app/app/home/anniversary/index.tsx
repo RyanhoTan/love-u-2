@@ -16,7 +16,7 @@ import {
   type AnniversaryItem,
 } from "@/app/features/anniversary/api";
 import { useAuth } from "@/app/features/auth/auth-context";
-import { NavBar, PinkButton, toast } from "@/components/common";
+import { NavBar, PinkButton } from "@/components/common";
 import { Row } from "@/components/layout";
 import { colors } from "@/styles/colors";
 
@@ -46,22 +46,26 @@ export default function AnniversaryScreen() {
   const router = useRouter();
   const { token } = useAuth();
   const [anniversaries, setAnniversaries] = useState<AnniversaryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadAnniversaries = useCallback(async () => {
     if (!token) {
       setAnniversaries([]);
+      setLoadError(null);
+      setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
+      setLoadError(null);
       const response = await getAnniversaries();
       setAnniversaries(response.anniversaries);
     } catch (error) {
       setAnniversaries([]);
       const message = error instanceof Error ? error.message : "获取纪念日失败";
-      toast.error(message);
+      setLoadError(message);
     } finally {
       setIsLoading(false);
     }
@@ -73,38 +77,49 @@ export default function AnniversaryScreen() {
     }, [loadAnniversaries]),
   );
 
-  const isEmpty = anniversaries.length === 0;
+  const showStatus =
+    isLoading || loadError !== null || anniversaries.length === 0;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <NavBar
         title="纪念日"
-        rightContent={
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => toast.info("编辑功能开发中")}
-          >
-            <Text style={styles.headerAction}>编辑</Text>
-          </TouchableOpacity>
-        }
       />
 
       <ScrollView
-        contentContainerStyle={[styles.content, isEmpty && styles.emptyContent]}
+        contentContainerStyle={[
+          styles.content,
+          showStatus && styles.emptyContent,
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        {isEmpty ? (
+        {showStatus ? (
           <View style={styles.emptyState}>
             <Image
               source={ImagesAnniversaryCalendarPng}
               style={styles.emptyImage}
             />
             <Text style={styles.emptyTitle}>
-              {isLoading ? "正在加载纪念日" : "还没有纪念日"}
+              {isLoading
+                ? "正在加载纪念日"
+                : loadError !== null
+                  ? "纪念日加载失败"
+                  : "还没有纪念日"}
             </Text>
             <Text style={styles.emptySubtitle}>
-              {isLoading ? "请稍候..." : "添加你们的重要日子"}
+              {isLoading
+                ? "请稍候..."
+                : loadError ?? "添加你们的重要日子"}
             </Text>
+            {loadError !== null && !isLoading ? (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.retryButton}
+                onPress={() => void loadAnniversaries()}
+              >
+                <Text style={styles.retryText}>重试</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           anniversaries.map((item) => {
@@ -113,7 +128,15 @@ export default function AnniversaryScreen() {
 
             return (
               <View key={item.id}>
-                <TouchableOpacity activeOpacity={0.9} style={styles.card}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  style={styles.card}
+                  onPress={() =>
+                    router.push(`/home/anniversary/${item.id}/edit`)
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel={`编辑纪念日：${item.title}`}
+                >
                   <View
                     style={[
                       styles.iconWrap,
@@ -169,11 +192,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     paddingHorizontal: 16,
-  },
-  headerAction: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.semantic.textPrimary,
   },
   content: {
     paddingTop: 18,
@@ -264,5 +282,17 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 14,
     color: colors.semantic.textSecondary,
+  },
+  retryButton: {
+    marginTop: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: colors.theme.primaryTint,
+  },
+  retryText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.semantic.textPrimary,
   },
 });

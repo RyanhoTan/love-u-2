@@ -27,8 +27,8 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="loveumobile"/>
-        <data android:scheme="exp+love-u-mobile"/>
+        <data android:scheme="insync"/>
+        <data android:scheme="exp+insync-mobile"/>
       </intent-filter>
     </activity>
   </application>

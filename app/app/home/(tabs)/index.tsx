@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Text,
   TouchableOpacity,
@@ -21,9 +22,7 @@ import {
   ImagesAnniversaryCalendarPng,
   ImagesAvatarFemalePng,
   ImagesAvatarMalePng,
-  IconsHomeDoubleHeartSvg,
   IconsHomeGiftSvg,
-  IconsHomeStatusSvg,
 } from "@/assets";
 
 function formatDisplayDate(dateText: string) {
@@ -35,24 +34,33 @@ export default function HomeScreen() {
   const { token, user } = useAuth();
   const [anniversaries, setAnniversaries] = useState<AnniversaryItem[]>([]);
   const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
+  const [homeStatus, setHomeStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
 
   const loadHomeData = useCallback(async () => {
     if (!token) {
       setCoupleSpace(null);
       setAnniversaries([]);
+      setHomeStatus("ready");
       return;
     }
 
     try {
-      const [coupleSpaceResponse, anniversariesResponse] = await Promise.all([
-        getCoupleSpace(),
-        getAnniversaries(),
-      ]);
-      setCoupleSpace(coupleSpaceResponse.coupleSpace);
-      setAnniversaries(anniversariesResponse.anniversaries);
+      setHomeStatus("loading");
+      const coupleSpaceResponse = await getCoupleSpace();
+      const nextCoupleSpace = coupleSpaceResponse.coupleSpace;
+      const nextAnniversaries = nextCoupleSpace.isBound
+        ? (await getAnniversaries()).anniversaries
+        : [];
+
+      setCoupleSpace(nextCoupleSpace);
+      setAnniversaries(nextAnniversaries);
+      setHomeStatus("ready");
     } catch {
       setCoupleSpace(null);
       setAnniversaries([]);
+      setHomeStatus("error");
     }
   }, [token]);
 
@@ -66,10 +74,75 @@ export default function HomeScreen() {
   const leftAvatarSource: ImageSourcePropType = user?.avatar
     ? { uri: user.avatar }
     : ImagesAvatarMalePng;
+
+  if (homeStatus === "loading") {
+    return (
+      <Column center flex={1} gap={12}>
+        <ActivityIndicator color="#ff5b7e" />
+        <Text style={{ color: "#8F8F95" }}>正在加载首页…</Text>
+      </Column>
+    );
+  }
+
+  if (homeStatus === "error") {
+    return (
+      <Column center flex={1} gap={16}>
+        <Text style={{ fontSize: 18, fontWeight: "700", color: "#34313B" }}>
+          首页加载失败
+        </Text>
+        <Text style={{ color: "#8F8F95" }}>请检查网络后重试</Text>
+        <TouchableOpacity
+          onPress={() => void loadHomeData()}
+          style={{
+            borderRadius: 20,
+            backgroundColor: "#ff5b7e",
+            paddingHorizontal: 24,
+            paddingVertical: 10,
+          }}
+        >
+          <Text style={{ color: "#fff", fontWeight: "700" }}>重新加载</Text>
+        </TouchableOpacity>
+      </Column>
+    );
+  }
+
+  if (!coupleSpace?.isBound || !coupleSpace.partner) {
+    return (
+      <Column center flex={1} gap={18}>
+        <Image
+          source={leftAvatarSource}
+          style={{ width: 88, height: 88, borderRadius: 44 }}
+        />
+        <Column center gap={8}>
+          <Text style={{ fontSize: 22, fontWeight: "700", color: "#34313B" }}>
+            还没有绑定情侣
+          </Text>
+          <Text style={{ color: "#8F8F95", textAlign: "center" }}>
+            邀请对方加入后，再一起记录心愿和纪念日
+          </Text>
+        </Column>
+        <TouchableOpacity
+          onPress={() => router.push("/home/couple-space/bind")}
+          style={{
+            borderRadius: 24,
+            backgroundColor: "#ff5b7e",
+            paddingHorizontal: 28,
+            paddingVertical: 12,
+          }}
+        >
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>
+            去绑定情侣
+          </Text>
+        </TouchableOpacity>
+      </Column>
+    );
+  }
+
   const rightAvatarSource: ImageSourcePropType = coupleSpace?.partner?.avatar
     ? { uri: coupleSpace.partner.avatar }
     : ImagesAvatarFemalePng;
-  const daysInLoveText = `${coupleSpace?.daysInLove ?? 0}`;
+  const daysInLoveText =
+    coupleSpace.daysInLove === null ? "—" : `${coupleSpace.daysInLove}`;
   const anniversaryDateText = coupleSpace?.relationship?.anniversaryDate
     ? coupleSpace.relationship.anniversaryDate.replace(/-/g, ".")
     : "--.--.--";
@@ -101,32 +174,6 @@ export default function HomeScreen() {
         {anniversaryDateText}
       </Text>
       <Row center gap={12} style={{ overflow: "hidden" }}>
-        <TouchableOpacity onPress={() => router.push("/home/status")}>
-          <Column
-            center
-            gap={8}
-            bg="#fff"
-            rounded={20}
-            style={{ padding: 8, marginTop: 42, width: 120 }}
-          >
-            <IconsHomeStatusSvg width={72} height={72} />
-            <Text style={{ fontSize: 16, textAlign: "center" }}>今日状态</Text>
-          </Column>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => router.push("/home/asentence")}>
-          <Column
-            center
-            gap={8}
-            bg="#fff"
-            rounded={20}
-            style={{ padding: 8, marginTop: 42, width: 120 }}
-          >
-            <IconsHomeDoubleHeartSvg width={72} height={72} />
-            <Text style={{ fontSize: 16, textAlign: "center" }}>一句话</Text>
-          </Column>
-        </TouchableOpacity>
-
         <TouchableOpacity onPress={() => router.push("/home/wish-list")}>
           <Column
             center

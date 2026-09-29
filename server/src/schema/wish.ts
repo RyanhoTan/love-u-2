@@ -1,6 +1,14 @@
 import { z } from "zod";
+import { isValidCalendarDateOnly } from "./dateOnly.js";
 
 export const wishStatusSchema = z.enum(["todo", "doing", "done"]);
+
+function wishDateOnlySchema(fieldName: "targetDate" | "recordDate") {
+  return z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, `${fieldName} must be in YYYY-MM-DD format`)
+    .refine(isValidCalendarDateOnly, `${fieldName} must be a valid calendar date`);
+}
 
 export const createWishSchema = z.object({
   title: z
@@ -21,9 +29,7 @@ export const createWishSchema = z.object({
     .optional()
     .or(z.literal(""))
     .default(""),
-  targetDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "targetDate must be in YYYY-MM-DD format"),
+  targetDate: wishDateOnlySchema("targetDate"),
   locationName: z
     .string()
     .trim()
@@ -35,9 +41,26 @@ export const createWishSchema = z.object({
   budgetAmount: z.number().int().min(0).nullable().optional().default(null),
 });
 
-export const updateWishSchema = z.object({
-  status: wishStatusSchema,
-});
+export const updateWishSchema = z
+  .object({
+    status: wishStatusSchema.optional(),
+    title: z
+      .string()
+      .trim()
+      .min(1, "title is required")
+      .max(100, "title must be at most 100 characters")
+      .optional(),
+    description: z
+      .string()
+      .trim()
+      .max(1000, "description must be at most 1000 characters")
+      .optional(),
+    targetDate: wishDateOnlySchema("targetDate").optional(),
+  })
+  .strict()
+  .refine((payload) => Object.keys(payload).length > 0, {
+    message: "at least one wish field is required",
+  });
 
 export const createWishRecordSchema = z.object({
   content: z
@@ -46,9 +69,7 @@ export const createWishRecordSchema = z.object({
     .max(1000, "content must be at most 1000 characters")
     .optional()
     .default(""),
-  recordDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "recordDate must be in YYYY-MM-DD format"),
+  recordDate: wishDateOnlySchema("recordDate"),
   mood: z
     .string()
     .trim()

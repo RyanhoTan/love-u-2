@@ -1,6 +1,19 @@
 import { z } from "zod";
 
 export const albumMediaTypeSchema = z.enum(["image", "video"]);
+const objectKeySchema = z
+  .string()
+  .trim()
+  .min(1, "objectKey is required")
+  .max(2048, "objectKey must be at most 2048 characters")
+  .refine(
+    (value) =>
+      !value.startsWith("/") &&
+      !value.includes("://") &&
+      !value.includes("?") &&
+      !value.includes("#"),
+    "objectKey must be an object storage key",
+  );
 export const albumMediaSourceTypeSchema = z.enum([
   "wish_record",
   "story",
@@ -9,7 +22,7 @@ export const albumMediaSourceTypeSchema = z.enum([
 
 export const createAlbumMediaSchema = z.object({
   mediaType: albumMediaTypeSchema,
-  url: z.string().trim().min(1, "url is required"),
+  objectKey: objectKeySchema,
   thumbnailUrl: z.string().trim().optional().default(""),
   takenAt: z
     .string()
@@ -22,7 +35,7 @@ export const createAlbumMediaSchema = z.object({
 
 const storyMediaSchema = z.object({
   mediaType: albumMediaTypeSchema,
-  url: z.string().trim().min(1, "media url is required"),
+  objectKey: objectKeySchema,
   thumbnailUrl: z.string().trim().optional().default(""),
   takenAt: z
     .string()

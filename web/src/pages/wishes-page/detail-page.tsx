@@ -1,5 +1,5 @@
 import { ChevronLeft } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/features/auth/context";
 import {
@@ -15,6 +15,9 @@ import { WishDetailInfo } from "./detail-info";
 import { WishDetailRecords } from "./detail-records";
 import { MarkDoneDialog } from "./mark-done-dialog";
 import { RecordSheet } from "./record-sheet";
+import { EditDescriptionDialog } from "./edit-description-dialog";
+import { EditTitleDialog } from "./edit-title-dialog";
+import { EditTargetDateDialog } from "./edit-target-date-dialog";
 
 export function WishDetailPage() {
   const { id = "" } = useParams();
@@ -24,6 +27,9 @@ export function WishDetailPage() {
   const wishQuery = useWishQuery(wishId);
   const recordsQuery = useWishRecordsQuery(wishId);
   const updateMutation = useUpdateWishMutation();
+  const [showTitleEditor, setShowTitleEditor] = useState(false);
+  const [showDescriptionEditor, setShowDescriptionEditor] = useState(false);
+  const [showTargetDateEditor, setShowTargetDateEditor] = useState(false);
 
   const showDone = params.get("done") === "1";
   const showRecord = params.get("record") === "1";
@@ -96,6 +102,18 @@ export function WishDetailPage() {
           creator={creator}
           onMarkDone={() => openQuery("done")}
           onAddRecord={() => openQuery("record")}
+          onEditTitle={() => {
+            updateMutation.reset();
+            setShowTitleEditor(true);
+          }}
+          onEditDescription={() => {
+            updateMutation.reset();
+            setShowDescriptionEditor(true);
+          }}
+          onEditTargetDate={() => {
+            updateMutation.reset();
+            setShowTargetDateEditor(true);
+          }}
         />
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto lg:h-full">
           <WishDetailRecords
@@ -132,6 +150,78 @@ export function WishDetailPage() {
 
         {showRecord ? (
           <RecordSheet wishId={wishId} onClose={() => closeQuery("record")} />
+        ) : null}
+
+        {showDescriptionEditor ? (
+          <EditDescriptionDialog
+            initialDescription={wish.description}
+            pending={updateMutation.isPending}
+            error={
+              updateMutation.isError
+                ? errorMessage(updateMutation.error, "描述保存失败")
+                : undefined
+            }
+            onCancel={() => {
+              updateMutation.reset();
+              setShowDescriptionEditor(false);
+            }}
+            onSave={(description) => {
+              updateMutation.mutate(
+                { id: wishId, payload: { description } },
+                {
+                  onSuccess: () => setShowDescriptionEditor(false),
+                },
+              );
+            }}
+          />
+        ) : null}
+
+        {showTitleEditor ? (
+          <EditTitleDialog
+            initialTitle={wish.title}
+            pending={updateMutation.isPending}
+            error={
+              updateMutation.isError
+                ? errorMessage(updateMutation.error, "标题保存失败")
+                : undefined
+            }
+            onCancel={() => {
+              updateMutation.reset();
+              setShowTitleEditor(false);
+            }}
+            onSave={(title) => {
+              updateMutation.mutate(
+                { id: wishId, payload: { title } },
+                {
+                  onSuccess: () => setShowTitleEditor(false),
+                },
+              );
+            }}
+          />
+        ) : null}
+
+        {showTargetDateEditor ? (
+          <EditTargetDateDialog
+            initialTargetDate={wish.targetDate}
+            pending={updateMutation.isPending}
+            error={
+              updateMutation.isError
+                ? errorMessage(updateMutation.error, "目标日期保存失败")
+                : undefined
+            }
+            onCancel={() => {
+              updateMutation.reset();
+              setShowTargetDateEditor(false);
+            }}
+            onSave={(targetDate) => {
+              updateMutation.mutate(
+                { id: wishId, payload: { targetDate } },
+                {
+                  onSuccess: () => setShowTargetDateEditor(false),
+                },
+              );
+            }}
+          />
         ) : null}
       </>
     );

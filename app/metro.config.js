@@ -6,21 +6,34 @@ module.exports = (() => {
 
   const { transformer, resolver } = config;
   const projectRoot = __dirname;
+  const workspaceRoot = path.resolve(projectRoot, "..");
+
+  const resolveProjectFile = (context, targetPath, platform) => {
+    const relativePath = path.relative(
+      path.dirname(context.originModulePath),
+      targetPath,
+    );
+    const requestPath = relativePath.startsWith(".")
+      ? relativePath
+      : `./${relativePath}`;
+
+    return context.resolveRequest(
+      context,
+      requestPath.replace(/\\/g, "/"),
+      platform,
+    );
+  };
 
   const resolveWithAlias = (context, moduleName, platform) => {
     if (moduleName.startsWith("@/")) {
       const targetPath = path.resolve(projectRoot, moduleName.slice(2));
-      const relativePath = path.relative(
-        path.dirname(context.originModulePath),
-        targetPath,
-      );
-      const requestPath = relativePath.startsWith(".")
-        ? relativePath
-        : `./${relativePath}`;
+      return resolveProjectFile(context, targetPath, platform);
+    }
 
-      return context.resolveRequest(
+    if (moduleName === "@brand") {
+      return resolveProjectFile(
         context,
-        requestPath.replace(/\\/g, "/"),
+        path.resolve(workspaceRoot, "brand.json"),
         platform,
       );
     }
@@ -32,6 +45,10 @@ module.exports = (() => {
     ...transformer,
     babelTransformerPath: require.resolve("react-native-svg-transformer/expo"),
   };
+  config.watchFolders = [
+    ...(config.watchFolders ?? []),
+    workspaceRoot,
+  ];
   config.resolver = {
     ...resolver,
     assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
