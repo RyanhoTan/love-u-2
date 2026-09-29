@@ -8,6 +8,7 @@
 |---|---|---|---|---|---|---|
 | 00 — Repository workflow foundation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方开始与完成记录 | None |
 | 01 — Repository baseline assessment | Not started | — | — | — | — | Awaiting explicit approval |
+| 02 — Web today real-data baseline | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -80,3 +81,37 @@
 - **Blockers:** None。
 - **Next action:** 由用户审阅业务取舍，或另行批准将某个 PRD 需求转换为实施阶段。
 - **Evidence references:** `PRD.md`、`AGENTS.md`、`GOALS.md`、`PLANS.md`、`PROMPTS.md`。
+
+## 2026-09-29T13:25:17+08:00 — Phase 02: authorized and started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** 按 PRD 开始小步实现；本阶段选择 PRD-TODAY-001 的 Web mock 清理。
+- **Changes:** 开始移除首页模拟状态、模拟一句话、stock hero 和无行为搜索/通知入口；改用真实情侣 session 或诚实空状态。
+- **Red:** `rg 'TODAY|@/mocks' web/src/pages web/src/mocks` 修改前命中首页、登录页和 mock 模块。
+- **Green:** Pending。
+- **Refactor:** Pending。
+- **Verification:** 修改前 `pnpm --dir web lint` 和 `pnpm --dir web build` 均通过；build 有既有的 bundle size 警告。
+- **Review:** Pending self-review。
+- **Operational evidence:** 未访问数据库、对象存储、凭据或远端写操作。
+- **Limitations:** 本阶段不实现真实状态、一句话、搜索或通知。
+- **Blockers:** None。
+- **Next action:** 完成代码、运行 Web 验证、更新证据并提交独立 commit。
+- **Evidence references:** `PRD.md` PRD-TODAY-001、`harness/build/phase-02-web-today-real-data.md`。
+
+## 2026-09-29T13:26:51+08:00 — Phase 02: Web today real-data baseline completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-TODAY-001 的 Web mock 清理与真实/空状态基线。
+- **Changes:** 首页使用真实用户和伴侣资料展示情侣卡片；仅为已绑定用户加载真实纪念日与相册；移除模拟状态、模拟一句话、stock hero、无行为搜索/通知图标和 `web/src/mocks/index.ts`；登录页改用本地 CSS 装饰背景；同步 PRD 基线。
+- **Red:** 修改前静态检查命中 `TODAY` 与 `@/mocks` 的生产页面引用。
+- **Green:** `web/src` 中不再存在 `TODAY` 或 `@/mocks` 引用，mock 目录无文件。
+- **Refactor:** 删除无使用方的 `WISHES` mock；未实现的状态、句子、搜索和通知没有被伪装为可用功能。
+- **Verification:** `pnpm --dir web lint` 通过；`pnpm --dir web build` 通过；`git diff --check` 通过。Vite 仍报告既有的 bundle 大于 500 kB 警告。
+- **Review:** 自审确认未修改 API、服务端、数据库或移动端；未绑定状态不再渲染情侣专属查询组件。
+- **Operational evidence:** 未访问数据库、对象存储或凭据，未推送或部署。
+- **Limitations:** 尚未进行带真实后端会话的浏览器端到端验证；状态、一句话、搜索和通知仍需独立阶段。
+- **Blockers:** None。
+- **Next action:** 提交本阶段改动，然后选择下一个小型 PRD 需求。
+- **Evidence references:** `PRD.md` PRD-TODAY-001、`web/src/pages/today-page/index.tsx`、`web/src/pages/login-page/index.tsx`、Web lint/build 输出。

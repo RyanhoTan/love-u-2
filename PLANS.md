@@ -15,6 +15,7 @@
 |---|---|---|---|---|
 | 00 | Repository workflow foundation | Complete | 无 | 建立适配本仓库的 Codex 协作文件、边界和证据记录方式 |
 | 01 | Repository baseline assessment | Not started | Phase 00 | 形成有证据的现状、风险和候选重构阶段建议，不修改业务代码 |
+| 02 | Web today real-data baseline | Complete | Phase 00、PRD-TODAY-001 | 清除 Web 首页模拟业务内容，只呈现真实数据或诚实空状态 |
 
 ## 阶段顺序
 
@@ -34,6 +35,12 @@
 - 可以独立实施和验证的候选重构阶段。
 
 详细计划见 `harness/build/phase-01-repository-baseline-assessment.md`。
+
+### Phase 02 — Web today real-data baseline
+
+该阶段由用户直接授权启动，可以在尚未执行 Phase 01 时独立完成。它只处理 PRD-TODAY-001 中
+Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力。详细计划见
+`harness/build/phase-02-web-today-real-data.md`。
 
 ## 后续阶段的准入条件
 

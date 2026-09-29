@@ -3,7 +3,6 @@ import { Navigate } from "react-router-dom";
 import BRAND from "@brand";
 import { useAuth } from "@/features/auth/context";
 import { register } from "@/api/auth";
-import { TODAY } from "@/mocks";
 import { Button } from "@/components/ui/button";
 
 type AuthMode = "login" | "register";
@@ -77,12 +76,10 @@ export function LoginPage() {
   return (
     <div className="relative h-full bg-app">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <img
-          src={TODAY.hero}
-          alt=""
-          className="size-full object-cover"
-        />
-        <div className="absolute inset-0 bg-[#1a1418]/16" />
+        <div className="absolute inset-0 bg-[#f8edf1]" />
+        <div className="absolute -left-24 -top-28 size-[420px] rounded-full bg-[#f4a9bd]/45 blur-3xl" />
+        <div className="absolute -bottom-36 -right-20 size-[480px] rounded-full bg-[#c9b6ff]/35 blur-3xl" />
+        <div className="absolute inset-0 bg-white/10" />
       </div>
 
       <div className="relative flex h-full items-center justify-center px-6">
