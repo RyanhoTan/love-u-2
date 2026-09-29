@@ -598,3 +598,16 @@
 - **Limitations:** 未做多账号授权集成或真机交互验证；日期重复/时区边界与提醒投递继续待验证。
 - **Next action:** 独立提交；继续 PRD-DAY-001 时间边界及 app/web 表单语义检查。
 - **Evidence references:** `app/app/features/anniversary/api.ts`、`app/app/home/anniversary/index.tsx`、`app/app/home/anniversary/[id]/edit.tsx`、app lint/typecheck 输出。
+## 2026-09-29T15:06:44+08:00 — Phase 23: wish target-date editing completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 心愿目标日期编辑；不扩展地点、预算、封面等字段，不允许清空目标日期。
+- **Red:** 目标日期已在两端展示且创建时必填，服务端 PATCH 仅支持标题/描述/状态；没有目标日编辑 UI。
+- **Green:** 服务端 PATCH 复用既有真实日期校验并在现有授权 UPDATE 中写 `target_date`；OpenAPI/Web 类型同步；Web 详情新增编辑 dialog；移动端编辑页新增日期选择，只提交实际变化字段。
+- **Verification:** `updateWishSchema` 的 13 项日期/兼容矩阵通过；Web API 生成、server lint/build、Web lint/build、app lint/typecheck、`git diff --check` 均通过；静态复核缓存失效与写入授权条件。
+- **Review:** 有效闰日和 1000/9999 范围边界接受；非闰日、无效格式、超范围、空日期及空 PATCH 拒绝。App 以 `formatLocalDateOnly` 序列化并避免日期编辑覆盖未更改标题/描述。OpenAPI patch 文档与生成类型一致。
+- **Operational evidence:** 未连接 MySQL、真实账号、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 未做真实 DATE 往返或多账号/并发写入验证；原生选择器需真机验证。Web 构建仍报告依赖 Zod 注释位置和 >500 kB chunk 的既有警告。
+- **Next action:** 独立提交后继续 PRD-WISH-001 的其他字段编辑和过程记录能力缺口。
+- **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、两端心愿详情编辑组件、schema 矩阵与各 workspace 检查输出。

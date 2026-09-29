@@ -26,6 +26,7 @@ export function WishDetailInfo({
   onAddRecord,
   onEditTitle,
   onEditDescription,
+  onEditTargetDate,
 }: {
   wish: WishItem;
   creator: Creator | null;
@@ -33,6 +34,7 @@ export function WishDetailInfo({
   onAddRecord: () => void;
   onEditTitle: () => void;
   onEditDescription: () => void;
+  onEditTargetDate: () => void;
 }) {
   const isDone = wish.status === "done";
 
@@ -92,6 +94,7 @@ export function WishDetailInfo({
           icon={<Calendar className="size-[18px]" strokeWidth={2} />}
           label="目标日"
           value={isoToDotDate(wish.targetDate) || "—"}
+          onEdit={onEditTargetDate}
         />
         <div className="h-px bg-border" />
         <MetaRow
@@ -145,16 +148,27 @@ function MetaRow({
   icon,
   label,
   value,
+  onEdit,
 }: {
   icon: ReactNode;
   label: string;
   value: string;
+  onEdit?: () => void;
 }) {
   return (
     <div className="flex h-12 items-center gap-3 px-4">
       <span className="text-fg-secondary">{icon}</span>
       <span className="text-sm font-medium text-fg-secondary">{label}</span>
       <span className="ml-auto text-sm font-medium text-fg">{value}</span>
+      {onEdit ? (
+        <button
+          type="button"
+          className="rounded-control px-1.5 py-1 text-xs font-semibold text-accent transition-colors hover:bg-accent-soft"
+          onClick={onEdit}
+        >
+          编辑
+        </button>
+      ) : null}
     </div>
   );
 }

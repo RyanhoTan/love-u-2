@@ -17,6 +17,7 @@ import { MarkDoneDialog } from "./mark-done-dialog";
 import { RecordSheet } from "./record-sheet";
 import { EditDescriptionDialog } from "./edit-description-dialog";
 import { EditTitleDialog } from "./edit-title-dialog";
+import { EditTargetDateDialog } from "./edit-target-date-dialog";
 
 export function WishDetailPage() {
   const { id = "" } = useParams();
@@ -28,6 +29,7 @@ export function WishDetailPage() {
   const updateMutation = useUpdateWishMutation();
   const [showTitleEditor, setShowTitleEditor] = useState(false);
   const [showDescriptionEditor, setShowDescriptionEditor] = useState(false);
+  const [showTargetDateEditor, setShowTargetDateEditor] = useState(false);
 
   const showDone = params.get("done") === "1";
   const showRecord = params.get("record") === "1";
@@ -107,6 +109,10 @@ export function WishDetailPage() {
           onEditDescription={() => {
             updateMutation.reset();
             setShowDescriptionEditor(true);
+          }}
+          onEditTargetDate={() => {
+            updateMutation.reset();
+            setShowTargetDateEditor(true);
           }}
         />
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto lg:h-full">
@@ -188,6 +194,30 @@ export function WishDetailPage() {
                 { id: wishId, payload: { title } },
                 {
                   onSuccess: () => setShowTitleEditor(false),
+                },
+              );
+            }}
+          />
+        ) : null}
+
+        {showTargetDateEditor ? (
+          <EditTargetDateDialog
+            initialTargetDate={wish.targetDate}
+            pending={updateMutation.isPending}
+            error={
+              updateMutation.isError
+                ? errorMessage(updateMutation.error, "目标日期保存失败")
+                : undefined
+            }
+            onCancel={() => {
+              updateMutation.reset();
+              setShowTargetDateEditor(false);
+            }}
+            onSave={(targetDate) => {
+              updateMutation.mutate(
+                { id: wishId, payload: { targetDate } },
+                {
+                  onSuccess: () => setShowTargetDateEditor(false),
                 },
               );
             }}

@@ -10,15 +10,26 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import { DatePickerModal } from "@/components/wish-list/date-picker-modal";
 import {
   getWishById,
   updateWish,
   type WishItem,
 } from "@/app/features/wish-list/api";
+import { formatLocalDateOnly } from "@/app/features/wish-list/date";
 import { NavBar, toast } from "@/components/common";
 
 const MAX_DESCRIPTION_LENGTH = 1000;
 const MAX_TITLE_LENGTH = 100;
+
+function parseLocalDate(dateText: string) {
+  const [year, month, day] = dateText.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDisplayDate(date: Date) {
+  return formatLocalDateOnly(date).replaceAll("-", ".");
+}
 
 export default function EditWish() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -26,6 +37,8 @@ export default function EditWish() {
   const [wish, setWish] = useState<WishItem | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [targetDate, setTargetDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     "loading",
   );
@@ -35,7 +48,9 @@ export default function EditWish() {
   const normalizedTitle = title.trim();
   const hasChanges =
     wish !== null &&
-    (normalizedTitle !== wish.title || description !== wish.description);
+    (normalizedTitle !== wish.title ||
+      description !== wish.description ||
+      formatLocalDateOnly(targetDate) !== wish.targetDate);
 
   const loadWish = useCallback(async () => {
     if (!Number.isInteger(wishId) || wishId <= 0) {
@@ -51,6 +66,7 @@ export default function EditWish() {
       setWish(response.wish);
       setTitle(response.wish.title);
       setDescription(response.wish.description);
+      setTargetDate(parseLocalDate(response.wish.targetDate));
       setLoadState("ready");
     } catch (error) {
       setLoadError(
@@ -71,12 +87,15 @@ export default function EditWish() {
 
     const titleChanged = normalizedTitle !== wish.title;
     const descriptionChanged = description !== wish.description;
-    const payload =
-      titleChanged && descriptionChanged
-        ? { title: normalizedTitle, description: description.trim() }
-        : titleChanged
-          ? { title: normalizedTitle }
-          : { description: description.trim() };
+    const targetDateChanged = formatLocalDateOnly(targetDate) !== wish.targetDate;
+    const payload: {
+      title?: string;
+      description?: string;
+      targetDate?: string;
+    } = {};
+    if (titleChanged) payload.title = normalizedTitle;
+    if (descriptionChanged) payload.description = description.trim();
+    if (targetDateChanged) payload.targetDate = formatLocalDateOnly(targetDate);
 
     try {
       setSaving(true);
@@ -157,6 +176,18 @@ export default function EditWish() {
             <Text style={styles.counter}>
               {description.length}/{MAX_DESCRIPTION_LENGTH}
             </Text>
+
+            <Text style={styles.label}>目标日期</Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={`目标日期，${formatDisplayDate(targetDate)}`}
+              disabled={saving}
+              onPress={() => setShowDatePicker(true)}
+              style={styles.dateSelector}
+            >
+              <Text style={styles.dateText}>{formatDisplayDate(targetDate)}</Text>
+              <Text style={styles.dateHint}>点击修改</Text>
+            </TouchableOpacity>
             {saveError ? (
               <Text accessibilityRole="alert" style={styles.errorText}>
                 {saveError}
@@ -176,6 +207,16 @@ export default function EditWish() {
           </TouchableOpacity>
         </>
       )}
+
+      <DatePickerModal
+        visible={showDatePicker}
+        value={targetDate}
+        onClose={() => setShowDatePicker(false)}
+        onChangeValue={(value) => {
+          setTargetDate(value);
+          setSaveError("");
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -217,6 +258,26 @@ const styles = StyleSheet.create({
     color: "#2E2430",
     fontSize: 15,
     lineHeight: 22,
+  },
+  dateSelector: {
+    minHeight: 50,
+    borderWidth: 1,
+    borderColor: "#EADDE3",
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  dateText: {
+    color: "#2E2430",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  dateHint: {
+    color: "#8F7D88",
+    fontSize: 13,
   },
   counter: {
     alignSelf: "flex-end",

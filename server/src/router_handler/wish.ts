@@ -640,6 +640,11 @@ export async function updateWish(req: Request, res: Response) {
     values.push(payload.description || null);
   }
 
+  if (payload.targetDate !== undefined) {
+    assignments.push("target_date = ?");
+    values.push(payload.targetDate);
+  }
+
   assignments.push("updated_at = CURRENT_TIMESTAMP");
 
   const isCoupleWish = existingWish.relationship_id !== null;

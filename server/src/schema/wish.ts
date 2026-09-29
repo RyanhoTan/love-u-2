@@ -55,6 +55,7 @@ export const updateWishSchema = z
       .trim()
       .max(1000, "description must be at most 1000 characters")
       .optional(),
+    targetDate: wishDateOnlySchema("targetDate").optional(),
   })
   .strict()
   .refine((payload) => Object.keys(payload).length > 0, {

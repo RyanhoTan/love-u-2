@@ -207,7 +207,7 @@ export interface paths {
         head?: never;
         /**
          * 更新心愿
-         * @description 可修改标题、描述或状态；至少提供一个字段。
+         * @description 可修改标题、描述、状态或目标日期；至少提供一个字段。
          */
         patch: operations["updateWish"];
         trace?: never;
@@ -674,13 +674,15 @@ export interface components {
             /** @default null */
             budgetAmount: number | null;
         };
-        /** @description PATCH at least one supported field: title, status, or description */
+        /** @description PATCH at least one supported field: title, status, description, or targetDate */
         UpdateWishRequest: {
             /** @description Updated wish title; trimmed by the server */
             title?: string;
             status?: components["schemas"]["WishStatus"];
             /** @description Updated wish description; an empty string clears it */
             description?: string;
+            /** @description Updated target date; a real calendar date in YYYY-MM-DD format, year 1000–9999 */
+            targetDate?: components["schemas"]["DateOnly"];
         };
         WishRecordMedia: {
             /** Format: uri */
