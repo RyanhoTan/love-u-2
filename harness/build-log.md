@@ -42,6 +42,7 @@
 | 33 — Server-backed partner chat history | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/浏览器/移动设备集成 |
 | 34 — Accurate partner chat delivery states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-30 | 下方阶段记录 | 无真实 DB/WS/双端设备集成 |
 | 35 — Reject conflicting partner chat idempotency keys | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 MySQL/WS 集成 |
+| 36 — Isolate client chat state by relationship | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实浏览器/移动设备关系切换集成 |
 
 ## Activity
 
@@ -911,3 +912,27 @@
 - **Blockers:** None for this scoped fix.
 - **Next action:** Continue PRD-CHAT-001 review for receiver acknowledgement, cross-process delivery, and app restart retry behavior.
 - **Evidence references:** `server/src/db/schema.ts`, `server/src/ws/partnerChat.ts`, Web/App `use-partner-chat.ts`, Phase 35 build/context docs.
+
+## 2026-09-30 — Phase 36: isolate client chat state by relationship started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Web/App in-memory message isolation when the active `relationshipId` changes; retain old relationship-scoped local history without deleting or exporting it.
+- **Red:** Local storage keys include relationship ID, but on WS ready both clients merge cached new-relationship history with the entire current in-memory list. The current list can still contain the just-unbound prior relationship's messages, so those may render in a newly bound room.
+- **Decision:** Tag messages with their owning relationship ID. When loading a different key, merge its cached rows only with currently in-memory rows tagged to that exact relationship; history and realtime payloads carry the server's relation ID. On confirmed unbind, clear visible in-memory state but retain the old cache untouched; no post-unbind retention policy change.
+- **Operational evidence:** Phase 35 committed as `298b4b8`; workspace was clean at start. No real user data or device was accessed.
+- **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`. Static review covered cache switching, same-key merge, stale REST/socket events, and voice-upload relationship changes.
+- **Limitations:** No browser/native device integration. Old relationship caches are retained; post-unbind access/retention remains a product decision. App has no `typecheck` script, so TypeScript was checked directly with `tsc --noEmit`.
+- **Blockers:** None.
+- **Next action:** Resume PRD-CHAT-001 sender retry reliability work.
+- **Evidence references:** Web/App `use-partner-chat.ts`, `app/app/home/(tabs)/interact.tsx`, PRD-CHAT-001, Phase 32 unbind boundary, and `harness/build/phase-36-chat-relationship-isolation.md`.
+
+## 2026-09-30 — Phase 36: isolate client chat state by relationship completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Completed:** Tagged client history rows by relationship, isolated ready/cache/REST/WS merges, guarded stale socket/request results, and prevented audio upload races from crossing relationship changes.
+- **Verification:** Web lint/build; App lint/direct TypeScript check; `git diff --check` all passed. Build emitted existing Rollup dependency-annotation and large-chunk warnings only.
+- **Limitations:** No live browser/native relationship-switch test; old relationship caches remain by design pending product policy.
+- **Next action:** Continue PRD-CHAT-001 retry reliability as a separate small phase.
+- **Evidence references:** `harness/build/phase-36-chat-relationship-isolation.md`, Web/App partner-chat hooks, App interact screen.

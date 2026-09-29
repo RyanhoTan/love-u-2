@@ -69,6 +69,7 @@ export default function Interact() {
   const {
     messages,
     errorMessage,
+    isConnected,
     hasOlderMessages,
     historyLoadFailed,
     isLoadingOlderMessages,
@@ -78,7 +79,13 @@ export default function Interact() {
   } = usePartnerChat(token, { isVisible: isFocused });
 
   const isBound = Boolean(coupleSpace?.isBound && coupleSpace.partner);
-  const canSendMessage = isBound;
+  const canSendMessage = isBound && isConnected;
+  const activeRelationshipIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    activeRelationshipIdRef.current = isBound
+      ? coupleSpace?.relationship?.id ?? null
+      : null;
+  }, [coupleSpace, isBound]);
 
   const selfAvatar: ImageSourcePropType = user?.avatar
     ? { uri: user.avatar }
@@ -106,13 +113,19 @@ export default function Interact() {
     const nextValue = inputValue.trim();
     if (!nextValue || !canSendMessage) return;
 
-    sendMessage(nextValue);
-    setInputValue("");
-    isAtBottomRef.current = true;
-    scrollToBottom();
+    if (sendMessage(nextValue)) {
+      setInputValue("");
+      isAtBottomRef.current = true;
+      scrollToBottom();
+    }
   };
 
   const handleSendVoice = async (audioUri: string) => {
+    const targetRelationshipId = activeRelationshipIdRef.current;
+    if (targetRelationshipId === null) {
+      Alert.alert("语音发送失败", "当前没有有效的情侣关系，请稍后重试。");
+      return;
+    }
     const fileName = audioUri.split("/").pop() || "voice.m4a";
     const extension = fileName.split(".").pop()?.toLowerCase();
     const contentType =
@@ -130,6 +143,9 @@ export default function Interact() {
         contentType,
         "interact",
       );
+      if (activeRelationshipIdRef.current !== targetRelationshipId) {
+        throw new Error("relationship changed during audio upload");
+      }
       if (!upload.key || !sendAudioMessage(upload.key, audioUri)) {
         throw new Error("voice message could not be sent");
       }

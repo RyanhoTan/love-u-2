@@ -21,6 +21,7 @@ export type PartnerChatMessageType = "text" | "audio";
 
 export interface PartnerChatMessage {
   id: string;
+  relationshipId?: number;
   serverMessageId?: string;
   text: string;
   messageType: PartnerChatMessageType;
@@ -105,6 +106,10 @@ function isPartnerChatMessage(value: unknown): value is PartnerChatMessage {
   const message = value as Partial<PartnerChatMessage>;
   return (
     typeof message.id === "string" &&
+    (message.relationshipId === undefined ||
+      (typeof message.relationshipId === "number" &&
+        Number.isInteger(message.relationshipId) &&
+        message.relationshipId > 0)) &&
     typeof message.text === "string" &&
     (message.messageType === "text" || message.messageType === "audio") &&
     (message.audioUrl === undefined || typeof message.audioUrl === "string") &&
@@ -202,6 +207,7 @@ function mapHistoryMessage(
   const isSelf = message.fromUserId === userId;
   return {
     id: isSelf ? (message.clientMessageId ?? message.id) : message.id,
+    relationshipId: message.relationshipId,
     serverMessageId: message.id,
     text: message.text,
     messageType: message.messageType,
@@ -229,6 +235,7 @@ export function usePartnerChat(
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldReconnectRef = useRef(false);
+  const isReadyRef = useRef(false);
   const relationshipRevokedRef = useRef(false);
   const historyRelationshipIdRef = useRef<number | null>(null);
   const historyCursorRef = useRef<string | null>(null);
@@ -252,20 +259,35 @@ export function usePartnerChat(
     }
   }, []);
 
-  const loadHistory = useCallback(async (storageKey: string) => {
-    try {
-      const rawHistory = await AsyncStorage.getItem(storageKey);
-      const storedMessages = normalizeStoredMessages(
-        rawHistory ? JSON.parse(rawHistory) : [],
-      );
+  const loadHistory = useCallback(
+    async (storageKey: string, relationshipId: number) => {
+      try {
+        const rawHistory = await AsyncStorage.getItem(storageKey);
+        if (historyStorageKeyRef.current !== storageKey) {
+          return;
+        }
+        const storedMessages = normalizeStoredMessages(
+          rawHistory ? JSON.parse(rawHistory) : [],
+        ).map((message) => ({ ...message, relationshipId }));
 
-      setMessages((current) => mergeMessages(storedMessages, current));
-    } catch {
-      // Ignore damaged local history so realtime chat can continue.
-    } finally {
-      hasLoadedHistoryRef.current = true;
-    }
-  }, []);
+        setMessages((current) =>
+          mergeMessages(
+            storedMessages,
+            current.filter(
+              (message) => message.relationshipId === relationshipId,
+            ),
+          ),
+        );
+      } catch {
+        // Ignore damaged local history so realtime chat can continue.
+      } finally {
+        if (historyStorageKeyRef.current === storageKey) {
+          hasLoadedHistoryRef.current = true;
+        }
+      }
+    },
+    [],
+  );
 
   const sendReadEvent = useCallback(() => {
     const socket = socketRef.current;
@@ -332,14 +354,24 @@ export function usePartnerChat(
         const serverMessages = page.messages.map((message) =>
           mapHistoryMessage(userId, message),
         );
-        setMessages((current) => mergeMessages(current, serverMessages));
+        setMessages((current) =>
+          mergeMessages(
+            current.filter(
+              (message) => message.relationshipId === relationshipId,
+            ),
+            serverMessages,
+          ),
+        );
       } catch {
+        if (historyStorageKeyRef.current !== storageKey) {
+          return;
+        }
         if (!beforeId) {
           setHistoryLoadFailed(true);
         }
         setErrorMessage("聊天历史暂时无法加载，请稍后重试");
       } finally {
-        if (beforeId) {
+        if (beforeId && historyStorageKeyRef.current === storageKey) {
           historyPageInProgressRef.current = false;
           setIsLoadingOlderMessages(false);
         }
@@ -371,6 +403,7 @@ export function usePartnerChat(
     }
 
     clearReconnectTimer();
+    isReadyRef.current = false;
     setStatus("connecting");
     setErrorMessage(null);
 
@@ -379,17 +412,21 @@ export function usePartnerChat(
 
     socket.onopen = () => {
       relationshipRevokedRef.current = false;
-      setStatus("connected");
-      setErrorMessage(null);
     };
 
     socket.onmessage = (event) => {
+      if (socketRef.current !== socket) {
+        return;
+      }
       const payload = parseServerMessage(String(event.data));
       if (!payload) {
         return;
       }
 
       if (payload.type === "ready") {
+        isReadyRef.current = true;
+        setStatus("connected");
+        setErrorMessage(null);
         userIdRef.current = payload.userId;
         const storageKey = createHistoryStorageKey(
           payload.userId,
@@ -403,9 +440,10 @@ export function usePartnerChat(
           historyPageInProgressRef.current = false;
           hasLoadedOlderPageRef.current = false;
           setHasOlderMessages(false);
+          setIsLoadingOlderMessages(false);
           setHistoryLoadFailed(false);
           hasLoadedHistoryRef.current = false;
-          void loadHistory(storageKey);
+          void loadHistory(storageKey, payload.relationshipId);
         }
 
         void loadServerHistory(payload.userId, payload.relationshipId);
@@ -417,10 +455,14 @@ export function usePartnerChat(
       }
 
       if (payload.type === "message") {
+        if (historyRelationshipIdRef.current !== payload.relationshipId) {
+          return;
+        }
         setMessages((current) =>
           mergeMessages(current, [
             {
               id: payload.id,
+              relationshipId: payload.relationshipId,
               serverMessageId: payload.id,
               text: payload.text,
               messageType: payload.messageType,
@@ -440,7 +482,8 @@ export function usePartnerChat(
       if (payload.type === "delivery" && payload.clientMessageId) {
         setMessages((current) =>
           current.map((message) =>
-            message.id === payload.clientMessageId
+            message.id === payload.clientMessageId &&
+            message.relationshipId === historyRelationshipIdRef.current
               ? {
                   ...message,
                   audioUrl:
@@ -460,10 +503,14 @@ export function usePartnerChat(
       }
 
       if (payload.type === "read_receipt") {
+        if (historyRelationshipIdRef.current !== payload.relationshipId) {
+          return;
+        }
         const readMessageIds = new Set(payload.messageIds);
         setMessages((current) =>
           current.map((message) =>
             message.isSelf &&
+            message.relationshipId === payload.relationshipId &&
             (readMessageIds.has(message.serverMessageId ?? "") ||
               readMessageIds.has(message.id))
               ? { ...message, status: "read" }
@@ -477,7 +524,8 @@ export function usePartnerChat(
         if (payload.clientMessageId) {
           setMessages((current) =>
             current.map((message) =>
-              message.id === payload.clientMessageId
+              message.id === payload.clientMessageId &&
+              message.relationshipId === historyRelationshipIdRef.current
                 ? { ...message, status: "failed" }
                 : message,
             ),
@@ -492,14 +540,19 @@ export function usePartnerChat(
     };
 
     socket.onerror = () => {
+      if (socketRef.current !== socket) {
+        return;
+      }
       setStatus("error");
       setErrorMessage("聊天连接异常");
     };
 
     socket.onclose = (event) => {
-      if (socketRef.current === socket) {
-        socketRef.current = null;
+      if (socketRef.current !== socket) {
+        return;
       }
+      socketRef.current = null;
+      isReadyRef.current = false;
 
       const relationshipRevoked = event.code === 4003;
       const failedReentry = relationshipRevokedRef.current && !relationshipRevoked;
@@ -507,6 +560,15 @@ export function usePartnerChat(
         relationshipRevokedRef.current = true;
         shouldReconnectRef.current = false;
         setErrorMessage("情侣关系已解除，聊天连接已关闭");
+        historyRelationshipIdRef.current = null;
+        historyStorageKeyRef.current = null;
+        historyCursorRef.current = null;
+        historyPageInProgressRef.current = false;
+        hasLoadedOlderPageRef.current = false;
+        hasLoadedHistoryRef.current = false;
+        setHasOlderMessages(false);
+        setIsLoadingOlderMessages(false);
+        setMessages([]);
       } else if (failedReentry) {
         shouldReconnectRef.current = false;
         setErrorMessage("当前没有有效的情侣关系，聊天尚未连接");
@@ -515,7 +577,8 @@ export function usePartnerChat(
       setStatus("closed");
       setMessages((current) =>
         current.map((message) =>
-          message.status === "sending"
+          message.status === "sending" &&
+          message.relationshipId === historyRelationshipIdRef.current
             ? { ...message, status: "failed" }
             : message,
         ),
@@ -559,6 +622,7 @@ export function usePartnerChat(
       clearReconnectTimer();
       historyStorageKeyRef.current = null;
       hasLoadedHistoryRef.current = false;
+      isReadyRef.current = false;
       setMessages([]);
       setHasOlderMessages(false);
       setHistoryLoadFailed(false);
@@ -582,11 +646,16 @@ export function usePartnerChat(
       return;
     }
 
-    const persistableMessages = messages.map((message) =>
-      message.audioUrl && /^(file|content|ph|blob):/i.test(message.audioUrl)
-        ? { ...message, audioUrl: undefined }
-        : message,
-    );
+    const persistableMessages = messages
+      .filter(
+        (message) =>
+          message.relationshipId === historyRelationshipIdRef.current,
+      )
+      .map((message) =>
+        message.audioUrl && /^(file|content|ph|blob):/i.test(message.audioUrl)
+          ? { ...message, audioUrl: undefined }
+          : message,
+      );
 
     void AsyncStorage.setItem(
       storageKey,
@@ -596,13 +665,15 @@ export function usePartnerChat(
 
   const sendTextMessage = useCallback((text: string) => {
     const trimmedText = text.trim();
-    if (!trimmedText) {
+    const relationshipId = historyRelationshipIdRef.current;
+    if (!trimmedText || !isReadyRef.current || relationshipId === null) {
       return false;
     }
 
     const clientMessageId = createClientMessageId();
     const nextMessage: PartnerChatMessage = {
       id: clientMessageId,
+      relationshipId,
       text: trimmedText,
       messageType: "text",
       sentAt: new Date().toISOString(),
@@ -638,13 +709,15 @@ export function usePartnerChat(
   const sendAudioMessage = useCallback(
     (audioObjectKey: string, audioPreviewUri: string) => {
       const trimmedObjectKey = audioObjectKey.trim();
-      if (!trimmedObjectKey) {
+      const relationshipId = historyRelationshipIdRef.current;
+      if (!trimmedObjectKey || !isReadyRef.current || relationshipId === null) {
         return false;
       }
 
       const clientMessageId = createClientMessageId();
       const nextMessage: PartnerChatMessage = {
         id: clientMessageId,
+        relationshipId,
         text: "",
         messageType: "audio",
         audioUrl: audioPreviewUri,

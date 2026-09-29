@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–35 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–36 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -49,6 +49,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 33 | Server-backed partner chat history | Complete | PRD-CHAT-001、Phase 32 | 增加当前绑定关系授权的历史分页，并由 Web/App 在连接后读取及按需加载旧消息 |
 | 34 | Accurate partner chat delivery states | Complete | PRD-CHAT-001、Phase 33 | 根据对方可用连接与持久化 delivered_at 回报离线/送达状态，并在两端显示状态 |
 | 35 | Reject conflicting partner chat idempotency keys | Complete | PRD-CHAT-001、Phase 34 | 同一 clientMessageId 重试保持幂等；复用 ID 发送不同内容时明确拒绝，避免发送端/接收端内容分叉 |
+| 36 | Isolate client chat state by relationship | Complete | PRD-CHAT-001、Phase 33/35 | 关系 ID 变化时仅展示对应关系的本地缓存、服务端历史和实时事件，不把旧内存消息带入新会话 |
 
 ## 阶段顺序
 
@@ -247,6 +248,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 保留现有 `(sender_id, client_message_id)` 唯一约束；同 ID、同内容的重试返回原消息，若同 ID 被用于不同文本/语音内容或另一关系，则返回明确冲突，不向接收方广播旧内容。详细计划见
 `harness/build/phase-35-chat-idempotency-conflict.md`。
+
+### Phase 36 — Isolate client chat state by relationship
+
+把关系 ID 作为每条客户端消息的会话归属；加载新的 relationship 时，只合并该关系的缓存和实时消息，保留但不删除旧关系本地副本。详细计划见
+`harness/build/phase-36-chat-relationship-isolation.md`。
 
 ## 后续阶段的准入条件
 
