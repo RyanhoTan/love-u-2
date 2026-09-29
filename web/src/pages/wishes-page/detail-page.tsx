@@ -1,6 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
+import { uploadWishMedia } from "@/api/wish";
 import { useAuth } from "@/features/auth/context";
 import {
   errorMessage,
@@ -34,11 +35,47 @@ export function WishDetailPage() {
   const [showTargetDateEditor, setShowTargetDateEditor] = useState(false);
   const [showBudgetEditor, setShowBudgetEditor] = useState(false);
   const [showLocationEditor, setShowLocationEditor] = useState(false);
+  const [coverPending, setCoverPending] = useState(false);
+  const [coverError, setCoverError] = useState("");
 
   const showDone = params.get("done") === "1";
   const showRecord = params.get("record") === "1";
   const wish = wishQuery.data?.wish;
   const isDone = wish?.status === "done";
+
+  async function handleReplaceCover(file: File) {
+    setCoverPending(true);
+    setCoverError("");
+    updateMutation.reset();
+    try {
+      const uploaded = await uploadWishMedia(file);
+      await updateMutation.mutateAsync({
+        id: wishId,
+        payload: { coverObjectKey: uploaded.key },
+      });
+    } catch (error) {
+      setCoverError(errorMessage(error, "封面保存失败"));
+    } finally {
+      setCoverPending(false);
+    }
+  }
+
+  async function handleClearCover() {
+    if (!window.confirm("清除这个心愿的封面？")) return;
+    setCoverPending(true);
+    setCoverError("");
+    updateMutation.reset();
+    try {
+      await updateMutation.mutateAsync({
+        id: wishId,
+        payload: { coverObjectKey: null },
+      });
+    } catch (error) {
+      setCoverError(errorMessage(error, "封面清除失败"));
+    } finally {
+      setCoverPending(false);
+    }
+  }
   function closeQuery(key: "done" | "record") {
     const next = new URLSearchParams(params);
     next.delete(key);
@@ -126,6 +163,10 @@ export function WishDetailPage() {
             updateMutation.reset();
             setShowLocationEditor(true);
           }}
+          onReplaceCover={(file) => void handleReplaceCover(file)}
+          onClearCover={() => void handleClearCover()}
+          coverPending={coverPending || updateMutation.isPending}
+          coverError={coverError}
         />
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto lg:h-full">
           <WishDetailRecords

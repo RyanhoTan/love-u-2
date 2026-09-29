@@ -35,6 +35,7 @@
 | 26 — Album object-key write contract | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无 DB/R2/设备集成 |
 | 27 — Private album reads with short-lived signed URLs | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无 DB/R2/浏览器/设备集成 |
 | 28 — Wish private cover create/read | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/浏览器/设备集成 |
+| 29 — Wish private cover update/clear | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/浏览器/设备集成 |
 
 ## Activity
 
@@ -717,3 +718,31 @@
 - **Blockers:** None。
 - **Next action:** 独立提交后继续 PRD R1/P0 的下一个可执行缺口。
 - **Evidence references:** `server/src/db/schema.ts`、`server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、`web/src/pages/wishes-page/new-page.tsx`、`app/app/home/wish-list/create.tsx`、schema 矩阵与 workspace 检查输出。
+
+## 2026-09-29T16:23:00+08:00 — Phase 29: private wish cover update/clear started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 已有心愿封面的替换与清除；继续使用 Phase 28 私有 key/签名读取契约，不包含媒体删除回收、Wish record attachments、Chat 或其他字段重构。
+- **Red:** Wish PATCH schema 与两端编辑表单不包含封面；现存 legacy 和 private cover 均不能更换或清除。
+- **Decision:** `coverObjectKey` 以 `string` 表示替换、`null` 表示清除、未提供表示不改；替换时同时清空 legacy URL 列，清除时两列均置空。保持现有当前关系写授权；新上传对象仅在提交 key 后关联，不删除旧/孤儿对象。
+- **Verification:** Pending。
+- **Operational evidence:** 分支为 `refactor/codex-workflow-harness`，Phase 28 已提交且工作树干净；未连接数据库、R2 或客户端。
+- **Limitations:** 替换上传后 PATCH 失败可留下孤儿对象；成功替换或清除不会删除旧对象，等待独立生命周期阶段设计。
+- **Blockers:** None。
+- **Next action:** 为 schema、授权 PATCH 与 Web/App 编辑入口实现替换/清除，然后执行各 workspace 检查并单独提交。
+- **Evidence references:** `PRD.md` PRD-WISH-001、Phase 28 私有封面读写契约、Wish detail/edit API 与 UI。
+
+## 2026-09-29T16:33:57+08:00 — Phase 29: private wish cover update/clear completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 已有心愿封面的替换与清除；不包含对象回收、Wish record attachments 或 Chat。
+- **Green:** PATCH schema 支持 `coverObjectKey` 缺省/字符串/null 三态；替换会写私有 key 并清空旧 URL，清除会同时清空两列；owner helper 用于创建和更新。原关系授权条件仍在 conditional UPDATE。Web 详情可上传替换或确认清除；App 编辑页可预览替换、二次确认清除，保存失败保留草稿和错误。
+- **Verification:** `pnpm --dir web api`、server lint/build、Web lint/build、App lint/typecheck、`git diff --check` 均通过；11 项 schema/owner 矩阵覆盖 create legacy URL、PATCH 不改/替换/清除、非法字段/键、路径穿越、空更新及匹配/不匹配所有者。
+- **Review:** 未提供 `coverObjectKey` 时 handler 不添加 cover assignments；字符串 key 先校验当前用户，再在既有 Wish scope 条件下写入；null 会将 `cover_object_key` 与旧 `cover` 都更新为 SQL NULL；读取仍返回短期签名 URL/空串且不暴露 key。
+- **Operational evidence:** 未连接 MySQL、R2、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 未验证真实 SQL NULL 往返、R2 上传/签名或 UI 设备交互；PATCH 失败时已上传对象可能成为孤儿，覆盖/清除不删除旧对象；前台等候超过 URL TTL 无定时续签；Web build 保留既有 Zod 注释位置和 >500 kB bundle 警告。
+- **Blockers:** None。
+- **Next action:** 独立提交后继续 PRD R1/P0 的下一个可执行缺口。
+- **Evidence references:** `server/src/media/objectKey.ts`、`server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、Web/App Wish 编辑页、schema 矩阵与 workspace 检查输出。

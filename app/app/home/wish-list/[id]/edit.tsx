@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   ActivityIndicator,
   ScrollView,
   StyleSheet,
@@ -11,9 +12,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { DatePickerModal } from "@/components/wish-list/date-picker-modal";
+import { CoverPicker } from "@/components/wish-list/cover-picker";
 import {
   getWishById,
   updateWish,
+  uploadWishFile,
   type WishItem,
 } from "@/app/features/wish-list/api";
 import { formatLocalDateOnly } from "@/app/features/wish-list/date";
@@ -56,6 +59,7 @@ export default function EditWish() {
   const [locationName, setLocationName] = useState("");
   const [targetDate, setTargetDate] = useState(new Date());
   const [budgetText, setBudgetText] = useState("");
+  const [coverValue, setCoverValue] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     "loading",
@@ -73,7 +77,8 @@ export default function EditWish() {
       description !== wish.description ||
       formatLocalDateOnly(targetDate) !== wish.targetDate ||
       normalizedLocationName !== wish.locationName ||
-      (isBudgetValid && budgetAmount !== wish.budgetAmount));
+      (isBudgetValid && budgetAmount !== wish.budgetAmount) ||
+      coverValue !== (wish.cover || null));
 
   const loadWish = useCallback(async () => {
     if (!Number.isInteger(wishId) || wishId <= 0) {
@@ -92,6 +97,7 @@ export default function EditWish() {
       setLocationName(response.wish.locationName);
       setTargetDate(parseLocalDate(response.wish.targetDate));
       setBudgetText(response.wish.budgetAmount?.toString() ?? "");
+      setCoverValue(response.wish.cover || null);
       setLoadState("ready");
     } catch (error) {
       setLoadError(
@@ -121,12 +127,14 @@ export default function EditWish() {
     const targetDateChanged = formatLocalDateOnly(targetDate) !== wish.targetDate;
     const locationChanged = normalizedLocationName !== wish.locationName;
     const budgetChanged = budgetAmount !== wish.budgetAmount;
+    const coverChanged = coverValue !== (wish.cover || null);
     const payload: {
       title?: string;
       description?: string;
       targetDate?: string;
       budgetAmount?: number | null;
       locationName?: string;
+      coverObjectKey?: string | null;
     } = {};
     if (titleChanged) payload.title = normalizedTitle;
     if (descriptionChanged) payload.description = description.trim();
@@ -137,6 +145,22 @@ export default function EditWish() {
     try {
       setSaving(true);
       setSaveError("");
+      if (coverChanged) {
+        if (coverValue) {
+          const fileName = coverValue.split("/").pop() || "cover.jpg";
+          const contentType = fileName.toLowerCase().endsWith(".png")
+            ? "image/png"
+            : "image/jpeg";
+          const uploaded = await uploadWishFile(
+            coverValue,
+            fileName,
+            contentType,
+          );
+          payload.coverObjectKey = uploaded.key;
+        } else {
+          payload.coverObjectKey = null;
+        }
+      }
       await updateWish(wish.id, payload);
       toast.success("心愿保存成功");
       router.back();
@@ -261,6 +285,37 @@ export default function EditWish() {
               style={styles.titleInput}
             />
             <Text style={styles.fieldHint}>仅修改地点名称，不更改已保存的坐标；留空可清除名称。</Text>
+            <Text style={styles.label}>封面</Text>
+            <CoverPicker
+              value={coverValue}
+              disabled={saving}
+              onChange={(value) => {
+                setCoverValue(value);
+                setSaveError("");
+              }}
+            />
+            {coverValue ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                disabled={saving}
+                onPress={() =>
+                  Alert.alert("清除封面", "保存后将移除这个心愿的封面。", [
+                    { text: "取消", style: "cancel" },
+                    {
+                      text: "清除",
+                      style: "destructive",
+                      onPress: () => {
+                        setCoverValue(null);
+                        setSaveError("");
+                      },
+                    },
+                  ])
+                }
+                style={styles.clearCoverButton}
+              >
+                <Text style={styles.clearCoverText}>清除封面</Text>
+              </TouchableOpacity>
+            ) : null}
             {saveError ? (
               <Text accessibilityRole="alert" style={styles.errorText}>
                 {saveError}
@@ -362,6 +417,16 @@ const styles = StyleSheet.create({
     color: "#8F7D88",
     fontSize: 12,
     lineHeight: 18,
+  },
+  clearCoverButton: {
+    alignSelf: "flex-end",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  clearCoverText: {
+    color: "#D13B66",
+    fontSize: 14,
+    fontWeight: "600",
   },
   budgetField: {
     minHeight: 50,

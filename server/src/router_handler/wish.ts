@@ -10,6 +10,7 @@ import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
+import { isAlbumObjectKeyOwnedByUser } from "../media/objectKey.js";
 import {
   createWishRecordSchema,
   createWishSchema,
@@ -561,7 +562,7 @@ export async function createWish(req: Request, res: Response) {
 
   if (
     payload.coverObjectKey &&
-    !payload.coverObjectKey.startsWith(`album/${userId}/`)
+    !isAlbumObjectKeyOwnedByUser(userId, payload.coverObjectKey)
   ) {
     throw new HttpError(403, "cover media does not belong to the current user");
   }
@@ -640,6 +641,13 @@ export async function updateWish(req: Request, res: Response) {
     throw new HttpError(404, "wish not found");
   }
 
+  if (
+    payload.coverObjectKey &&
+    !isAlbumObjectKeyOwnedByUser(userId, payload.coverObjectKey)
+  ) {
+    throw new HttpError(403, "cover media does not belong to the current user");
+  }
+
   const assignments: string[] = [];
   const values: (string | number | null)[] = [];
 
@@ -671,6 +679,13 @@ export async function updateWish(req: Request, res: Response) {
   if (payload.locationName !== undefined) {
     assignments.push("location_name = ?");
     values.push(payload.locationName || null);
+  }
+
+  if (payload.coverObjectKey !== undefined) {
+    assignments.push("cover_object_key = ?");
+    values.push(payload.coverObjectKey);
+    assignments.push("cover = ?");
+    values.push(null);
   }
 
   assignments.push("updated_at = CURRENT_TIMESTAMP");

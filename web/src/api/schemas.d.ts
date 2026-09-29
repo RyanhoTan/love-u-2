@@ -673,7 +673,7 @@ export interface components {
             /** @default null */
             budgetAmount: number | null;
         };
-        /** @description PATCH at least one supported field: title, status, description, targetDate, budgetAmount, or locationName */
+        /** @description PATCH at least one supported field: title, status, description, targetDate, budgetAmount, locationName, or coverObjectKey */
         UpdateWishRequest: {
             /** @description Updated wish title; trimmed by the server */
             title?: string;
@@ -686,6 +686,8 @@ export interface components {
             budgetAmount?: number | null;
             /** @description Updated location name; an empty string clears the name without changing coordinates */
             locationName?: string;
+            /** @description Private album object key to replace the cover; null clears the legacy URL and private key; omitted leaves the cover unchanged */
+            coverObjectKey?: string | null;
         };
         WishRecordMedia: {
             /** Format: uri */

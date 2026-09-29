@@ -3034,9 +3034,17 @@
             "type": "string",
             "maxLength": 100,
             "description": "Updated location name; an empty string clears the name without changing coordinates"
+          },
+          "coverObjectKey": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2048,
+            "description": "Private album object key to replace the cover; null clears the legacy URL and private key; omitted leaves the cover unchanged"
           }
         },
-        "description": "PATCH at least one supported field: title, status, description, targetDate, budgetAmount, or locationName"
+        "description": "PATCH at least one supported field: title, status, description, targetDate, budgetAmount, locationName, or coverObjectKey"
       },
       "WishRecordMedia": {
         "type": "object",

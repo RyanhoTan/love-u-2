@@ -87,6 +87,7 @@ export const updateWishSchema = z
       .trim()
       .max(100, "locationName must be at most 100 characters")
       .optional(),
+    coverObjectKey: wishCoverObjectKeySchema.nullable().optional(),
   })
   .strict()
   .refine((payload) => Object.keys(payload).length > 0, {
