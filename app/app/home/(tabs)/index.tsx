@@ -21,9 +21,7 @@ import {
   ImagesAnniversaryCalendarPng,
   ImagesAvatarFemalePng,
   ImagesAvatarMalePng,
-  IconsHomeDoubleHeartSvg,
   IconsHomeGiftSvg,
-  IconsHomeStatusSvg,
 } from "@/assets";
 
 function formatDisplayDate(dateText: string) {
@@ -101,32 +99,6 @@ export default function HomeScreen() {
         {anniversaryDateText}
       </Text>
       <Row center gap={12} style={{ overflow: "hidden" }}>
-        <TouchableOpacity onPress={() => router.push("/home/status")}>
-          <Column
-            center
-            gap={8}
-            bg="#fff"
-            rounded={20}
-            style={{ padding: 8, marginTop: 42, width: 120 }}
-          >
-            <IconsHomeStatusSvg width={72} height={72} />
-            <Text style={{ fontSize: 16, textAlign: "center" }}>今日状态</Text>
-          </Column>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => router.push("/home/asentence")}>
-          <Column
-            center
-            gap={8}
-            bg="#fff"
-            rounded={20}
-            style={{ padding: 8, marginTop: 42, width: 120 }}
-          >
-            <IconsHomeDoubleHeartSvg width={72} height={72} />
-            <Text style={{ fontSize: 16, textAlign: "center" }}>一句话</Text>
-          </Column>
-        </TouchableOpacity>
-
         <TouchableOpacity onPress={() => router.push("/home/wish-list")}>
           <Column
             center

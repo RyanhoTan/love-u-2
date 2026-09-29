@@ -12,6 +12,7 @@
 | 03 — Web profile editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 04 — Hide unfinished Web settings | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 05 — Hide unfinished mobile settings | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 06 — Hide fake mobile daily interactions | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -203,3 +204,20 @@
 - **Blockers:** None。
 - **Next action:** 提交本小点，再选择一个能够独立验证的 R1 核心一致性问题。
 - **Evidence references:** `app/app/home/(tabs)/mine.tsx`、删除的 `app/app/home/(mine)/notification-settings/index.tsx`、`PRD.md`、app lint 输出。
+
+## 2026-09-29T13:37:47+08:00 — Phase 06: fake mobile daily interactions hidden
+
+- **Status:** `Not started` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-STATUS-001 与 R1 中状态/一句话硬编码和假成功清理。
+- **Changes:** 从移动端首页移除“今日状态”和“一句话”入口；删除硬编码对方状态/句子、只维护本地输入并无条件提示发送或保存成功的页面；保留真实心愿入口；同步产品基线。
+- **Red:** 修改前静态检查命中 `/home/status`、`/home/asentence`、硬编码“想你”和固定句子，以及没有 API 调用的成功 toast。
+- **Green:** 移动端生产路由和首页不再暴露两个未闭环功能，相关硬编码页面已移除。
+- **Refactor:** 清理不再使用的首页图标 import，不删除仍被真实心愿记录使用的状态素材。
+- **Verification:** app lint、目标路由/文案静态检查和 `git diff --check` 通过。
+- **Review:** 该阶段没有把本地状态伪装成持久化；真实状态/一句话需要 R2 的数据模型、授权 API 和跨账号验收后再引入。
+- **Operational evidence:** 未访问后端、数据库、凭据或外部服务，未推送或部署。
+- **Limitations:** 未运行 Android/iOS 模拟器；首页仍有未绑定和请求失败时展示“0 天”的独立 R1 问题，将在下一小点处理。
+- **Blockers:** None。
+- **Next action:** 提交本小点，然后修正移动端首页绑定、加载和错误状态。
+- **Evidence references:** `app/app/home/(tabs)/index.tsx`、删除的状态/一句话页面、`PRD.md`、app lint 输出。
