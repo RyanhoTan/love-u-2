@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–18 是这项授权下已完成的
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–19 是这项授权下已完成的
 阶段。Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -32,6 +32,7 @@
 | 16 | Wish record creation authorization | Complete | Phase 15、PRD-WISH-001 | 过程记录插入与当前心愿/关系授权合为同一 SQL 语句 |
 | 17 | Anniversary calendar date validation | Complete | PRD-DAY-001、Phase 14 | 服务端拒绝不真实或超出当前 DATE 范围的纪念日日期 |
 | 18 | Anniversary mutation authorization | Complete | PRD-DAY-001、Phase 17 | 编辑与删除纪念日的最终 UPDATE 重新约束当前关系成员资格 |
+| 19 | Anniversary creation authorization | Complete | Phase 18、PRD-DAY-001 | 纪念日插入时在同一语句确认当前 bound 关系及成员资格 |
 
 ## 阶段顺序
 
@@ -145,6 +146,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 纪念日编辑和删除在预读后写入时重新确认目标仍属于同一当前 bound 关系，且用户是关系成员。详细计划见
 `harness/build/phase-18-anniversary-mutation-authorization.md`。
+
+### Phase 19 — Anniversary creation authorization
+
+纪念日创建由先查关系后无条件 VALUES 插入，改为从仍为 bound 且用户是成员的关系行 SELECT 插入；零行时返回 409。详细计划见
+`harness/build/phase-19-anniversary-creation-authorization.md`。
 
 ## 后续阶段的准入条件
 

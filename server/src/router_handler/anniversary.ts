@@ -271,18 +271,33 @@ export async function createAnniversary(req: Request, res: Response) {
         reminder_days_before,
         status
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
+      SELECT
+        authorized_relationship.id,
+        ?, ?, ?, ?, ?, ?, 'active'
+      FROM ${COUPLE_RELATIONSHIPS_TABLE} AS authorized_relationship
+      WHERE authorized_relationship.id = ?
+        AND authorized_relationship.status = 'bound'
+        AND (
+          authorized_relationship.user_a_id = ?
+          OR authorized_relationship.user_b_id = ?
+        )
+      LIMIT 1
     `,
     [
-      relationship.id,
       userId,
       payload.title,
       payload.type,
       payload.originalDate,
       payload.repeatType,
       payload.reminderDaysBefore,
+      relationship.id,
+      userId,
+      userId,
     ]
   );
+  if (result.affectedRows === 0) {
+    throw new HttpError(409, "bound couple relationship not found");
+  }
 
   const [rows] = await db.query<AnniversaryRow[]>(
     `
