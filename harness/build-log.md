@@ -20,6 +20,7 @@
 | 11 — Web wish title editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 12 — Mobile wish title editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 | 13 — Mobile wish date-only serialization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
+| 14 — Wish calendar date validation | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | None |
 
 ## Activity
 
@@ -455,3 +456,33 @@
 - **Blockers:** None。
 - **Next action:** 单独提交此修复，继续处理 PRD P0 的日期和心愿字段一致性。
 - **Evidence references:** `app/app/features/wish-list/date.ts`、两处 create 页面、`harness/context/phase-13-mobile-wish-date-only-serialization-context.md`、聚焦断言与 app 命令输出。
+
+## 2026-09-29T14:28:51+08:00 — Phase 14: wish calendar date validation started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 的心愿目标日期与过程记录日期请求校验，及对应 OpenAPI 描述。
+- **Red:** `createWishSchema` 接受 `targetDate: "2026-02-30"`，`createWishRecordSchema` 接受 `recordDate: "2025-02-29"`；格式正则也接受早于当前 DATE 默认下界的 `0999-12-31`。
+- **Changes:** 开始添加真实日历日期校验，确保数据库写入之前通过请求校验。
+- **Verification:** 开始前工作树干净；旧行为由 `pnpm --dir server exec tsx` 的 Zod `safeParse` 输出确认。
+- **Review:** `parseRequestBody` 将 Zod 问题映射为 HTTP 400；创建 handlers 在数据库写入前调用 schema 解析。
+- **Operational evidence:** 未连接 MySQL、对象存储或读取凭据。
+- **Limitations:** 本阶段不改变日期字段是否必填，不更改已有数据、数据库 schema 或 Web/app 表单。
+- **Blockers:** None。
+- **Evidence references:** `server/src/schema/wish.ts`、`server/src/validation.ts`、`server/src/db/schema.ts`、`web/openapi.json`。
+
+## 2026-09-29T14:31:18+08:00 — Phase 14: wish calendar date validation completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Changes:** 心愿创建目标日与过程记录日共用四位年份、真实日历日和 1000 年下界校验；请求字段 OpenAPI 描述及 Web 生成类型同步更新。
+- **Red:** 修改前 `2026-02-30`、`2025-02-29` 和 `0999-12-31` 都被现有格式正则接受。
+- **Green:** 两个 Zod schema 均接受 `2024-02-29`、`2000-02-29`、`1000-01-01`、`9999-12-31`，拒绝 `2025-02-29`、`1900-02-29`、`2026-02-30`、`2026-13-01`、`0999-12-31`、`0000-01-01` 和格式错误日期。对两个无效请求直接调用 `parseRequestBody` 均获得 HTTP 400 状态。
+- **Refactor:** 两个字段共用同一日历日期校验函数；仍返回字段名明确的格式或日历日期错误。
+- **Verification:** schema 正反矩阵与 400 映射检查通过；`pnpm --dir web api`、server lint/build、Web lint/build、`git diff --check` 均通过。Web build 仍有既有 Zod 注释位置和大于 500 kB bundle 警告。
+- **Review:** 两个 handler 在任何 DB 写入前调用 `parseRequestBody`；有效请求形状与原合同一致，未改历史数据或表结构。
+- **Operational evidence:** 未连接 MySQL、对象存储或读取凭据，未推送或部署。
+- **Limitations:** 未做真实 MySQL、浏览器或移动端集成；目标日期可空仍涉及另一个产品和数据迁移决策。
+- **Blockers:** None。
+- **Next action:** 独立提交此输入校验后继续其他 PRD P0 缺口。
+- **Evidence references:** `server/src/schema/wish.ts`、`server/src/validation.ts`、`web/openapi.json`、`web/src/api/schemas.d.ts`、`harness/context/phase-14-wish-calendar-date-validation-context.md`。

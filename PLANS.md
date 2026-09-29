@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–13 是这项授权下已完成的
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–14 是这项授权下已完成的
 阶段。Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -27,6 +27,7 @@
 | 11 | Web wish title editing | Complete | Phase 08、PRD-WISH-001 | Web 用户可通过受授权的 PATCH 修改非空心愿标题 |
 | 12 | Mobile wish title editing | Complete | Phase 11、PRD-WISH-001 | 移动端可编辑非空标题，PATCH 只提交实际修改字段 |
 | 13 | Mobile wish date-only serialization | Complete | PRD-WISH-001、PRD 10.5 | 创建心愿和过程记录时保留日期选择器显示的本地日历日期 |
+| 14 | Wish calendar date validation | Complete | Phase 13、PRD-WISH-001 | 服务端拒绝不真实或超出当前 DATE 范围的心愿及记录日期 |
 
 ## 阶段顺序
 
@@ -115,6 +116,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 移动端心愿创建和过程记录创建共用本地日历日期格式化，避免 `Date.toISOString()` 的 UTC 转换让选中的日期提前或延后一天。详细计划见
 `harness/build/phase-13-mobile-wish-date-only-serialization.md`。
+
+### Phase 14 — Wish calendar date validation
+
+服务端为心愿目标日和过程记录日增加真实日历日期校验，使无效日期在请求阶段返回可处理的验证错误；同步 OpenAPI 描述。详细计划见
+`harness/build/phase-14-wish-calendar-date-validation.md`。
 
 ## 后续阶段的准入条件
 

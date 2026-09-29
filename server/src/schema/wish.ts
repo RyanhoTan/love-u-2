@@ -2,6 +2,25 @@ import { z } from "zod";
 
 export const wishStatusSchema = z.enum(["todo", "doing", "done"]);
 
+function isValidWishDateOnly(value: string) {
+  if (value < "1000-01-01") {
+    return false;
+  }
+
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return (
+    !Number.isNaN(parsed.getTime()) &&
+    parsed.toISOString().slice(0, 10) === value
+  );
+}
+
+function wishDateOnlySchema(fieldName: "targetDate" | "recordDate") {
+  return z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, `${fieldName} must be in YYYY-MM-DD format`)
+    .refine(isValidWishDateOnly, `${fieldName} must be a valid calendar date`);
+}
+
 export const createWishSchema = z.object({
   title: z
     .string()
@@ -21,9 +40,7 @@ export const createWishSchema = z.object({
     .optional()
     .or(z.literal(""))
     .default(""),
-  targetDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "targetDate must be in YYYY-MM-DD format"),
+  targetDate: wishDateOnlySchema("targetDate"),
   locationName: z
     .string()
     .trim()
@@ -62,9 +79,7 @@ export const createWishRecordSchema = z.object({
     .max(1000, "content must be at most 1000 characters")
     .optional()
     .default(""),
-  recordDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "recordDate must be in YYYY-MM-DD format"),
+  recordDate: wishDateOnlySchema("recordDate"),
   mood: z
     .string()
     .trim()

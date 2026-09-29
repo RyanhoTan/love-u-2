@@ -662,6 +662,7 @@ export interface components {
              * @default
              */
             cover: string;
+            /** @description Valid calendar date from 1000-01-01 through 9999-12-31 */
             targetDate: components["schemas"]["DateOnly"];
             /** @default  */
             locationName: string;
@@ -719,6 +720,7 @@ export interface components {
         CreateWishRecordRequest: {
             /** @default  */
             content: string;
+            /** @description Valid calendar date from 1000-01-01 through 9999-12-31 */
             recordDate: components["schemas"]["DateOnly"];
             /** @default  */
             mood: string;

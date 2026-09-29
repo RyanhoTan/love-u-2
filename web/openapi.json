@@ -2955,7 +2955,8 @@
             "default": ""
           },
           "targetDate": {
-            "$ref": "#/components/schemas/DateOnly"
+            "$ref": "#/components/schemas/DateOnly",
+            "description": "Valid calendar date from 1000-01-01 through 9999-12-31"
           },
           "locationName": {
             "type": "string",
@@ -3171,7 +3172,8 @@
             "default": ""
           },
           "recordDate": {
-            "$ref": "#/components/schemas/DateOnly"
+            "$ref": "#/components/schemas/DateOnly",
+            "description": "Valid calendar date from 1000-01-01 through 9999-12-31"
           },
           "mood": {
             "type": "string",
