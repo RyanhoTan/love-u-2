@@ -328,6 +328,20 @@ export function MessagesPage() {
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
+                    {!incoming &&
+                    message.messageType === "text" &&
+                    message.status === "failed" &&
+                    message.retryable ? (
+                      <button
+                        type="button"
+                        aria-label="重试发送消息"
+                        disabled={!chat.isConnected}
+                        onClick={() => chat.retryTextMessage(message.id)}
+                        className="text-xs text-accent underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        重试
+                      </button>
+                    ) : null}
                   </div>
                   {incoming ? null : (
                     <Avatar

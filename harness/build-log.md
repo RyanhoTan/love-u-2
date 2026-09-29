@@ -43,6 +43,7 @@
 | 34 — Accurate partner chat delivery states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-30 | 下方阶段记录 | 无真实 DB/WS/双端设备集成 |
 | 35 — Reject conflicting partner chat idempotency keys | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 MySQL/WS 集成 |
 | 36 — Isolate client chat state by relationship | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实浏览器/移动设备关系切换集成 |
+| 37 — Retry uncertain partner text messages | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 语音恢复与真实 WS/设备验证不在本阶段 |
 
 ## Activity
 
@@ -936,3 +937,28 @@
 - **Limitations:** No live browser/native relationship-switch test; old relationship caches remain by design pending product policy.
 - **Next action:** Continue PRD-CHAT-001 retry reliability as a separate small phase.
 - **Evidence references:** `harness/build/phase-36-chat-relationship-isolation.md`, Web/App partner-chat hooks, App interact screen.
+
+## 2026-09-30 — Phase 37: retry uncertain partner text messages started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 explicit retry of uncertain failed text messages in Web and App; reuse the original canonical text and `clientMessageId`.
+- **Red:** The server now safely accepts identical retries, but clients generate a fresh ID for every new send and expose no retry action on failed text rows. A sender that retries manually can create a duplicate.
+- **Decision:** Only failures whose outcome is uncertain because the local socket was unavailable/closed are retryable. Explicit server errors, including `client_message_id_conflict`, remain non-retryable. Retry reuses the same message ID and exact normalized text. Audio retry/re-upload policy is deferred because its object-key lifecycle differs by client.
+- **Operational evidence:** Phase 36 committed as `8641e69`; workspace was clean at start. No database, live WS, browser, or device was accessed.
+- **Verification:** Pending.
+- **Limitations:** Pending.
+- **Blockers:** None for text retry.
+- **Next action:** Persist retryability for uncertain text rows, add same-ID retry actions to Web/App, then run affected static checks.
+- **Evidence references:** PRD-CHAT-001; Phase 35 idempotent persistence; Web/App partner-chat hooks and message renderers.
+
+## 2026-09-30 — Phase 37: retry uncertain partner text messages completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Both clients now expose retry for uncertain failed outgoing text rows. Retrying reuses the row's original text and ID, requires the active relationship and ready socket, and does not add a second optimistic row. Explicit server errors/conflicts and audio are not offered for retry.
+- **Verification:** Passed Web lint/build, App lint/direct TypeScript check, and `git diff --check`. Static review covered retry eligibility, same-ID payload, conflict suppression, persisted `sending` recovery, and audio exclusion. Web build emitted existing Rollup annotation and large-chunk warnings.
+- **Operational evidence:** No DB, live WS server, browser, or mobile device was accessed; no credentials were read, no push/deploy occurred.
+- **Limitations:** Local cache persistence is asynchronous and not a durable outbox. Audio retry policy and real integration/UI tests remain open.
+- **Next action:** Continue PRD-CHAT-001 review for receiver acknowledgements, cross-process delivery, and audio recovery.
+- **Evidence references:** `harness/build/phase-37-chat-text-retry.md`, Web/App partner-chat hooks and message renderers, Phase 35 idempotency.
