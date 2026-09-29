@@ -213,6 +213,23 @@ export function MessagesPage() {
         </p>
       ) : null}
 
+      {chat.hasOlderMessages ||
+      chat.isLoadingOlderMessages ||
+      chat.historyLoadFailed ? (
+        <button
+          type="button"
+          onClick={chat.loadOlderMessages}
+          disabled={chat.isLoadingOlderMessages}
+          className="shrink-0 self-center rounded-full px-4 py-2 text-xs text-fg-muted transition hover:bg-surface-soft disabled:opacity-60"
+        >
+          {chat.isLoadingOlderMessages
+            ? "正在加载…"
+            : chat.historyLoadFailed && !chat.hasOlderMessages
+              ? "重试加载聊天记录"
+              : "加载更早消息"}
+        </button>
+      ) : null}
+
       <div
         ref={threadRef}
         className="flex min-h-0 flex-1 flex-col overflow-y-auto px-18 py-7"

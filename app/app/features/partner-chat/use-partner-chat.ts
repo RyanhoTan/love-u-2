@@ -1,6 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API_BASE_URL } from "@/app/shared/api-client";
+import {
+  getPartnerChatHistory,
+  type PartnerChatHistoryMessageResponse,
+} from "@/app/features/partner-chat/api";
 
 type PartnerChatStatus =
   | "idle"
@@ -21,6 +25,7 @@ export interface PartnerChatMessage {
   text: string;
   messageType: PartnerChatMessageType;
   audioUrl?: string;
+  audioDurationSeconds?: number;
   sentAt: string;
   isSelf: boolean;
   status?: "sending" | "sent" | "partner_offline" | "read" | "failed";
@@ -126,11 +131,49 @@ function mergeMessages(
   const messagesById = new Map<string, PartnerChatMessage>();
 
   for (const message of [...storedMessages, ...currentMessages]) {
-    messagesById.set(message.id, message);
+    const existing = messagesById.get(message.id);
+    if (!existing) {
+      messagesById.set(message.id, message);
+      continue;
+    }
+
+    const statusRank = (status: PartnerChatMessage["status"]) => {
+      switch (status) {
+        case "read":
+          return 4;
+        case "sent":
+          return 3;
+        case "partner_offline":
+          return 2;
+        case "sending":
+          return 1;
+        default:
+          return 0;
+      }
+    };
+    const status =
+      statusRank(message.status) >= statusRank(existing.status)
+        ? message.status
+        : existing.status;
+    messagesById.set(message.id, { ...existing, ...message, status });
   }
 
   return [...messagesById.values()]
     .sort((left, right) => {
+      const leftServerId = left.serverMessageId;
+      const rightServerId = right.serverMessageId;
+      if (
+        leftServerId &&
+        rightServerId &&
+        /^\d+$/.test(leftServerId) &&
+        /^\d+$/.test(rightServerId)
+      ) {
+        return (
+          leftServerId.length - rightServerId.length ||
+          leftServerId.localeCompare(rightServerId)
+        );
+      }
+
       const leftTime = new Date(left.sentAt).getTime();
       const rightTime = new Date(right.sentAt).getTime();
 
@@ -138,9 +181,36 @@ function mergeMessages(
         return 0;
       }
 
-      return leftTime - rightTime;
+      if (leftTime !== rightTime) {
+        return leftTime - rightTime;
+      }
+
+      const leftId = left.serverMessageId ?? left.id;
+      const rightId = right.serverMessageId ?? right.id;
+      if (/^\d+$/.test(leftId) && /^\d+$/.test(rightId)) {
+        return leftId.length - rightId.length || leftId.localeCompare(rightId);
+      }
+      return leftId.localeCompare(rightId);
     })
     .slice(-MAX_LOCAL_HISTORY_MESSAGES);
+}
+
+function mapHistoryMessage(
+  userId: number,
+  message: PartnerChatHistoryMessageResponse,
+): PartnerChatMessage {
+  const isSelf = message.fromUserId === userId;
+  return {
+    id: isSelf ? (message.clientMessageId ?? message.id) : message.id,
+    serverMessageId: message.id,
+    text: message.text,
+    messageType: message.messageType,
+    audioUrl: message.audioUrl,
+    audioDurationSeconds: message.audioDurationSeconds,
+    sentAt: message.sentAt,
+    isSelf,
+    status: isSelf ? message.deliveryStatus : "sent",
+  };
 }
 
 function parseServerMessage(data: string) {
@@ -160,12 +230,20 @@ export function usePartnerChat(
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldReconnectRef = useRef(false);
   const relationshipRevokedRef = useRef(false);
+  const historyRelationshipIdRef = useRef<number | null>(null);
+  const historyCursorRef = useRef<string | null>(null);
+  const historyPageInProgressRef = useRef(false);
+  const hasLoadedOlderPageRef = useRef(false);
+  const userIdRef = useRef<number | null>(null);
   const historyStorageKeyRef = useRef<string | null>(null);
   const hasLoadedHistoryRef = useRef(false);
   const isVisibleRef = useRef(isVisible);
   const [status, setStatus] = useState<PartnerChatStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [messages, setMessages] = useState<PartnerChatMessage[]>([]);
+  const [hasOlderMessages, setHasOlderMessages] = useState(false);
+  const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false);
+  const [historyLoadFailed, setHistoryLoadFailed] = useState(false);
 
   const clearReconnectTimer = useCallback(() => {
     if (reconnectTimerRef.current) {
@@ -202,6 +280,90 @@ export function usePartnerChat(
     isVisibleRef.current = isVisible;
   }, [isVisible]);
 
+  const loadServerHistory = useCallback(
+    async (
+      userId: number,
+      relationshipId: number,
+      beforeId?: string,
+    ) => {
+      if (!token) {
+        return;
+      }
+      if (beforeId && historyPageInProgressRef.current) {
+        return;
+      }
+      if (beforeId) {
+        historyPageInProgressRef.current = true;
+        setIsLoadingOlderMessages(true);
+      }
+
+      const storageKey = createHistoryStorageKey(userId, relationshipId);
+      if (!beforeId) {
+        setHistoryLoadFailed(false);
+      }
+      try {
+        const page = await getPartnerChatHistory(
+          relationshipId,
+          token,
+          beforeId,
+        );
+        if (
+          historyStorageKeyRef.current !== storageKey ||
+          page.relationshipId !== relationshipId
+        ) {
+          return;
+        }
+
+        const shouldUpdateCursor =
+          Boolean(beforeId) ||
+          (!hasLoadedOlderPageRef.current &&
+            !historyPageInProgressRef.current);
+        if (shouldUpdateCursor) {
+          historyCursorRef.current = page.nextBeforeId;
+          setHasOlderMessages(page.hasMore);
+          if (beforeId) {
+            hasLoadedOlderPageRef.current = true;
+          }
+        }
+        setHistoryLoadFailed(false);
+        setErrorMessage((current) =>
+          current === "聊天历史暂时无法加载，请稍后重试" ? null : current,
+        );
+        const serverMessages = page.messages.map((message) =>
+          mapHistoryMessage(userId, message),
+        );
+        setMessages((current) => mergeMessages(current, serverMessages));
+      } catch {
+        if (!beforeId) {
+          setHistoryLoadFailed(true);
+        }
+        setErrorMessage("聊天历史暂时无法加载，请稍后重试");
+      } finally {
+        if (beforeId) {
+          historyPageInProgressRef.current = false;
+          setIsLoadingOlderMessages(false);
+        }
+      }
+    },
+    [token],
+  );
+
+  const loadOlderMessages = useCallback(() => {
+    const userId = userIdRef.current;
+    const relationshipId = historyRelationshipIdRef.current;
+    const beforeId = historyCursorRef.current;
+    if (!userId || !relationshipId) {
+      return;
+    }
+    if (!beforeId) {
+      if (historyLoadFailed) {
+        void loadServerHistory(userId, relationshipId);
+      }
+      return;
+    }
+    void loadServerHistory(userId, relationshipId, beforeId);
+  }, [historyLoadFailed, loadServerHistory]);
+
   const connect = useCallback(() => {
     if (!token) {
       setStatus("idle");
@@ -228,6 +390,7 @@ export function usePartnerChat(
       }
 
       if (payload.type === "ready") {
+        userIdRef.current = payload.userId;
         const storageKey = createHistoryStorageKey(
           payload.userId,
           payload.relationshipId,
@@ -235,9 +398,17 @@ export function usePartnerChat(
 
         if (historyStorageKeyRef.current !== storageKey) {
           historyStorageKeyRef.current = storageKey;
+          historyRelationshipIdRef.current = payload.relationshipId;
+          historyCursorRef.current = null;
+          historyPageInProgressRef.current = false;
+          hasLoadedOlderPageRef.current = false;
+          setHasOlderMessages(false);
+          setHistoryLoadFailed(false);
           hasLoadedHistoryRef.current = false;
           void loadHistory(storageKey);
         }
+
+        void loadServerHistory(payload.userId, payload.relationshipId);
 
         if (isVisibleRef.current) {
           sendReadEvent();
@@ -354,7 +525,7 @@ export function usePartnerChat(
         reconnectTimerRef.current = setTimeout(connect, 2000);
       }
     };
-  }, [clearReconnectTimer, loadHistory, sendReadEvent, token]);
+  }, [clearReconnectTimer, loadHistory, loadServerHistory, sendReadEvent, token]);
 
   useEffect(() => {
     if (!isVisible) {
@@ -374,12 +545,19 @@ export function usePartnerChat(
 
     if (!token) {
       relationshipRevokedRef.current = false;
+      userIdRef.current = null;
+      historyRelationshipIdRef.current = null;
+      historyCursorRef.current = null;
+      historyPageInProgressRef.current = false;
+      hasLoadedOlderPageRef.current = false;
       socketRef.current?.close();
       socketRef.current = null;
       clearReconnectTimer();
       historyStorageKeyRef.current = null;
       hasLoadedHistoryRef.current = false;
       setMessages([]);
+      setHasOlderMessages(false);
+      setHistoryLoadFailed(false);
       setStatus("idle");
       return;
     }
@@ -505,11 +683,27 @@ export function usePartnerChat(
       messages,
       status,
       errorMessage,
+      hasOlderMessages,
+      historyLoadFailed,
+      isLoadingOlderMessages,
       isConnected,
       markAsRead: sendReadEvent,
       sendMessage: sendTextMessage,
       sendAudioMessage,
+      loadOlderMessages,
     }),
-    [errorMessage, isConnected, messages, sendAudioMessage, sendReadEvent, sendTextMessage, status],
+    [
+      errorMessage,
+      hasOlderMessages,
+      historyLoadFailed,
+      isConnected,
+      isLoadingOlderMessages,
+      loadOlderMessages,
+      messages,
+      sendAudioMessage,
+      sendReadEvent,
+      sendTextMessage,
+      status,
+    ],
   );
 }

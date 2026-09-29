@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–32 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–33 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -46,6 +46,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 30 | Wish record private media | Complete | PRD-WISH-001、Phase 27/28/29 | App/Web 心愿过程记录上传并保存私有对象键，在授权记录读取中签发媒体/缩略图 URL |
 | 31 | Private voice messages in partner chat | Complete | PRD-CHAT-001、PRD-MEMORY-001、Phase 27 | Web/App 聊天语音使用私有对象键写入；播放时按当前关系授权刷新短时 URL，兼容旧 URL |
 | 32 | Revoke partner chat sockets after unbind | Complete | PRD-CHAT-001、Phase 31 | 解绑提交后关闭既有连接，并在消息/已读事件和心跳周期重新验证当前关系 |
+| 33 | Server-backed partner chat history | Complete | PRD-CHAT-001、Phase 32 | 增加当前绑定关系授权的历史分页，并由 Web/App 在连接后读取及按需加载旧消息 |
 
 ## 阶段顺序
 
@@ -229,6 +230,11 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 
 解绑事务提交后关闭本进程中该关系的 WebSocket；所有后续消息和已读事件重新验证当前 bound 关系，心跳为其他进程中的连接提供兜底；Web/App 收到关系撤销关闭码后停止自动重连。保留历史聊天数据，不引入分布式基础设施。详细计划见
 `harness/build/phase-32-chat-unbind-socket-revocation.md`。
+
+### Phase 33 — Server-backed partner chat history
+
+为当前绑定关系成员提供按关系 ID 和消息 ID 游标分页的持久化聊天历史；两端 WebSocket ready 后载入最新页，可按需加载更早消息，并与本地缓存及实时消息按服务端消息 ID 合并。解绑或关系切换后旧关系历史不能经新请求读取。详细计划见
+`harness/build/phase-33-chat-server-history.md`。
 
 ## 后续阶段的准入条件
 

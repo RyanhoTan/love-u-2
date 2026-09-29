@@ -377,6 +377,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/partner-chat/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取伴侣聊天历史
+         * @description Requires the exact relationship to remain bound and the caller to be one of its two members. Pages are returned in chronological order; beforeId is an exclusive server-message-id cursor. Private audio object keys and signed URLs are never returned.
+         */
+        get: operations["getPartnerChatHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/partner-chat/messages/{id}/audio-url": {
         parameters: {
             query?: never;
@@ -925,6 +945,32 @@ export interface components {
             audioDurationSeconds?: number;
             clientMessageId?: string;
         };
+        PartnerChatHistoryPage: {
+            relationshipId: number;
+            messages: components["schemas"]["PartnerChatHistoryMessage"][];
+            hasMore: boolean;
+            /** @description Oldest returned server message ID when older messages remain. */
+            nextBeforeId: string | null;
+        };
+        PartnerChatHistoryMessage: {
+            /** @description Server message ID as a string. */
+            id: string;
+            fromUserId: number;
+            relationshipId: number;
+            text: string;
+            /** @enum {string} */
+            messageType: "text" | "audio";
+            /** @description Legacy URL only; omitted for private key-backed audio. */
+            audioUrl?: string;
+            audioDurationSeconds?: number;
+            clientMessageId?: string;
+            sentAt: components["schemas"]["IsoDateTime"];
+            /**
+             * @description Persisted status relative to the authenticated requester.
+             * @enum {string}
+             */
+            deliveryStatus: "sent" | "partner_offline" | "read";
+        };
         PartnerChatAudioUrlResponse: {
             messageId: string;
             /** @description 300-second signed URL for private objects; legacy URL otherwise. */
@@ -1052,6 +1098,8 @@ export type SchemaPartnerChatClientMessageText = components['schemas']['PartnerC
 export type SchemaPartnerChatClientMessageAudio = components['schemas']['PartnerChatClientMessageAudio'];
 export type SchemaPartnerChatClientMessageAudioObjectKey = components['schemas']['PartnerChatClientMessageAudioObjectKey'];
 export type SchemaPartnerChatClientMessageAudioLegacyUrl = components['schemas']['PartnerChatClientMessageAudioLegacyUrl'];
+export type SchemaPartnerChatHistoryPage = components['schemas']['PartnerChatHistoryPage'];
+export type SchemaPartnerChatHistoryMessage = components['schemas']['PartnerChatHistoryMessage'];
 export type SchemaPartnerChatAudioUrlResponse = components['schemas']['PartnerChatAudioUrlResponse'];
 export type SchemaPartnerChatClientRead = components['schemas']['PartnerChatClientRead'];
 export type SchemaPartnerChatServerReady = components['schemas']['PartnerChatServerReady'];
@@ -2499,6 +2547,58 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+        };
+    };
+    getPartnerChatHistory: {
+        parameters: {
+            query: {
+                relationshipId: number;
+                beforeId?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chronological page of authorized chat history */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerChatHistoryPage"];
+                };
+            };
+            /** @description Invalid relationship id, cursor, or page size */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Relationship is not currently accessible */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

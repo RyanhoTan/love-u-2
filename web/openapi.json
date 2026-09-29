@@ -2080,6 +2080,102 @@
         ]
       }
     },
+    "/partner-chat/messages": {
+      "get": {
+        "summary": "获取伴侣聊天历史",
+        "description": "Requires the exact relationship to remain bound and the caller to be one of its two members. Pages are returned in chronological order; beforeId is an exclusive server-message-id cursor. Private audio object keys and signed URLs are never returned.",
+        "operationId": "getPartnerChatHistory",
+        "tags": [
+          "PartnerChat"
+        ],
+        "parameters": [
+          {
+            "name": "relationshipId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "beforeId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chronological page of authorized chat history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerChatHistoryPage"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid relationship id, cursor, or page size",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Relationship is not currently accessible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/partner-chat/messages/{id}/audio-url": {
       "get": {
         "summary": "获取伴侣聊天语音播放地址",
@@ -3903,6 +3999,94 @@
           "clientMessageId": {
             "type": "string",
             "maxLength": 100
+          }
+        }
+      },
+      "PartnerChatHistoryPage": {
+        "type": "object",
+        "required": [
+          "relationshipId",
+          "messages",
+          "hasMore",
+          "nextBeforeId"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "relationshipId": {
+            "type": "integer"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerChatHistoryMessage"
+            }
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextBeforeId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Oldest returned server message ID when older messages remain."
+          }
+        }
+      },
+      "PartnerChatHistoryMessage": {
+        "type": "object",
+        "required": [
+          "id",
+          "fromUserId",
+          "relationshipId",
+          "text",
+          "messageType",
+          "sentAt",
+          "deliveryStatus"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Server message ID as a string."
+          },
+          "fromUserId": {
+            "type": "integer"
+          },
+          "relationshipId": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "messageType": {
+            "type": "string",
+            "enum": [
+              "text",
+              "audio"
+            ]
+          },
+          "audioUrl": {
+            "type": "string",
+            "description": "Legacy URL only; omitted for private key-backed audio."
+          },
+          "audioDurationSeconds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 600
+          },
+          "clientMessageId": {
+            "type": "string"
+          },
+          "sentAt": {
+            "$ref": "#/components/schemas/IsoDateTime"
+          },
+          "deliveryStatus": {
+            "type": "string",
+            "enum": [
+              "sent",
+              "partner_offline",
+              "read"
+            ],
+            "description": "Persisted status relative to the authenticated requester."
           }
         }
       },

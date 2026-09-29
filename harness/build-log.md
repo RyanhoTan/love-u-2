@@ -39,6 +39,7 @@
 | 30 — Wish record private media | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/FFmpeg/浏览器/设备集成 |
 | 31 — Private voice messages in partner chat | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/WebSocket/浏览器/设备集成 |
 | 32 — Revoke partner chat sockets after unbind | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/WS/跨进程/设备集成 |
+| 33 — Server-backed partner chat history | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/浏览器/移动设备集成 |
 
 ## Activity
 
@@ -827,3 +828,30 @@
 - **Blockers:** None for this scoped implementation.
 - **Next action:** Continue PRD-CHAT-001 P0 review for server-backed history, offline delivery, ordering, and duplicate client-message behavior.
 - **Evidence references:** `server/src/router_handler/couple.ts`, `server/src/ws/partnerChat.ts`, `app/app/features/partner-chat/use-partner-chat.ts`, `web/src/features/partner-chat/use-partner-chat.ts`, Phase 32 build/context docs.
+
+## 2026-09-29 — Phase 33: server-backed partner chat history started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 retrieval of persisted messages for the exact currently bound relationship; Web/App latest-page load and older-page retrieval, merged with local cache/live socket messages.
+- **Red:** Messages persist in MySQL and unacknowledged messages are replayed on socket connection, but there is no history endpoint. Web/App only load device-local history, so a new/cleared device cannot recover already-delivered messages.
+- **Decision:** Add an authenticated page endpoint requiring exact active `relationshipId`; use descending `beforeId` cursor with bounded page size, then return each page in ascending database order. Return private object-key audio rows without their key or a newly signed URL; retain legacy audio URLs. Reject history reads after unbind and avoid importing ownership/retention policy decisions.
+- **Operational evidence:** Phase 32 committed as `3b4ec79`; workspace was clean at start. No DB or client device was accessed.
+- **Verification:** Completed; see Phase 33 completion entry below.
+- **Limitations:** No live MySQL paging/query-plan or browser/native scroll-anchor tests; first page defaults to 50 and older messages are explicit-paged.
+- **Blockers:** None.
+- **Next action:** Continue PRD-CHAT-001 P0 review for delivery acknowledgements, idempotency, and real-time/offline ordering gaps.
+- **Evidence references:** `PRD.md` PRD-CHAT-001, `server/src/router_handler/partnerChat.ts`, `server/src/ws/partnerChat.ts`, Web/App partner-chat hooks.
+
+## 2026-09-29 — Phase 33: server-backed partner chat history completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Added authenticated `GET /partner-chat/messages` scoped to an exact currently-bound relationship. It supports exclusive `beforeId` pagination (default 50, max 100), returns chronological pages and persisted status, and sends `private, no-store`. Private audio keys are omitted; legacy audio URLs remain compatible. Web/App load the latest page after WS ready, merge it with local/realtime messages while preserving optimistic identity, and expose earlier-page loading plus first-page retry.
+- **Verification:** `pnpm --dir server lint`, server build, Web API generation/lint/build, App lint/typecheck, and `git diff --check` all passed. A compiled 15-case query-integer/serialization matrix passed. Web build emitted existing Zod Rollup annotation and >500 kB chunk warnings.
+- **Review:** Query ties authenticated user, relationship ID, bound state, exact two-member pair, and message participants. Cursor is exclusive and based on server message ID; `limit + 1` determines `hasMore`; selected rows reverse to chronological ID order. History serialization never returns `audio_object_key`; status is derived from persisted `delivered_at`/`read_at`. Client merge de-duplicates by client/server identity and uses stable server-ID ordering for persisted messages.
+- **Operational evidence:** No real MySQL, WebSocket integration server, browser, or mobile device was accessed; no credentials were read, no push/deploy occurred.
+- **Limitations:** SQL execution/query plan and scroll anchoring need live integration tests. The initial load fetches the latest 50 messages; older messages require explicit paging. History requests started after unbind return not found; post-unbind ownership/retention remains a product decision. Offline push/retry and end-to-end delivery semantics are not changed.
+- **Blockers:** None for this scoped feature.
+- **Next action:** Continue PRD-CHAT-001 P0 review for delivery acknowledgements, idempotency, and real-time/offline ordering gaps.
+- **Evidence references:** `server/src/router_handler/partnerChat.ts`, `server/src/router/partnerChat.ts`, `server/src/schema/partnerChat.ts`, `web/openapi.json`, generated `web/src/api/schemas.d.ts`, Web/App partner-chat APIs/hooks/pages, phase 33 build/context docs.

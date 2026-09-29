@@ -10,6 +10,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
   type ImageSourcePropType,
   type NativeScrollEvent,
@@ -64,8 +65,16 @@ export default function Interact() {
   const [inputValue, setInputValue] = useState("");
   const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
   const [playingAudioMessageId, setPlayingAudioMessageId] = useState<string | null>(null);
-  const { messages, errorMessage, sendMessage, sendAudioMessage } =
-    usePartnerChat(token, { isVisible: isFocused });
+  const {
+    messages,
+    errorMessage,
+    hasOlderMessages,
+    historyLoadFailed,
+    isLoadingOlderMessages,
+    loadOlderMessages,
+    sendMessage,
+    sendAudioMessage,
+  } = usePartnerChat(token, { isVisible: isFocused });
 
   const isBound = Boolean(coupleSpace?.isBound && coupleSpace.partner);
   const canSendMessage = isBound;
@@ -203,6 +212,24 @@ export default function Interact() {
               <Text accessibilityRole="alert" style={styles.connectionError}>
                 {errorMessage}
               </Text>
+            ) : null}
+            {hasOlderMessages ||
+            isLoadingOlderMessages ||
+            historyLoadFailed ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                disabled={isLoadingOlderMessages}
+                onPress={loadOlderMessages}
+                style={styles.historyButton}
+              >
+                <Text style={styles.historyButtonText}>
+                  {isLoadingOlderMessages
+                    ? "正在加载…"
+                    : historyLoadFailed && !hasOlderMessages
+                      ? "重试加载聊天记录"
+                      : "加载更早消息"}
+                </Text>
+              </TouchableOpacity>
             ) : null}
             <ScrollView
               ref={scrollRef}
@@ -397,6 +424,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     color: "#7d4b5a",
+    fontSize: 12,
+  },
+  historyButton: {
+    alignSelf: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  historyButtonText: {
+    color: "#8d6b77",
     fontSize: 12,
   },
 });
