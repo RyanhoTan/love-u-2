@@ -46,22 +46,26 @@ export default function AnniversaryScreen() {
   const router = useRouter();
   const { token } = useAuth();
   const [anniversaries, setAnniversaries] = useState<AnniversaryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadAnniversaries = useCallback(async () => {
     if (!token) {
       setAnniversaries([]);
+      setLoadError(null);
+      setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
+      setLoadError(null);
       const response = await getAnniversaries();
       setAnniversaries(response.anniversaries);
     } catch (error) {
       setAnniversaries([]);
       const message = error instanceof Error ? error.message : "获取纪念日失败";
-      toast.error(message);
+      setLoadError(message);
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +77,8 @@ export default function AnniversaryScreen() {
     }, [loadAnniversaries]),
   );
 
-  const isEmpty = anniversaries.length === 0;
+  const showStatus =
+    isLoading || loadError !== null || anniversaries.length === 0;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -90,21 +95,39 @@ export default function AnniversaryScreen() {
       />
 
       <ScrollView
-        contentContainerStyle={[styles.content, isEmpty && styles.emptyContent]}
+        contentContainerStyle={[
+          styles.content,
+          showStatus && styles.emptyContent,
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        {isEmpty ? (
+        {showStatus ? (
           <View style={styles.emptyState}>
             <Image
               source={ImagesAnniversaryCalendarPng}
               style={styles.emptyImage}
             />
             <Text style={styles.emptyTitle}>
-              {isLoading ? "正在加载纪念日" : "还没有纪念日"}
+              {isLoading
+                ? "正在加载纪念日"
+                : loadError !== null
+                  ? "纪念日加载失败"
+                  : "还没有纪念日"}
             </Text>
             <Text style={styles.emptySubtitle}>
-              {isLoading ? "请稍候..." : "添加你们的重要日子"}
+              {isLoading
+                ? "请稍候..."
+                : loadError ?? "添加你们的重要日子"}
             </Text>
+            {loadError !== null && !isLoading ? (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.retryButton}
+                onPress={() => void loadAnniversaries()}
+              >
+                <Text style={styles.retryText}>重试</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           anniversaries.map((item) => {
@@ -264,5 +287,17 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 14,
     color: colors.semantic.textSecondary,
+  },
+  retryButton: {
+    marginTop: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: colors.theme.primaryTint,
+  },
+  retryText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.semantic.textPrimary,
   },
 });

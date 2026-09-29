@@ -27,6 +27,7 @@
 | 18 — Anniversary mutation authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 | 19 — Anniversary creation authorization | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真实 MySQL 集成 | None |
 | 20 — Honest anniversary reminder copy | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/浏览器检查 | None |
+| 21 — Mobile anniversary list honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/后端联调 | None |
 
 ## Activity
 
@@ -570,3 +571,16 @@
 - **Limitations:** 文案修复不等于提醒投递上线；没有通知投递、设备授权或提醒触发的集成验证。
 - **Next action:** 单独提交；继续补 PRD-DAY-001 的可编辑能力与提醒输入语义。
 - **Evidence references:** 两端纪念日页面、PRD-DAY-001、目标文案搜索与 lint/build 输出。
+## 2026-09-29T14:51:29+08:00 — Phase 21: mobile anniversary list honest states completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-DAY-001 移动端纪念日列表读取失败反馈与重试；不改创建、编辑、删除、提醒或服务端。
+- **Red:** 原实现 catch 后清空数组并只弹 toast，页面按 `anniversaries.length === 0` 长期显示“还没有纪念日”。
+- **Green:** 独立 `loadError` 状态将加载、读取失败、成功空数组和成功有数据分开；失败时显示持续错误与重试，重试或成功后清理旧错误。
+- **Verification:** `pnpm --dir app lint`、`pnpm --dir app exec tsc --noEmit`、状态分支静态核对和 `git diff --check` 通过。
+- **Review:** 错误态优先于数组长度，不再把 API 失败称为空数据；现有创建入口和响应类型不变。未登录 token 分支仍由既有导航/认证边界负责。
+- **Operational evidence:** 未使用真机或真实后端，未读取凭据，未推送或部署。
+- **Limitations:** 无设备/弱网集成；顶部“编辑”仍为未完成 toast 入口，需独立处理。
+- **Next action:** 独立提交；继续移动端纪念日可编辑/删除缺口。
+- **Evidence references:** `app/app/home/anniversary/index.tsx`、`harness/context/phase-21-mobile-anniversary-list-honest-states-context.md`、app lint/typecheck 输出。
