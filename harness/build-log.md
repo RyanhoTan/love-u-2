@@ -625,3 +625,17 @@
 - **Limitations:** 未验证真实 SQL NULL 往返或键盘/设备交互；Web build 保留依赖 Zod 注释位置与 >500 kB chunk 警告。
 - **Next action:** 独立提交后继续 PRD-WISH-001 的剩余编辑与过程记录能力缺口。
 - **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、Web/App 心愿编辑 UI、schema 矩阵与各 workspace 检查输出。
+
+## 2026-09-29T15:20:07+08:00 — Phase 25: wish location-name editing completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 心愿地点名称文本更新；不修改或推断经纬度。
+- **Red:** 创建表单可写地点名称但详情页仅展示；心愿 PATCH 不接受 `locationName`。
+- **Green:** 新增 trim/max 100 的可选 PATCH 字段；空文本写 SQL NULL；Web/App 详情编辑和清除名称，明确保留坐标；OpenAPI 类型同步。
+- **Verification:** 12 项 schema trim/长度/类型/兼容矩阵通过；Web API 生成、server lint/build、Web lint/build、app lint/typecheck、`git diff --check` 均通过。
+- **Review:** handler 只为显式 `locationName` 增加 `location_name = ?`，没有纬经度 assignment；最终写入时仍受现有情侣/个人心愿授权。无变化不会提交，编辑错误保留草稿。
+- **Operational evidence:** 未连接数据库、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 未验证数据库 NULL 往返、原生键盘布局或并发关系变化；Web 生成类型与构建并行造成的一次旧声明错误已按序重跑通过，仍有既有 bundle/Zod 警告。
+- **Next action:** 独立提交后继续处理 P0 心愿封面和过程记录能力。
+- **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、Web/App 心愿编辑 UI、`web/openapi.json`、schema 矩阵与 build 输出。

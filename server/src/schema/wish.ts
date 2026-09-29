@@ -63,6 +63,11 @@ export const updateWishSchema = z
       .optional(),
     targetDate: wishDateOnlySchema("targetDate").optional(),
     budgetAmount: wishBudgetAmountSchema.optional(),
+    locationName: z
+      .string()
+      .trim()
+      .max(100, "locationName must be at most 100 characters")
+      .optional(),
   })
   .strict()
   .refine((payload) => Object.keys(payload).length > 0, {

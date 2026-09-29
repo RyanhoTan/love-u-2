@@ -207,7 +207,7 @@ export interface paths {
         head?: never;
         /**
          * 更新心愿
-         * @description 可修改标题、描述、状态、目标日期或预算；至少提供一个字段。
+         * @description 可修改标题、描述、状态、目标日期、预算或地点名称；至少提供一个字段。
          */
         patch: operations["updateWish"];
         trace?: never;
@@ -674,7 +674,7 @@ export interface components {
             /** @default null */
             budgetAmount: number | null;
         };
-        /** @description PATCH at least one supported field: title, status, description, targetDate, or budgetAmount */
+        /** @description PATCH at least one supported field: title, status, description, targetDate, budgetAmount, or locationName */
         UpdateWishRequest: {
             /** @description Updated wish title; trimmed by the server */
             title?: string;
@@ -685,6 +685,8 @@ export interface components {
             targetDate?: components["schemas"]["DateOnly"];
             /** @description Updated integer budget in yuan; null clears the budget */
             budgetAmount?: number | null;
+            /** @description Updated location name; an empty string clears the name without changing coordinates */
+            locationName?: string;
         };
         WishRecordMedia: {
             /** Format: uri */

@@ -19,6 +19,7 @@ import { EditDescriptionDialog } from "./edit-description-dialog";
 import { EditTitleDialog } from "./edit-title-dialog";
 import { EditTargetDateDialog } from "./edit-target-date-dialog";
 import { EditBudgetDialog } from "./edit-budget-dialog";
+import { EditLocationDialog } from "./edit-location-dialog";
 
 export function WishDetailPage() {
   const { id = "" } = useParams();
@@ -32,6 +33,7 @@ export function WishDetailPage() {
   const [showDescriptionEditor, setShowDescriptionEditor] = useState(false);
   const [showTargetDateEditor, setShowTargetDateEditor] = useState(false);
   const [showBudgetEditor, setShowBudgetEditor] = useState(false);
+  const [showLocationEditor, setShowLocationEditor] = useState(false);
 
   const showDone = params.get("done") === "1";
   const showRecord = params.get("record") === "1";
@@ -119,6 +121,10 @@ export function WishDetailPage() {
           onEditBudget={() => {
             updateMutation.reset();
             setShowBudgetEditor(true);
+          }}
+          onEditLocation={() => {
+            updateMutation.reset();
+            setShowLocationEditor(true);
           }}
         />
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto lg:h-full">
@@ -248,6 +254,30 @@ export function WishDetailPage() {
                 { id: wishId, payload: { budgetAmount } },
                 {
                   onSuccess: () => setShowBudgetEditor(false),
+                },
+              );
+            }}
+          />
+        ) : null}
+
+        {showLocationEditor ? (
+          <EditLocationDialog
+            initialLocationName={wish.locationName}
+            pending={updateMutation.isPending}
+            error={
+              updateMutation.isError
+                ? errorMessage(updateMutation.error, "地点名称保存失败")
+                : undefined
+            }
+            onCancel={() => {
+              updateMutation.reset();
+              setShowLocationEditor(false);
+            }}
+            onSave={(locationName) => {
+              updateMutation.mutate(
+                { id: wishId, payload: { locationName } },
+                {
+                  onSuccess: () => setShowLocationEditor(false),
                 },
               );
             }}

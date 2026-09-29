@@ -53,6 +53,7 @@ export default function EditWish() {
   const [wish, setWish] = useState<WishItem | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [locationName, setLocationName] = useState("");
   const [targetDate, setTargetDate] = useState(new Date());
   const [budgetText, setBudgetText] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -63,6 +64,7 @@ export default function EditWish() {
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
   const normalizedTitle = title.trim();
+  const normalizedLocationName = locationName.trim();
   const budgetAmount = parseBudgetAmount(budgetText);
   const isBudgetValid = budgetAmount !== undefined;
   const hasChanges =
@@ -70,6 +72,7 @@ export default function EditWish() {
     (normalizedTitle !== wish.title ||
       description !== wish.description ||
       formatLocalDateOnly(targetDate) !== wish.targetDate ||
+      normalizedLocationName !== wish.locationName ||
       (isBudgetValid && budgetAmount !== wish.budgetAmount));
 
   const loadWish = useCallback(async () => {
@@ -86,6 +89,7 @@ export default function EditWish() {
       setWish(response.wish);
       setTitle(response.wish.title);
       setDescription(response.wish.description);
+      setLocationName(response.wish.locationName);
       setTargetDate(parseLocalDate(response.wish.targetDate));
       setBudgetText(response.wish.budgetAmount?.toString() ?? "");
       setLoadState("ready");
@@ -115,17 +119,20 @@ export default function EditWish() {
     const titleChanged = normalizedTitle !== wish.title;
     const descriptionChanged = description !== wish.description;
     const targetDateChanged = formatLocalDateOnly(targetDate) !== wish.targetDate;
+    const locationChanged = normalizedLocationName !== wish.locationName;
     const budgetChanged = budgetAmount !== wish.budgetAmount;
     const payload: {
       title?: string;
       description?: string;
       targetDate?: string;
       budgetAmount?: number | null;
+      locationName?: string;
     } = {};
     if (titleChanged) payload.title = normalizedTitle;
     if (descriptionChanged) payload.description = description.trim();
     if (targetDateChanged) payload.targetDate = formatLocalDateOnly(targetDate);
     if (budgetChanged) payload.budgetAmount = budgetAmount;
+    if (locationChanged) payload.locationName = normalizedLocationName;
 
     try {
       setSaving(true);
@@ -239,6 +246,21 @@ export default function EditWish() {
             {!isBudgetValid ? (
               <Text style={styles.errorText}>预算须为 0–2,147,483,647 的整数</Text>
             ) : null}
+            <Text style={styles.label}>地点名称</Text>
+            <TextInput
+              accessibilityLabel="心愿地点名称"
+              value={locationName}
+              onChangeText={(value) => {
+                setLocationName(value);
+                setSaveError("");
+              }}
+              placeholder="例如：想去的餐厅或城市"
+              placeholderTextColor="#C3B8BE"
+              maxLength={100}
+              editable={!saving}
+              style={styles.titleInput}
+            />
+            <Text style={styles.fieldHint}>仅修改地点名称，不更改已保存的坐标；留空可清除名称。</Text>
             {saveError ? (
               <Text accessibilityRole="alert" style={styles.errorText}>
                 {saveError}
@@ -335,6 +357,11 @@ const styles = StyleSheet.create({
   dateHint: {
     color: "#8F7D88",
     fontSize: 13,
+  },
+  fieldHint: {
+    color: "#8F7D88",
+    fontSize: 12,
+    lineHeight: 18,
   },
   budgetField: {
     minHeight: 50,

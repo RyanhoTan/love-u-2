@@ -103,6 +103,7 @@ export type UpdateWishPayload =
       description?: string;
       targetDate?: string;
       budgetAmount?: number | null;
+      locationName?: string;
     };
 
 export interface CreateWishRecordPayload {

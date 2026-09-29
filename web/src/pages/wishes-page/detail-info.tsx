@@ -28,6 +28,7 @@ export function WishDetailInfo({
   onEditDescription,
   onEditTargetDate,
   onEditBudget,
+  onEditLocation,
 }: {
   wish: WishItem;
   creator: Creator | null;
@@ -37,6 +38,7 @@ export function WishDetailInfo({
   onEditDescription: () => void;
   onEditTargetDate: () => void;
   onEditBudget: () => void;
+  onEditLocation: () => void;
 }) {
   const isDone = wish.status === "done";
 
@@ -103,6 +105,7 @@ export function WishDetailInfo({
           icon={<MapPin className="size-[18px]" strokeWidth={2} />}
           label="地点"
           value={wish.locationName || "—"}
+          onEdit={onEditLocation}
         />
         <div className="h-px bg-border" />
         <MetaRow
