@@ -26,6 +26,6 @@
 
 ## Unresolved / deferred
 
-- Verify MIME against actual file signatures, including acceptable codecs/container edge cases.
+- Header/container signature matching was added in Phase 58; full codec/container parsing remains deferred.
 - Exercise raw Express parser responses and successful/interrupted uploads against an isolated object-store test double or environment.
 - Define cleanup/compensation for objects uploaded without corresponding database records and for deletions.

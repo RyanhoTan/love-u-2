@@ -10,6 +10,7 @@ import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { getAuthenticatedUserId } from "../auth.js";
 import { config } from "../config.js";
+import { assertMediaSignatureMatches } from "../media/mediaSignature.js";
 import { getMediaUploadPolicy } from "../media/uploadPolicy.js";
 
 const proxyUrl = process.env.HTTPS_PROXY?.trim() || process.env.HTTP_PROXY?.trim();
@@ -48,6 +49,7 @@ export async function uploadMediaBuffer(
   body: Buffer,
 ) {
   const policy = getMediaUploadPolicy(folder, contentType, body.length);
+  assertMediaSignatureMatches(policy.contentType, body);
   const key = `${policy.folder}/${userId}/${Date.now()}-${randomUUID()}.${policy.extension}`;
 
   await r2Client.send(

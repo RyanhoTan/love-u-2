@@ -39,8 +39,8 @@ export interface MediaUploadPolicy {
 }
 
 /**
- * Validate the caller-declared upload metadata. This does not inspect file
- * signatures; a later content-sniffing phase may be needed for that guarantee.
+ * Validate caller-declared upload metadata and size. The upload handler checks
+ * the corresponding file signature separately before writing to object storage.
  */
 export function getMediaUploadPolicy(
   folder: string,

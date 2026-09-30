@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–57 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–58 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -71,6 +71,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 55 | App wish record creation failure-safe states | Complete | PRD-WISH-001、Phase 51 | 创建记录前确认真实心愿已读取成功；失败可重试且不显示假目标 |
 | 56 | App wish recycle read failure-safe states | Complete | PRD-WISH-001、Phase 15 | 回收站区分读取失败与成功空状态，失败可重试且旧请求不会覆盖新状态 |
 | 57 | App wish-list read failure-safe states | Complete | PRD-WISH-001、Phase 15/56 | 主列表区分加载、失败和分类空状态；失败时隐藏旧卡片并阻止旧选择参与删除 |
+| 58 | Verify uploaded media signatures | Complete | PRD-MEMORY-001、Phase 45 | 在对象写入前核对已允许 MIME 与文件头/容器标识，明显不匹配时返回 415 |
 
 ## 阶段顺序
 
@@ -410,6 +411,12 @@ API，不改变心愿状态、记录或媒体契约。详细计划见
 为 App 主心愿列表补齐加载、失败/重试和分类空状态，失败时不保留仍可选择/删除的旧卡片。
 现有批量删除 API、确认和导航语义不变；详细范围和验收见
 `harness/build/phase-57-app-wish-list-read-states.md`。
+
+### Phase 58 — Verify uploaded media signatures
+
+扩展 Phase 45 的服务端上传策略，在写入对象存储之前拒绝与声明 MIME 明显不匹配或缺少有效头部的文件；
+不变更格式白名单和大小限制，并记录通用媒体容器尚未进行完整解码/轨道校验。详细范围见
+`harness/build/phase-58-media-upload-signature-checks.md`。
 
 ## 后续阶段的准入条件
 

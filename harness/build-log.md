@@ -1424,3 +1424,25 @@
 - **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
 - **Next action:** Continue the PRD R1/P0 audit while preserving device/live-service validation gaps.
 - **Evidence references:** `harness/build/phase-57-app-wish-list-read-states.md`, `harness/context/phase-57-app-wish-list-read-states-context.md`, `app/app/home/wish-list/index.tsx`.
+
+## 2026-09-30 — Phase 58: Media signature checks started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-MEMORY-001; extend Phase 45's explicitly deferred signature verification.
+- **Red:** The upload helper checks declared MIME/folder/size but sends arbitrary bytes labeled with an allowed Content-Type to object storage.
+- **Decision:** Add dependency-free signature/container-header validation for the existing MIME allowlist before `PutObject`; preserve response, key, size, and authorization behavior.
+- **Operational evidence:** Phase 57 committed as `c4a6458`; worktree was clean before Phase 58. No R2, live API, credentials, database, or user data was accessed.
+
+## 2026-09-30 — Phase 58: Media signature checks completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** All 24 MIME aliases currently accepted by the server upload policy now have positive signature/container-header coverage. Mismatched, unknown, malformed, and truncated inputs are rejected with 415.
+- **Safety:** `uploadMediaBuffer` checks declared metadata and signature before building the object key or issuing `PutObjectCommand`; folder ownership namespace, size policy, authorization, and `{ key }` response remain unchanged.
+- **Resource bounds:** ISO-BMFF and EBML header limits (4 KiB) and WAV header chunk-count limit (4096) bound parser work on untrusted inputs.
+- **API docs:** Updated `web/openapi.json` and generated `web/src/api/schemas.d.ts`; updated the PRD summary and Phase 45 follow-up record.
+- **Verification:** Passed `pnpm --dir server test` (17/17), `pnpm --dir server lint`, `pnpm --dir server build`, `pnpm --dir web api`, `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`.
+- **Review:** Static review confirmed the 415 check is before object-store I/O and upload response/key/auth behavior is unchanged. No live API, R2, credentials, database, device, or user data was accessed.
+- **Limitations:** Header/container matching is not full decoding, codec/track verification, malware scanning, or polyglot defense. Web build passed with existing Zod annotation and >500 kB chunk warnings.
+- **Next action:** Continue the PRD R1/P0 audit; preserve real R2/integration and media cleanup gaps.
+- **Evidence references:** `harness/build/phase-58-media-upload-signature-checks.md`, `harness/context/phase-58-media-upload-signature-checks-context.md`, `server/src/media/mediaSignature.ts`, `server/test/media-signature.test.ts`.

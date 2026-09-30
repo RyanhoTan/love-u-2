@@ -74,7 +74,8 @@ Enforce a narrow server-side declared-MIME and folder policy while preserving ex
 
 ## Risks and limitations
 
-- MIME acceptance is based only on the HTTP Content-Type declaration; a malicious client can mislabel file bytes. Signature inspection remains a separate security improvement.
+- At Phase 45 completion, MIME acceptance was based only on the HTTP Content-Type declaration; a malicious client could mislabel file bytes. Signature inspection was left for a follow-up.
+- The file-header mismatch risk was subsequently reduced in Phase 58 by signature/container-brand checks before object writes; full payload decoding and codec/track verification remain deferred.
 - Unit tests cover policy behavior but not Express parser execution or object-store success/interruption. Those require isolated HTTP/R2 integration coverage.
 - This work does not solve upload/database partial failures or orphan object cleanup.
 

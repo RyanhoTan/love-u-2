@@ -368,7 +368,7 @@ export interface paths {
         put?: never;
         /**
          * 上传媒体文件
-         * @description 请求体为原始二进制。仅允许 `album` 图片/视频和 `interact` 音频，最大 100 MiB；服务端依据 Content-Type 白名单派生对象后缀，不信任文件名。类型校验基于客户端声明的 MIME，不检查文件签名。成功响应为 `{ key }`，无 message；对象读取 URL 由各自的授权资源接口签发。
+         * @description 请求体为原始二进制。仅允许 `album` 图片/视频和 `interact` 音频，最大 100 MiB；服务端依据 Content-Type 白名单派生对象后缀，不信任文件名，并在写入前核对文件签名/容器标识。该检查用于头部识别，不等同于完整解码或编解码轨道校验。成功响应为 `{ key }`，无 message；对象读取 URL 由各自的授权资源接口签发。
          */
         post: operations["uploadMedia"];
         delete?: never;
@@ -2581,7 +2581,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorMessage"];
                 };
             };
-            /** @description Unsupported declared media type for folder */
+            /** @description Unsupported declared media type or mismatched media signature for folder */
             415: {
                 headers: {
                     [name: string]: unknown;
