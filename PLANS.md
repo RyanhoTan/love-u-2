@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–39 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–40 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -53,6 +53,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 37 | Retry uncertain partner text messages | Complete | PRD-CHAT-001、Phase 35/36 | 发送结果不确定的文字消息可在连接恢复后以同一 clientMessageId 重试；服务端显式拒绝的消息不提供重试 |
 | 38 | Clear invalid App auth sessions | Complete | PRD-AUTH-001 | App 收到受保护请求 401 时清除匹配的持久与内存会话；旧 token 的迟到 401 不得清除新会话 |
 | 39 | Strengthen couple invite code entropy | Complete | PRD-COUPLE-001 | 新邀请码使用 12 位密码学随机码；旧码继续兼容，新增服务端单元测试 |
+| 40 | Acknowledge partner chat delivery | Complete | PRD-CHAT-001、Phase 34 | 协商版 1 客户端经接收端回执后才标记送达；未确认消息可补投，旧客户端兼容 |
 
 ## 阶段顺序
 
@@ -273,6 +274,14 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 邀请码校验和 30 分钟有效期不变，旧的 6 位待绑定码继续兼容。新增无数据库依赖的服务端测试，验证
 字符长度、字符集与每位随机选择的上界。详细计划见
 `harness/build/phase-39-couple-invite-entropy.md`。
+
+### Phase 40 — Acknowledge partner chat delivery
+
+修正 Phase 34 中“服务端 WebSocket 接受写入即代表已送达”的语义。Web/App 接收到关系内的消息后
+发送单条送达确认；服务端仅在确认通过当前接收者、关系成员和绑定状态校验后写入 `delivered_at`，
+确认前的消息在重连时仍可补投。以增量 nullable 时间戳区分“等待确认”和“未连接/离线”，不更改
+已读语义、解绑策略或跨实例推送架构。详细计划见
+`harness/build/phase-40-chat-delivery-ack.md`。
 
 ## 后续阶段的准入条件
 

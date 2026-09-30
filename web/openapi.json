@@ -2265,7 +2265,7 @@
       "get": {
         "summary": "伴侣聊天 WebSocket",
         "deprecated": false,
-        "description": "Not a JSON REST endpoint. Clients open a WebSocket to\n`ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade).\n\nRequires an active bound couple relationship; otherwise upgrade is rejected\nwith HTTP 403.\n\nClient → server message schemas:\n- PartnerChatClientMessageText\n- PartnerChatClientMessageAudio (exactly one of `audioObjectKey` or legacy `audioUrl`)\n- PartnerChatClientRead\n\nNew object keys must belong to the authenticated sender under `interact/<userId>/`. The server does not echo private keys or signed URLs over WebSocket; clients fetch playback URLs from `GET /partner-chat/messages/{id}/audio-url`.\n\nServer → client message schemas:\n- PartnerChatServerReady\n- PartnerChatServerMessage\n- PartnerChatServerDelivery\n- PartnerChatServerReadReceipt\n- PartnerChatServerError\n\nMessage `id` values are **strings** (unlike HTTP resource ids).\n",
+        "description": "Not a JSON REST endpoint. Clients open a WebSocket to\n`ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade). Set optional `deliveryAck=1` to negotiate client delivery acknowledgements; the server advertises `deliveryAckVersion: 1` in `ready`, and clients send ACKs only after that negotiation.\n\nRequires an active bound couple relationship; otherwise upgrade is rejected\nwith HTTP 403.\n\nClient → server message schemas:\n- PartnerChatClientMessageText\n- PartnerChatClientMessageAudio (exactly one of `audioObjectKey` or legacy `audioUrl`)\n- PartnerChatClientDeliveryAck\n- PartnerChatClientRead\n\nNew object keys must belong to the authenticated sender under `interact/<userId>/`. The server does not echo private keys or signed URLs over WebSocket; clients fetch playback URLs from `GET /partner-chat/messages/{id}/audio-url`.\n\nServer → client message schemas:\n- PartnerChatServerReady\n- PartnerChatServerMessage\n- PartnerChatServerDelivery\n- PartnerChatServerReadReceipt\n- PartnerChatServerError\n\nFor negotiated clients, `sending` means transport was attempted but the recipient runtime has not acknowledged it; `sent` follows the recipient acknowledgement. Legacy clients without negotiation retain transport-acceptance delivery behavior to avoid duplicate replay.\n\nMessage `id` values are **strings** (unlike HTTP resource ids).\n",
         "operationId": "partnerChatUpgrade",
         "tags": [
           "PartnerChat"
@@ -2279,6 +2279,18 @@
             "example": "",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "deliveryAck",
+            "in": "query",
+            "description": "Set to 1 to negotiate receiver acknowledgement support.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
             }
           }
         ],
@@ -4086,6 +4098,7 @@
             "type": "string",
             "enum": [
               "sent",
+              "sending",
               "partner_offline",
               "read"
             ],
@@ -4129,6 +4142,29 @@
           }
         }
       },
+      "PartnerChatClientDeliveryAck": {
+        "type": "object",
+        "required": [
+          "type",
+          "messageId"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "delivered"
+            ]
+          },
+          "messageId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16,
+            "pattern": "^[1-9]\\d*$",
+            "description": "Positive safe-integer server message ID as a string."
+          }
+        }
+      },
       "PartnerChatServerReady": {
         "type": "object",
         "required": [
@@ -4153,6 +4189,13 @@
           },
           "relationshipId": {
             "type": "integer"
+          },
+          "deliveryAckVersion": {
+            "type": "integer",
+            "enum": [
+              1
+            ],
+            "description": "Present when receiver delivery acknowledgement is supported."
           }
         }
       },
@@ -4229,6 +4272,7 @@
             "type": "string",
             "enum": [
               "sent",
+              "sending",
               "partner_offline"
             ]
           },

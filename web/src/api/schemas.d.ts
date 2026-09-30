@@ -427,7 +427,7 @@ export interface paths {
         /**
          * 伴侣聊天 WebSocket
          * @description Not a JSON REST endpoint. Clients open a WebSocket to
-         *     `ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade).
+         *     `ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade). Set optional `deliveryAck=1` to negotiate client delivery acknowledgements; the server advertises `deliveryAckVersion: 1` in `ready`, and clients send ACKs only after that negotiation.
          *
          *     Requires an active bound couple relationship; otherwise upgrade is rejected
          *     with HTTP 403.
@@ -435,6 +435,7 @@ export interface paths {
          *     Client → server message schemas:
          *     - PartnerChatClientMessageText
          *     - PartnerChatClientMessageAudio (exactly one of `audioObjectKey` or legacy `audioUrl`)
+         *     - PartnerChatClientDeliveryAck
          *     - PartnerChatClientRead
          *
          *     New object keys must belong to the authenticated sender under `interact/<userId>/`. The server does not echo private keys or signed URLs over WebSocket; clients fetch playback URLs from `GET /partner-chat/messages/{id}/audio-url`.
@@ -445,6 +446,8 @@ export interface paths {
          *     - PartnerChatServerDelivery
          *     - PartnerChatServerReadReceipt
          *     - PartnerChatServerError
+         *
+         *     For negotiated clients, `sending` means transport was attempted but the recipient runtime has not acknowledged it; `sent` follows the recipient acknowledgement. Legacy clients without negotiation retain transport-acceptance delivery behavior to avoid duplicate replay.
          *
          *     Message `id` values are **strings** (unlike HTTP resource ids).
          */
@@ -969,7 +972,7 @@ export interface components {
              * @description Persisted status relative to the authenticated requester.
              * @enum {string}
              */
-            deliveryStatus: "sent" | "partner_offline" | "read";
+            deliveryStatus: "sent" | "sending" | "partner_offline" | "read";
         };
         PartnerChatAudioUrlResponse: {
             messageId: string;
@@ -982,12 +985,23 @@ export interface components {
             /** @enum {string} */
             type: "read";
         };
+        PartnerChatClientDeliveryAck: {
+            /** @enum {string} */
+            type: "delivered";
+            /** @description Positive safe-integer server message ID as a string. */
+            messageId: string;
+        };
         PartnerChatServerReady: {
             /** @enum {string} */
             type: "ready";
             userId: number;
             partnerId: number;
             relationshipId: number;
+            /**
+             * @description Present when receiver delivery acknowledgement is supported.
+             * @enum {integer}
+             */
+            deliveryAckVersion?: 1;
         };
         PartnerChatServerMessage: {
             /** @enum {string} */
@@ -1008,7 +1022,7 @@ export interface components {
             /** @enum {string} */
             type: "delivery";
             /** @enum {string} */
-            status: "sent" | "partner_offline";
+            status: "sent" | "sending" | "partner_offline";
             clientMessageId?: string;
             serverMessageId?: string;
             sentAt?: components["schemas"]["IsoDateTime"];
@@ -1102,6 +1116,7 @@ export type SchemaPartnerChatHistoryPage = components['schemas']['PartnerChatHis
 export type SchemaPartnerChatHistoryMessage = components['schemas']['PartnerChatHistoryMessage'];
 export type SchemaPartnerChatAudioUrlResponse = components['schemas']['PartnerChatAudioUrlResponse'];
 export type SchemaPartnerChatClientRead = components['schemas']['PartnerChatClientRead'];
+export type SchemaPartnerChatClientDeliveryAck = components['schemas']['PartnerChatClientDeliveryAck'];
 export type SchemaPartnerChatServerReady = components['schemas']['PartnerChatServerReady'];
 export type SchemaPartnerChatServerMessage = components['schemas']['PartnerChatServerMessage'];
 export type SchemaPartnerChatServerDelivery = components['schemas']['PartnerChatServerDelivery'];
@@ -2676,6 +2691,8 @@ export interface operations {
                  * @example
                  */
                 token?: string;
+                /** @description Set to 1 to negotiate receiver acknowledgement support. */
+                deliveryAck?: "1";
             };
             header?: never;
             path?: never;

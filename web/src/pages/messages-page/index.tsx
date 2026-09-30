@@ -93,6 +93,7 @@ function buildThreadItems(messages: PartnerChatMessage[]): ThreadItem[] {
 function statusLabel(status: PartnerChatMessage["status"]) {
   if (status === "read") return "已读";
   if (status === "sent") return "已送达";
+  if (status === "sending") return "发送中…";
   if (status === "partner_offline") return "对方离线";
   if (status === "failed") return "发送失败";
   return "";

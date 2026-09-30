@@ -1009,3 +1009,25 @@
 - **Limitations:** Binding-attempt throttling and concurrent code collision behavior remain separate gaps. Existing 6-character active invites remain valid.
 - **Next action:** Continue the PRD R1/P0 completion audit, preserving unresolved unbind data policy decisions.
 - **Evidence references:** `harness/build/phase-39-couple-invite-entropy.md`, `server/src/couple/invite-code.ts`, `server/test/couple-invite-code.test.ts`, `PRD.md` PRD-COUPLE-001.
+
+## 2026-09-30 — Phase 40: acknowledge partner chat delivery started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 truthful delivery confirmation across the existing WebSocket server and Web/App clients.
+- **Red:** Phase 34 labels server `ws.send` acceptance as delivered and writes `delivered_at` before the recipient runtime acknowledges anything; pending replay has the same ambiguity.
+- **Decision:** Add a strict receiver ack keyed only by server message ID, scope DB writes to the active bound relationship recipient, and add nullable `delivery_attempted_at` so sender history can distinguish pending confirmation from offline. Keep read receipts separate and preserve replay until ack.
+- **Operational evidence:** Phase 39 committed as `2fbd8cb`; workspace was clean before this phase. No live DB/WebSocket/device is available or accessed.
+- **Limitations:** Cross-process live sender receipts remain unsupported; DB history remains authoritative. No exactly-once delivery claim.
+
+## 2026-09-30 — Phase 40: acknowledge partner chat delivery completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Negotiated version-1 clients acknowledge server message IDs after processing current-relationship message events. Only the exact active recipient/relationship can persist `delivered_at`; accepted but unconfirmed delivery is `sending` and remains replayable. Old clients retain transport-acceptance behavior; updated clients do not send ACKs to old servers.
+- **Verification:** Passed server test (4 tests), server lint/build, Web API generation/lint/build, App lint/direct TypeScript check, OpenAPI JSON parse, and `git diff --check`. Web build retained existing Zod comment-position and >500 kB bundle warnings.
+- **Review:** Static SQL review covered receiver, partner, relationship ID, bound status, and exact membership predicates. History distinguishes no attempt, attempt awaiting ACK, delivered, and read. Client event updates are relationship-scoped and monotonic for sent/read states.
+- **Operational evidence:** No MySQL, live WebSocket service, browser, native device, credentials, or user account was accessed; no push/deployment occurred.
+- **Limitations:** Live DB migration, dropped-frame recovery, paired-device behavior, and cross-process sender receipt delivery remain unverified/deferred. Legacy non-negotiated clients retain the old status guarantee during upgrades.
+- **Next action:** Continue the PRD R1/P0 audit for remaining core-flow and media lifecycle gaps; preserve unresolved unbind retention decisions.
+- **Evidence references:** `harness/build/phase-40-chat-delivery-ack.md`, `server/src/ws/partnerChat.ts`, `server/src/db/schema.ts`, `web/openapi.json`, Web/App `use-partner-chat.ts`.

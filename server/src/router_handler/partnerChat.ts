@@ -30,6 +30,7 @@ interface PartnerChatHistoryRow extends RowDataPacket {
   audio_duration_seconds: number | null;
   client_message_id: string | null;
   sent_at: Date | string;
+  delivery_attempted_at: Date | string | null;
   delivered_at: Date | string | null;
   read_at: Date | string | null;
 }
@@ -84,7 +85,9 @@ export function serializePartnerChatHistoryMessage(
           ? "read"
           : message.delivered_at != null
             ? "sent"
-            : "partner_offline",
+            : message.delivery_attempted_at != null
+              ? "sending"
+              : "partner_offline",
   };
 }
 
@@ -170,6 +173,7 @@ export async function getPartnerChatHistory(req: Request, res: Response) {
         chat_message.audio_duration_seconds,
         chat_message.client_message_id,
         chat_message.sent_at,
+        chat_message.delivery_attempted_at,
         chat_message.delivered_at,
         chat_message.read_at
       FROM partner_chat_messages AS chat_message

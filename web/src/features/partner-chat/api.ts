@@ -16,7 +16,7 @@ export interface PartnerChatHistoryMessageResponse {
   audioDurationSeconds?: number;
   clientMessageId?: string;
   sentAt: string;
-  deliveryStatus: "sent" | "partner_offline" | "read";
+  deliveryStatus: "sent" | "sending" | "partner_offline" | "read";
 }
 
 export interface PartnerChatHistoryPageResponse {

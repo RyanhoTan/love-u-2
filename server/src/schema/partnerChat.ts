@@ -24,6 +24,21 @@ export const partnerChatAudioMessageSchema = z
     { message: "provide exactly one of audioObjectKey or audioUrl" },
   );
 
+export const partnerChatDeliveryAckSchema = z
+  .object({
+    type: z.literal("delivered"),
+    messageId: z
+      .string()
+      .min(1)
+      .max(16)
+      .regex(/^[1-9]\d*$/)
+      .refine((value) => {
+        const messageId = Number(value);
+        return Number.isSafeInteger(messageId) && String(messageId) === value;
+      }),
+  })
+  .strict();
+
 export function isInteractObjectKeyOwnedByUser(
   userId: number,
   objectKey: string,

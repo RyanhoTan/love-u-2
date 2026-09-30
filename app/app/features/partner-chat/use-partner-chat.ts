@@ -47,7 +47,7 @@ interface ServerChatMessage {
 
 interface ServerDeliveryMessage {
   type: "delivery";
-  status: "sent" | "partner_offline";
+  status: "sent" | "sending" | "partner_offline";
   clientMessageId?: string;
   serverMessageId?: string;
   sentAt?: string;
@@ -58,6 +58,7 @@ interface ServerReadyMessage {
   userId: number;
   partnerId: number;
   relationshipId: number;
+  deliveryAckVersion?: 1;
 }
 
 interface ServerErrorMessage {
@@ -88,7 +89,7 @@ function createPartnerChatUrl(token: string) {
   const baseUrl = API_BASE_URL.replace(/\/$/, "");
   const wsBaseUrl = baseUrl.replace(/^http:/, "ws:").replace(/^https:/, "wss:");
 
-  return `${wsBaseUrl}/partner-chat?token=${encodeURIComponent(token)}`;
+  return `${wsBaseUrl}/partner-chat?token=${encodeURIComponent(token)}&deliveryAck=1`;
 }
 
 function createClientMessageId() {
@@ -217,6 +218,28 @@ function mergeMessages(
     .slice(-MAX_LOCAL_HISTORY_MESSAGES);
 }
 
+function mergeDeliveryStatus(
+  current: PartnerChatMessage["status"],
+  incoming: "sent" | "sending" | "partner_offline",
+) {
+  const rank = (status: PartnerChatMessage["status"]) => {
+    switch (status) {
+      case "read":
+        return 4;
+      case "sent":
+        return 3;
+      case "partner_offline":
+        return 1;
+      case "sending":
+        return 2;
+      default:
+        return 0;
+    }
+  };
+
+  return rank(current) > rank(incoming) ? current ?? incoming : incoming;
+}
+
 function mapHistoryMessage(
   userId: number,
   message: PartnerChatHistoryMessageResponse,
@@ -254,6 +277,7 @@ export function usePartnerChat(
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldReconnectRef = useRef(false);
   const isReadyRef = useRef(false);
+  const deliveryAckRef = useRef(false);
   const relationshipRevokedRef = useRef(false);
   const historyRelationshipIdRef = useRef<number | null>(null);
   const historyCursorRef = useRef<string | null>(null);
@@ -314,6 +338,19 @@ export function usePartnerChat(
     }
 
     socket.send(JSON.stringify({ type: "read" }));
+  }, []);
+
+  const sendDeliveryAcknowledgement = useCallback((messageId: string) => {
+    const socket = socketRef.current;
+    if (
+      !deliveryAckRef.current ||
+      !socket ||
+      socket.readyState !== WebSocket.OPEN
+    ) {
+      return;
+    }
+
+    socket.send(JSON.stringify({ type: "delivered", messageId }));
   }, []);
 
   useEffect(() => {
@@ -422,6 +459,7 @@ export function usePartnerChat(
 
     clearReconnectTimer();
     isReadyRef.current = false;
+    deliveryAckRef.current = false;
     setStatus("connecting");
     setErrorMessage(null);
 
@@ -443,6 +481,7 @@ export function usePartnerChat(
 
       if (payload.type === "ready") {
         isReadyRef.current = true;
+        deliveryAckRef.current = payload.deliveryAckVersion === 1;
         setStatus("connected");
         setErrorMessage(null);
         userIdRef.current = payload.userId;
@@ -476,6 +515,7 @@ export function usePartnerChat(
         if (historyRelationshipIdRef.current !== payload.relationshipId) {
           return;
         }
+        sendDeliveryAcknowledgement(payload.id);
         setMessages((current) =>
           mergeMessages(current, [
             {
@@ -497,26 +537,39 @@ export function usePartnerChat(
         return;
       }
 
-      if (payload.type === "delivery" && payload.clientMessageId) {
+      if (
+        payload.type === "delivery" &&
+        (payload.clientMessageId || payload.serverMessageId)
+      ) {
         setMessages((current) =>
-          current.map((message) =>
-            message.id === payload.clientMessageId &&
-            message.relationshipId === historyRelationshipIdRef.current
-              ? {
-                  ...message,
-                  audioUrl:
-                    message.messageType === "audio"
-                      ? undefined
-                      : message.audioUrl,
-                  serverMessageId:
-                    payload.serverMessageId ?? message.serverMessageId,
-                  status:
-                    message.status === "read" ? "read" : payload.status,
-                  retryable: false,
-                  sentAt: payload.sentAt ?? message.sentAt,
-                }
-              : message,
-          ),
+          current.map((message) => {
+            const matchesMessage =
+              (payload.clientMessageId &&
+                message.id === payload.clientMessageId) ||
+              (payload.serverMessageId &&
+                (message.serverMessageId === payload.serverMessageId ||
+                  message.id === payload.serverMessageId));
+            if (
+              !message.isSelf ||
+              !matchesMessage ||
+              message.relationshipId !== historyRelationshipIdRef.current
+            ) {
+              return message;
+            }
+
+            return {
+              ...message,
+              audioUrl:
+                message.messageType === "audio"
+                  ? undefined
+                  : message.audioUrl,
+              serverMessageId:
+                payload.serverMessageId ?? message.serverMessageId,
+              status: mergeDeliveryStatus(message.status, payload.status),
+              retryable: false,
+              sentAt: payload.sentAt ?? message.sentAt,
+            };
+          }),
         );
         return;
       }
@@ -572,6 +625,7 @@ export function usePartnerChat(
       }
       socketRef.current = null;
       isReadyRef.current = false;
+      deliveryAckRef.current = false;
 
       const relationshipRevoked = event.code === 4003;
       const failedReentry = relationshipRevokedRef.current && !relationshipRevoked;
@@ -615,7 +669,14 @@ export function usePartnerChat(
         reconnectTimerRef.current = setTimeout(connect, 2000);
       }
     };
-  }, [clearReconnectTimer, loadHistory, loadServerHistory, sendReadEvent, token]);
+  }, [
+    clearReconnectTimer,
+    loadHistory,
+    loadServerHistory,
+    sendDeliveryAcknowledgement,
+    sendReadEvent,
+    token,
+  ]);
 
   useEffect(() => {
     if (!isVisible) {
@@ -646,6 +707,7 @@ export function usePartnerChat(
       historyStorageKeyRef.current = null;
       hasLoadedHistoryRef.current = false;
       isReadyRef.current = false;
+      deliveryAckRef.current = false;
       setMessages([]);
       setHasOlderMessages(false);
       setHistoryLoadFailed(false);

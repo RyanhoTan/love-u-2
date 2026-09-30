@@ -57,7 +57,7 @@ function createPartnerChatUrl(token: string) {
     .replace(/^http:/, "ws:")
     .replace(/^https:/, "wss:");
 
-  return `${wsBaseUrl}/partner-chat?token=${encodeURIComponent(token)}`;
+  return `${wsBaseUrl}/partner-chat?token=${encodeURIComponent(token)}&deliveryAck=1`;
 }
 
 function createClientMessageId() {
@@ -190,6 +190,28 @@ function mergeMessages(
     .slice(-MAX_LOCAL_HISTORY_MESSAGES);
 }
 
+function mergeDeliveryStatus(
+  current: PartnerChatMessage["status"],
+  incoming: "sent" | "sending" | "partner_offline",
+) {
+  const rank = (status: PartnerChatMessage["status"]) => {
+    switch (status) {
+      case "read":
+        return 4;
+      case "sent":
+        return 3;
+      case "partner_offline":
+        return 1;
+      case "sending":
+        return 2;
+      default:
+        return 0;
+    }
+  };
+
+  return rank(current) > rank(incoming) ? current ?? incoming : incoming;
+}
+
 function mapHistoryMessage(
   userId: number,
   message: PartnerChatHistoryMessageResponse,
@@ -251,6 +273,7 @@ export function usePartnerChat(
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldReconnectRef = useRef(false);
   const isReadyRef = useRef(false);
+  const deliveryAckRef = useRef(false);
   const historyRelationshipIdRef = useRef<number | null>(null);
   const historyCursorRef = useRef<string | null>(null);
   const historyPageInProgressRef = useRef(false);
@@ -290,6 +313,19 @@ export function usePartnerChat(
     }
 
     socket.send(JSON.stringify({ type: "read" }));
+  }, []);
+
+  const sendDeliveryAcknowledgement = useCallback((messageId: string) => {
+    const socket = socketRef.current;
+    if (
+      !deliveryAckRef.current ||
+      !socket ||
+      socket.readyState !== WebSocket.OPEN
+    ) {
+      return;
+    }
+
+    socket.send(JSON.stringify({ type: "delivered", messageId }));
   }, []);
 
   useEffect(() => {
@@ -387,6 +423,7 @@ export function usePartnerChat(
 
     clearReconnectTimer();
     isReadyRef.current = false;
+    deliveryAckRef.current = false;
     setStatus("connecting");
     setErrorMessage(null);
 
@@ -404,6 +441,7 @@ export function usePartnerChat(
 
       if (payload.type === "ready") {
         isReadyRef.current = true;
+        deliveryAckRef.current = payload.deliveryAckVersion === 1;
         setStatus("connected");
         setErrorMessage(null);
         userIdRef.current = payload.userId;
@@ -449,6 +487,7 @@ export function usePartnerChat(
         if (historyRelationshipIdRef.current !== payload.relationshipId) {
           return;
         }
+        sendDeliveryAcknowledgement(payload.id);
         const isSelf =
           userIdRef.current !== null &&
           payload.fromUserId === userIdRef.current;
@@ -487,19 +526,29 @@ export function usePartnerChat(
         return;
       }
 
-      if (payload.type === "delivery" && payload.clientMessageId) {
-        const previewUrl = audioPreviewUrlsRef.current.get(
-          payload.clientMessageId,
-        );
-        if (previewUrl) {
+      if (
+        payload.type === "delivery" &&
+        (payload.clientMessageId || payload.serverMessageId)
+      ) {
+        const previewUrl = payload.clientMessageId
+          ? audioPreviewUrlsRef.current.get(payload.clientMessageId)
+          : undefined;
+        if (previewUrl && payload.clientMessageId) {
           URL.revokeObjectURL(previewUrl);
           audioPreviewUrlsRef.current.delete(payload.clientMessageId);
         }
 
         setMessages((current) =>
           current.map((message) => {
+            const matchesMessage =
+              (payload.clientMessageId &&
+                message.id === payload.clientMessageId) ||
+              (payload.serverMessageId &&
+                (message.serverMessageId === payload.serverMessageId ||
+                  message.id === payload.serverMessageId));
             if (
-              message.id !== payload.clientMessageId ||
+              !message.isSelf ||
+              !matchesMessage ||
               message.relationshipId !== historyRelationshipIdRef.current
             ) {
               return message;
@@ -512,7 +561,7 @@ export function usePartnerChat(
                 : message.audioUrl,
               serverMessageId:
                 payload.serverMessageId ?? message.serverMessageId,
-              status: message.status === "read" ? "read" : payload.status,
+              status: mergeDeliveryStatus(message.status, payload.status),
               retryable: false,
               sentAt: payload.sentAt ?? message.sentAt,
             };
@@ -572,6 +621,7 @@ export function usePartnerChat(
       }
       socketRef.current = null;
       isReadyRef.current = false;
+      deliveryAckRef.current = false;
 
       const relationshipRevoked = event.code === 4003;
       if (relationshipRevoked) {
@@ -606,7 +656,13 @@ export function usePartnerChat(
         reconnectTimerRef.current = setTimeout(connect, 2000);
       }
     };
-  }, [clearReconnectTimer, loadServerHistory, sendReadEvent, token]);
+  }, [
+    clearReconnectTimer,
+    loadServerHistory,
+    sendDeliveryAcknowledgement,
+    sendReadEvent,
+    token,
+  ]);
 
   useEffect(() => {
     if (isVisible) {
@@ -628,6 +684,7 @@ export function usePartnerChat(
       historyStorageKeyRef.current = null;
       hasLoadedHistoryRef.current = false;
       isReadyRef.current = false;
+      deliveryAckRef.current = false;
       userIdRef.current = null;
       setHasOlderMessages(false);
       setHistoryLoadFailed(false);
