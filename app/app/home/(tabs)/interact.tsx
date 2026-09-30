@@ -75,7 +75,7 @@ export default function Interact() {
     isLoadingOlderMessages,
     loadOlderMessages,
     sendMessage,
-    retryTextMessage,
+    retryMessage,
     sendAudioMessage,
   } = usePartnerChat(token, { isVisible: isFocused });
 
@@ -310,10 +310,11 @@ export default function Interact() {
                       isSelf={item.isSelf}
                       onRetry={
                         item.isSelf &&
-                        item.messageType === "text" &&
+                        (item.messageType === "text" ||
+                          Boolean(item.audioObjectKey)) &&
                         item.status === "failed" &&
                         item.retryable
-                          ? () => retryTextMessage(item.id)
+                          ? () => retryMessage(item.id)
                           : undefined
                       }
                       retryDisabled={!isConnected}

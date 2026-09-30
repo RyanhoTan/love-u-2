@@ -330,14 +330,19 @@ export function MessagesPage() {
                         .join(" · ")}
                     </p>
                     {!incoming &&
-                    message.messageType === "text" &&
+                    (message.messageType === "text" ||
+                      Boolean(message.audioObjectKey)) &&
                     message.status === "failed" &&
                     message.retryable ? (
                       <button
                         type="button"
-                        aria-label="重试发送消息"
+                        aria-label={
+                          message.messageType === "audio"
+                            ? "重试发送语音"
+                            : "重试发送消息"
+                        }
                         disabled={!chat.isConnected}
-                        onClick={() => chat.retryTextMessage(message.id)}
+                        onClick={() => chat.retryMessage(message.id)}
                         className="text-xs text-accent underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         重试

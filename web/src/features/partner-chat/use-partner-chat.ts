@@ -30,6 +30,7 @@ export type PartnerChatMessage = {
   text: string;
   messageType: PartnerChatMessageType;
   audioUrl?: string;
+  audioObjectKey?: string;
   audioDurationSeconds?: number;
   sentAt: string;
   isSelf: boolean;
@@ -83,6 +84,8 @@ function isPartnerChatMessage(value: unknown): value is PartnerChatMessage {
     typeof message.text === "string" &&
     (message.messageType === "text" || message.messageType === "audio") &&
     (message.audioUrl === undefined || typeof message.audioUrl === "string") &&
+    (message.audioObjectKey === undefined ||
+      typeof message.audioObjectKey === "string") &&
     (message.audioDurationSeconds === undefined ||
       (typeof message.audioDurationSeconds === "number" &&
         Number.isFinite(message.audioDurationSeconds))) &&
@@ -104,9 +107,11 @@ function normalizeStoredMessages(value: unknown) {
       ...message,
       status: wasSending ? "failed" : message.status,
       retryable:
-        wasSending && message.messageType === "text"
-          ? true
-          : message.retryable,
+        wasSending
+          ? message.messageType === "text" || Boolean(message.audioObjectKey)
+          : message.messageType === "audio" && !message.audioObjectKey
+            ? false
+            : message.retryable,
     };
   });
 }
@@ -138,7 +143,7 @@ function mergeMessages(
       statusRank(message.status) >= statusRank(existing.status)
         ? message.status
         : existing.status;
-    messagesById.set(message.id, {
+    const mergedMessage = {
       ...existing,
       ...message,
       status,
@@ -146,7 +151,11 @@ function mergeMessages(
         status === "failed"
           ? (message.retryable ?? existing.retryable)
           : false,
-    });
+    };
+    if (message.serverMessageId || existing.serverMessageId) {
+      delete mergedMessage.audioObjectKey;
+    }
+    messagesById.set(message.id, mergedMessage);
   }
 
   return [...messagesById.values()]
@@ -243,9 +252,16 @@ function readHistory(storageKey: string) {
 
 function writeHistory(storageKey: string, messages: PartnerChatMessage[]) {
   try {
-    const persistable = messages.filter(
-      (message) => !message.audioUrl?.startsWith("blob:"),
-    );
+    const persistable = messages
+      .filter((message) => !message.audioUrl?.startsWith("blob:"))
+      .map((message) => {
+        const persistedMessage = { ...message };
+        delete persistedMessage.audioObjectKey;
+        if (persistedMessage.messageType === "audio") {
+          persistedMessage.retryable = false;
+        }
+        return persistedMessage;
+      });
     localStorage.setItem(
       storageKey,
       JSON.stringify(persistable.slice(-MAX_LOCAL_HISTORY_MESSAGES)),
@@ -551,6 +567,7 @@ export function usePartnerChat(
               audioUrl: message.audioUrl?.startsWith("blob:")
                 ? undefined
                 : message.audioUrl,
+              audioObjectKey: undefined,
               serverMessageId:
                 payload.serverMessageId ?? message.serverMessageId,
               status: mergeDeliveryStatus(message.status, payload.status),
@@ -573,7 +590,7 @@ export function usePartnerChat(
             message.relationshipId === payload.relationshipId &&
             (readMessageIds.has(message.serverMessageId ?? "") ||
               readMessageIds.has(message.id))
-              ? { ...message, status: "read" }
+              ? { ...message, audioObjectKey: undefined, status: "read" }
               : message,
           ),
         );
@@ -586,7 +603,12 @@ export function usePartnerChat(
             current.map((message) =>
               message.id === payload.clientMessageId &&
               message.relationshipId === historyRelationshipIdRef.current
-                ? { ...message, status: "failed", retryable: false }
+                ? {
+                    ...message,
+                    audioObjectKey: undefined,
+                    status: "failed",
+                    retryable: false,
+                  }
                 : message,
             ),
           );
@@ -638,7 +660,9 @@ export function usePartnerChat(
             ? {
                 ...message,
                 status: "failed",
-                retryable: message.messageType === "text",
+                retryable:
+                  message.messageType === "text" ||
+                  Boolean(message.audioObjectKey),
               }
             : message,
         ),
@@ -764,7 +788,7 @@ export function usePartnerChat(
     return true;
   }, []);
 
-  const retryTextMessage = useCallback(
+  const retryMessage = useCallback(
     (messageId: string) => {
       const message = messages.find((candidate) => candidate.id === messageId);
       const relationshipId = historyRelationshipIdRef.current;
@@ -772,7 +796,8 @@ export function usePartnerChat(
       if (
         !message ||
         !message.isSelf ||
-        message.messageType !== "text" ||
+        (message.messageType !== "text" &&
+          (message.messageType !== "audio" || !message.audioObjectKey)) ||
         message.status !== "failed" ||
         message.retryable !== true ||
         relationshipId === null ||
@@ -791,14 +816,24 @@ export function usePartnerChat(
             : item,
         ),
       );
+      const payload =
+        message.messageType === "text"
+          ? {
+              type: "message",
+              messageType: "text",
+              text: message.text,
+              clientMessageId: message.id,
+            }
+          : {
+              type: "message",
+              messageType: "audio",
+              audioObjectKey: message.audioObjectKey,
+              audioDurationSeconds: message.audioDurationSeconds,
+              clientMessageId: message.id,
+            };
       try {
         socket.send(
-          JSON.stringify({
-            type: "message",
-            messageType: "text",
-            text: message.text,
-            clientMessageId: message.id,
-          }),
+          JSON.stringify(payload),
         );
       } catch {
         setMessages((current) =>
@@ -851,17 +886,45 @@ export function usePartnerChat(
             throw new Error("upload failed");
           }
 
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === clientMessageId
+                ? { ...message, audioObjectKey }
+                : message,
+            ),
+          );
+
+          if (historyRelationshipIdRef.current !== relationshipId) {
+            setMessages((current) =>
+              current.map((message) =>
+                message.id === clientMessageId
+                  ? {
+                      ...message,
+                      audioObjectKey: undefined,
+                      status: "failed",
+                      retryable: false,
+                    }
+                  : message,
+              ),
+            );
+            return;
+          }
+
           const socket = socketRef.current;
           if (
             !isReadyRef.current ||
-            historyRelationshipIdRef.current !== relationshipId ||
             !socket ||
             socket.readyState !== WebSocket.OPEN
           ) {
             setMessages((current) =>
               current.map((message) =>
                 message.id === clientMessageId
-                  ? { ...message, status: "failed" }
+                  ? {
+                      ...message,
+                      audioObjectKey,
+                      status: "failed",
+                      retryable: true,
+                    }
                   : message,
               ),
             );
@@ -881,7 +944,11 @@ export function usePartnerChat(
           setMessages((current) =>
             current.map((message) =>
               message.id === clientMessageId
-                ? { ...message, status: "failed" }
+                ? {
+                    ...message,
+                    status: "failed",
+                    retryable: Boolean(message.audioObjectKey),
+                  }
                 : message,
             ),
           );
@@ -906,7 +973,7 @@ export function usePartnerChat(
       isConnected,
       markAsRead: sendReadEvent,
       sendMessage: sendTextMessage,
-      retryTextMessage,
+      retryMessage,
       sendAudioMessage,
       getAudioUrl: getPartnerChatAudioUrl,
       loadOlderMessages,
@@ -919,7 +986,7 @@ export function usePartnerChat(
       isLoadingOlderMessages,
       loadOlderMessages,
       messages,
-      retryTextMessage,
+      retryMessage,
       sendAudioMessage,
       sendReadEvent,
       sendTextMessage,

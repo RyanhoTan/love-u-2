@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–40 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–41 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -54,6 +54,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 38 | Clear invalid App auth sessions | Complete | PRD-AUTH-001 | App 收到受保护请求 401 时清除匹配的持久与内存会话；旧 token 的迟到 401 不得清除新会话 |
 | 39 | Strengthen couple invite code entropy | Complete | PRD-COUPLE-001 | 新邀请码使用 12 位密码学随机码；旧码继续兼容，新增服务端单元测试 |
 | 40 | Acknowledge partner chat delivery | Complete | PRD-CHAT-001、Phase 34 | 协商版 1 客户端经接收端回执后才标记送达；未确认消息可补投，旧客户端兼容 |
+| 41 | Retry uncertain uploaded partner audio | Complete | PRD-CHAT-001、Phase 35/37 | 已上传但发送结果不确定的语音可在当前会话内复用原消息 ID 与对象键重试；对象键仅留在内存 |
 
 ## 阶段顺序
 
@@ -282,6 +283,13 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 确认前的消息在重连时仍可补投。以增量 nullable 时间戳区分“等待确认”和“未连接/离线”，不更改
 已读语义、解绑策略或跨实例推送架构。详细计划见
 `harness/build/phase-40-chat-delivery-ack.md`。
+
+### Phase 41 — Retry uncertain uploaded partner audio
+
+为 Web/App 中“对象已上传、WebSocket 发送结果不确定”的语音消息增加显式重试。重试复用原
+`clientMessageId`、对象键和时长，由现有服务端幂等校验防止重复记录。对象键仅在运行时内存保留，
+不写入浏览器缓存或 AsyncStorage；上传本身失败仍要求用户重新录制/发送。详细计划见
+`harness/build/phase-41-chat-audio-retry.md`。
 
 ## 后续阶段的准入条件
 

@@ -45,6 +45,9 @@
 | 36 — Isolate client chat state by relationship | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实浏览器/移动设备关系切换集成 |
 | 37 — Retry uncertain partner text messages | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 语音恢复与真实 WS/设备验证不在本阶段 |
 | 38 — Clear invalid App auth sessions | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 API/设备会话验证 |
+| 39 — Strengthen couple invite code entropy | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实绑定/并发碰撞验证 |
+| 40 — Acknowledge partner chat delivery | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 DB/WS/双端设备验证 |
+| 41 — Retry uncertain uploaded partner audio | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无 durable outbox/R2/WS/设备集成；孤儿清理策略未定 |
 
 ## Activity
 
@@ -1039,3 +1042,25 @@
 - **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`. Web build retained existing Zod Rollup comment-position and >500 kB chunk warnings.
 - **Operational evidence:** No server, database, credentials, external service, or user data was accessed; no push or deployment occurred.
 - **Evidence references:** Web/App `use-partner-chat.ts`, Phase 40.
+
+## 2026-09-30 — Phase 41: retry uncertain uploaded partner audio started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 same-message retry for audio whose private object upload succeeded but WebSocket persistence is uncertain.
+- **Red:** Phase 37 safely retries text with the original ID, but Web/App have no same-session retry for an uploaded audio object after socket close/send failure.
+- **Decision:** Retain the same private object key only in runtime memory and retry the existing audio payload with the original `clientMessageId`; never persist the key in local history or re-upload the media.
+- **Operational evidence:** Phase 40 delivery acknowledgement is committed; workspace was clean before this phase. No DB/R2/live WebSocket or device was accessed.
+- **Limitations:** No durable outbox, audio re-upload, or orphan cleanup; no integration environment.
+
+## 2026-09-30 — Phase 41: retry uncertain uploaded partner audio completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Web/App expose same-row audio retry after uncertain transport when the uploaded key remains in memory. Retry preserves client ID, object key, and optional duration; persisted server history/delivery clears the key. Local serializers never store it.
+- **Verification:** Passed server test (5 tests), server lint/build, Web lint/build, App lint/typecheck, and `git diff --check`. Added a unit test proving identical audio payloads are accepted for idempotent retry and changed key/duration are rejected.
+- **Review:** Existing server save path checks current relationship and sender-owned key before insert; its idempotency comparison includes object key and duration. Retry is only available for the current relationship and open ready socket.
+- **Operational evidence:** No MySQL, R2, live WebSocket, browser, device, credential, or user data was accessed; no push/deployment occurred.
+- **Limitations:** No durable outbox or post-restart retry when the server row was not saved; uploaded orphan cleanup and cross-process delivery remain unresolved. Web build retains existing dependency annotation and large-chunk warnings.
+- **Next action:** Continue auditing the remaining PRD R1/P0 acceptance criteria, including relationship/retention decisions that still require product input.
+- **Evidence references:** `harness/build/phase-41-chat-audio-retry.md`, `harness/context/phase-41-chat-audio-retry-context.md`, Web/App partner-chat hooks, `server/src/ws/partnerChat.ts`, `server/test/partner-chat-audio-retry.test.ts`.
