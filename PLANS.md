@@ -323,6 +323,13 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 私有对象键契约与大小上限；不新增内容嗅探、大小策略或外部 R2 集成。详细计划见
 `harness/build/phase-45-media-upload-policy.md`。
 
+### Phase 46 — Keep Web Today profile failures distinct
+
+修正 Web 首页将账户资料查询失败或仍在加载时当作“未绑定”的呈现。首页只在资料状态为 `ready` 时
+判断情侣关系；加载/初始状态明确显示加载中，失败状态提供重试并隐藏未绑定引导及共同生活卡片。
+复用现有 `refreshProfile`，不改变认证、API 或绑定流程。详细计划见
+`harness/build/phase-46-web-today-profile-failure.md`。
+
 ## 后续阶段的准入条件
 
 新增实现阶段前必须：

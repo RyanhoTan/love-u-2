@@ -1153,3 +1153,23 @@
 - **Limitations:** Declared MIME is not matched against bytes. Express middleware and object storage success/interruption are not integration-tested; orphan cleanup and deletion policy remain unresolved.
 - **Next action:** Continue the PRD R1/P0 loop; keep media byte-sniffing/integration and lifecycle gaps explicit.
 - **Evidence references:** `harness/build/phase-45-media-upload-policy.md`, `harness/context/phase-45-media-upload-policy-context.md`, `server/src/media/uploadPolicy.ts`, `server/src/router_handler/upload.ts`, `server/src/app.ts`, `server/test/upload-policy.test.ts`, `web/openapi.json`.
+
+## 2026-09-30 — Phase 46: Web Today profile failure state started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-TODAY-001 truthful Web home states for the existing profile request.
+- **Red:** `TodayPage` renders “去绑定” and the unbound hero for `profileStatus === "error"` and `"idle"` because only `"loading"` is handled specially; relationship queries are already gated by the derived partner presence.
+- **Decision:** Treat only `ready` profile data as authoritative; use the existing profile refresh and query-error retry path without changing auth/API semantics.
+- **Operational evidence:** Phase 45 committed as `c96d14f`; worktree was clean before Phase 46. No browser, API account, or external service was accessed.
+
+## 2026-09-30 — Phase 46: Web Today profile failure state completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** `idle`/`loading` now show a loading state; `error` shows the shared retryable error; only `ready` data renders bound/unbound views. Relationship-dependent anniversary and album queries remain hidden unless the ready profile confirms a bound partner.
+- **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`. Web build retains existing Zod/Rollup comment-position and >500 kB chunk warnings.
+- **Review:** Static review covered all four profile states, refresh retry, no “去绑定” or unbound hero on error/initial status, and no relationship queries before a ready bound state.
+- **Operational evidence:** No browser, API, credentials, user account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** No dedicated Web UI test runner or authenticated browser/API integration. Failed retries remain on the visible error state; 401 session invalidation behavior is unchanged.
+- **Next action:** Continue the PRD R1/P0 audit for independent issues.
+- **Evidence references:** `harness/build/phase-46-web-today-profile-failure.md`, `harness/context/phase-46-web-today-profile-failure-context.md`, `web/src/pages/today-page/index.tsx`, `web/src/features/auth/context.tsx`.
