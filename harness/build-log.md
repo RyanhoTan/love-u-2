@@ -51,6 +51,13 @@
 | 42 — Serialize concurrent couple bindings | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；服务端单测/lint/build 通过 | 无真实 MySQL 并发集成 |
 | 43 — Web wish recycle and restore | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | Web 永久删除语义未含在本阶段 |
 | 44 — Web wish status progression | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | 无浏览器/API 集成 |
+| 45 — Enforce media upload policy | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build 通过 | 无真实 R2/HTTP 集成 |
+| 46 — Keep Web Today profile failures distinct | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | 无真实浏览器/API 集成 |
+| 47 — Enforce exact album media ownership keys | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build 通过 | 无 DB/R2 集成 |
+| 48 — Remove hidden Web daily-interaction routes | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | 无真实浏览器导航检查 |
+| 49 — Make App wish memories failure-safe | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 50 — Make App album story reads failure-safe | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 51 — App wish doing-page failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 
 ## Activity
 
@@ -1255,3 +1262,25 @@
 - **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
 - **Next action:** Continue the PRD R1/P0 loop while preserving external integration gaps.
 - **Evidence references:** `harness/build/phase-50-app-story-read-states.md`, `harness/context/phase-50-app-story-read-states-context.md`, `app/app/home/album/stories/index.tsx`, `app/app/home/album/stories/[id]/index.tsx`, `app/app/features/album/api.ts`.
+
+## 2026-09-30 — Phase 51: App wish doing-page failure states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-WISH-001 App process-page loading and error handling.
+- **Red:** A rejected `getWishRecords` only showed a toast; the screen still rendered a fallback wish title, “暂无记录”, and finish/add actions.
+- **Decision:** Add explicit loading/error/ready states, gate wish-specific content and actions until a successful read, and suppress stale results after retry or blur.
+- **Operational evidence:** Phase 50 committed as `e78f34c`; worktree was clean before Phase 51. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 51: App wish doing-page failure states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** The doing page now displays loading, accessible retryable error, and successful-data states. The hard-coded fallback title and successful-empty copy no longer appear after failure.
+- **Action gating:** Finish-wish and add-record actions render only after a successful wish/records response; invalid IDs provide a back action.
+- **Reliability:** Request IDs and focus cleanup discard stale responses after retry or navigation.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review confirmed that the empty-record message is reachable only in the ready branch, failure cannot render wish actions, retry uses the existing read API, and successful record/media/completion behavior remains unchanged.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 loop while preserving external integration gaps.
+- **Evidence references:** `harness/build/phase-51-app-wish-doing-states.md`, `harness/context/phase-51-app-wish-doing-states-context.md`, `app/app/home/wish-list/[id]/doing.tsx`.

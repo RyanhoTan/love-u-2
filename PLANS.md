@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–44 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–51 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -58,6 +58,13 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 42 | Serialize concurrent couple bindings | Complete | PRD-COUPLE-001、Phase 39 | 邀请码与参与账户在绑定事务中加锁，关系冲突检查使用当前读；真实 MySQL 并发结果仍待集成验证 |
 | 43 | Web wish recycle and restore | Complete | PRD-WISH-001、现有回收站 API | Web 可软删除、查看服务端保留截止时间并恢复；本阶段不新增永久删除入口 |
 | 44 | Web wish status progression | Complete | PRD-WISH-001 | Web 心愿按 `todo → doing → done` 顺序推进，复用既有 PATCH 契约 |
+| 45 | Enforce media upload policy | Complete | PRD-MEMORY-001 | 服务端限制媒体目录、MIME、空文件和上传大小 |
+| 46 | Keep Web Today profile failures distinct | Complete | PRD-TODAY-001 | Web 首页区分资料加载/失败与真实未绑定状态 |
+| 47 | Enforce exact album media ownership keys | Complete | PRD-MEMORY-001 | 相册/故事上传对象键必须属于当前用户的精确 album 前缀 |
+| 48 | Remove hidden Web daily-interaction routes | Complete | PRD-TODAY-001、PRD R1 | 移除未上线状态/一句话假入口 |
+| 49 | Make App wish memories failure-safe | Complete | PRD-WISH-001 | App 回忆页只在读取成功后展示空数据或统计 |
+| 50 | Make App album story reads failure-safe | Complete | PRD-MEMORY-001 | App 故事列表/详情区分加载失败和成功空数据 |
+| 51 | App wish doing-page failure-safe states | Complete | PRD-WISH-001、Phase 49 | App 过程页只在读取成功后呈现心愿、记录及结束/添加操作；失败可重试 |
 
 ## 阶段顺序
 
@@ -354,6 +361,13 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 为 App 故事列表与详情区分加载、请求失败和成功空数据：失败时展示可重试错误，不再落入“没有故事/没有媒体”
 的空状态。复用既有故事查询和收藏 API，不改故事数据、权限或收藏语义。详细计划见
 `harness/build/phase-50-app-story-read-states.md`。
+
+### Phase 51 — Make App wish doing page failure-safe
+
+为 App 进行中心愿过程页补齐加载、失败、重试和成功状态。只有成功读取心愿与过程记录后才显示真实内容、
+“暂无记录”空状态以及结束/添加记录操作；失败不再落入硬编码标题与空记录假象。复用现有记录查询和心愿更新
+API，不改变心愿状态、记录或媒体契约。详细计划见
+`harness/build/phase-51-app-wish-doing-states.md`。
 
 ## 后续阶段的准入条件
 
