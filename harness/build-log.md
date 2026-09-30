@@ -1173,3 +1173,23 @@
 - **Limitations:** No dedicated Web UI test runner or authenticated browser/API integration. Failed retries remain on the visible error state; 401 session invalidation behavior is unchanged.
 - **Next action:** Continue the PRD R1/P0 audit for independent issues.
 - **Evidence references:** `harness/build/phase-46-web-today-profile-failure.md`, `harness/context/phase-46-web-today-profile-failure-context.md`, `web/src/pages/today-page/index.tsx`, `web/src/features/auth/context.tsx`.
+
+## 2026-09-30 — Phase 47: exact album media ownership keys started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 server validation that uploaded media keys belong to the authenticated uploader.
+- **Red:** Album/story writes accepted any key with the caller ID somewhere in its path, including the `interact` namespace; the existing shared predicate required only the `album/<userId>/` prefix.
+- **Decision:** Reuse a strict shared album namespace check and reject empty/dot path suffix segments; do not change relationship queries or media access.
+- **Operational evidence:** Phase 46 committed as `c4f8510`; worktree was clean before Phase 47. No DB, R2, credentials, or user account was accessed.
+
+## 2026-09-30 — Phase 47: exact album media ownership keys completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Album media and story creation now require the shared exact `album/<authenticatedUserId>/` namespace predicate. The predicate rejects empty, `.` and `..` suffix segments; Wish media continues using the same guard.
+- **Verification:** The new regression test failed before implementation on a dot-navigation path; afterwards `pnpm --dir server test` passed (14 tests), server lint/build passed, and `git diff --check` passed.
+- **Review:** Static review confirmed both album/story write handlers assert ownership before inserting rows. Read paths, relationship-scope SQL, schema, and object storage were unchanged.
+- **Operational evidence:** No DB, R2, credentials, user account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** No DB/R2 integration test; existing persisted keys are not audited or migrated.
+- **Next action:** Continue the PRD R1/P0 loop while keeping live integration and unresolved data-lifecycle decisions visible.
+- **Evidence references:** `harness/build/phase-47-album-object-key-ownership.md`, `harness/context/phase-47-album-object-key-ownership-context.md`, `server/src/media/objectKey.ts`, `server/src/router_handler/album.ts`, `server/src/router_handler/wish.ts`, `server/test/media-object-key.test.ts`.

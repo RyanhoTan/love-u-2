@@ -330,6 +330,13 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 复用现有 `refreshProfile`，不改变认证、API 或绑定流程。详细计划见
 `harness/build/phase-46-web-today-profile-failure.md`。
 
+### Phase 47 — Enforce exact album media ownership keys
+
+加固 PRD-MEMORY-001 的对象所有权边界：相册和故事写入只接受当前用户的
+`album/<userId>/<object>` 键，不接受仅在别的路径片段出现用户 ID、其他媒体目录、相邻用户 ID
+或 `.` / `..` 路径段的对象键。复用并加固现有共享检查，保留情侣关系授权及读取行为不变。详细计划见
+`harness/build/phase-47-album-object-key-ownership.md`。
+
 ## 后续阶段的准入条件
 
 新增实现阶段前必须：

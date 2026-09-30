@@ -7,6 +7,7 @@ import type {
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
+import { isAlbumObjectKeyOwnedByUser } from "../media/objectKey.js";
 import {
   createAlbumMediaSchema,
   createAlbumStorySchema,
@@ -206,9 +207,7 @@ function inferMediaType(url: string): "image" | "video" {
 }
 
 function assertObjectKeyBelongsToUser(userId: number, objectKey: string) {
-  const segments = objectKey.split("/");
-
-  if (segments.includes("..") || !segments.includes(String(userId))) {
+  if (!isAlbumObjectKeyOwnedByUser(userId, objectKey)) {
     throw new HttpError(403, "media object does not belong to the current user");
   }
 }
