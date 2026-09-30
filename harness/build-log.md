@@ -60,6 +60,7 @@
 | 51 — App wish doing-page failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 | 52 — App album photo/video failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 | 53 — App All Media overview failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 54 — App favorites failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 
 ## Activity
 
@@ -1334,3 +1335,24 @@
 - **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised. Nested TabView active-scene isolation remains separate from Expo Router screen focus.
 - **Next action:** Continue the PRD R1/P0 audit; Favorites read failures remain independent.
 - **Evidence references:** `harness/build/phase-53-app-all-media-overview-states.md`, `harness/context/phase-53-app-all-media-overview-context.md`, `app/components/album/all-medias.tsx`.
+
+## 2026-09-30 — Phase 54: App Favorites read states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-MEMORY-001 App favorites list reliability.
+- **Red:** Favorites Stories, Photos, and Videos each stop loading after a rejected GET and render an empty-list message based on the initial array.
+- **Decision:** Add explicit loading/error/ready states and retry to each list; successful-empty copy is reached only after its existing GET succeeds.
+- **Operational evidence:** Phase 53 committed as `c121b18`; worktree was clean before Phase 54. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 54: App Favorites read states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Favorites Stories, Photos, and Videos now show loading and accessible retryable error states. Empty messages render only after the respective GET succeeds.
+- **Reliability:** A request sequence suppresses stale retries; effect cleanup invalidates an in-flight read when its conditional subtab unmounts.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review confirmed separate error handling in all three grids, retry through existing APIs, success-only empty copy after filtering, and unchanged favorite/content navigation semantics.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 audit; album-tab read handling is now covered for All Media, Photos, Videos, Stories, and Favorites, while live integration gaps remain.
+- **Evidence references:** `harness/build/phase-54-app-favorites-states.md`, `harness/context/phase-54-app-favorites-context.md`, `app/components/album/favorites-stories.tsx`, `app/components/album/favorites-photos.tsx`, `app/components/album/favorites-videos.tsx`.

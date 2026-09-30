@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { getFavoriteAlbumMedia, type AlbumMediaItem } from "@/app/features/album/api";
 import { ImagesImageErrorPng } from "@/assets";
-import { toast } from "@/components/common";
 import { Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
 import { useImageViewer } from "@/hooks/use-image-viewer";
@@ -21,31 +20,71 @@ export function FavoritesPhotosGrid({
 }) {
   const size = contentWidth > 0 ? (contentWidth - 4 * 2) / 3 : 0;
   const [photos, setPhotos] = useState<AlbumMediaItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
+  const requestId = useRef(0);
   const { openViewer, Viewer } = useImageViewer();
   const sections = useMemo(() => [{ data: chunk(photos, 3) }], [photos]);
 
   const refreshPhotos = useCallback(async () => {
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setPhotos([]);
+    setLoadError("");
+    setLoadState("loading");
+
     try {
-      setIsLoading(true);
       const media = await getFavoriteAlbumMedia();
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       setPhotos(media.filter((item) => item.mediaType === "image"));
+      setLoadState("ready");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载收藏照片失败";
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(
+        error instanceof Error ? error.message : "加载收藏照片失败，请重试",
+      );
+      setLoadState("error");
     }
   }, []);
 
   useEffect(() => {
     void refreshPhotos();
+    return () => {
+      requestId.current += 1;
+    };
   }, [refreshPhotos]);
+
+  const isLoading = loadState === "loading";
 
   if (isLoading) {
     return (
       <View style={styles.centerState}>
         <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <View style={styles.centerState}>
+        <Text accessibilityRole="alert" style={styles.errorText}>
+          {loadError || "加载收藏照片失败，请重试"}
+        </Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => void refreshPhotos()}
+          style={styles.retryButton}
+        >
+          <Text style={styles.retryText}>重新加载</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -101,5 +140,19 @@ const styles = {
   emptyText: {
     color: "#888",
     fontSize: 14,
+  },
+  errorText: {
+    color: "#b42318",
+    fontSize: 14,
+    textAlign: "center" as const,
+  },
+  retryButton: {
+    minHeight: 44,
+    justifyContent: "center" as const,
+    paddingHorizontal: 16,
+  },
+  retryText: {
+    color: "#FF4F7A",
+    fontWeight: "600" as const,
   },
 };
