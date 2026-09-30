@@ -1234,3 +1234,24 @@
 - **Limitations:** App has no configured UI unit-test runner; interaction is not exercised on a physical/simulated device.
 - **Next action:** Continue the PRD R1/P0 loop while keeping live integration gaps visible.
 - **Evidence references:** `harness/build/phase-49-app-wish-memory-states.md`, `harness/context/phase-49-app-wish-memory-states-context.md`, `app/app/home/wish-list/[id]/memory.tsx`, `app/app/features/wish-list/api.ts`.
+
+## 2026-09-30 — Phase 50: App story read failure states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 App story list/detail read states.
+- **Red:** Story-list failure and story-detail failure each showed only a toast; after loading ended, empty arrays made the pages claim there were no stories/media.
+- **Decision:** Keep current successful empty states but gate them on successful reads; add retryable visible errors and ignore stale results after focus change/new request.
+- **Operational evidence:** Phase 49 committed as `d3bcb7a`; worktree was clean before Phase 50. No device, API, DB, credentials, or R2 was accessed.
+
+## 2026-09-30 — Phase 50: App story read failure states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Story list and detail now show loading, accessible error/retry, and successful-content states. Empty story/media messages only render after successful reads.
+- **Reliability:** Both read flows use request IDs and focus cleanup to ignore stale responses.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review covered successful empty results, failed list/detail requests, retry through existing APIs, favorite control remaining unchanged, and stale result guards.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 loop while preserving external integration gaps.
+- **Evidence references:** `harness/build/phase-50-app-story-read-states.md`, `harness/context/phase-50-app-story-read-states-context.md`, `app/app/home/album/stories/index.tsx`, `app/app/home/album/stories/[id]/index.tsx`, `app/app/features/album/api.ts`.

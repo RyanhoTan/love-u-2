@@ -349,6 +349,12 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 或“暂无记录”；请求失败时显示明确错误和重试入口。复用现有 `/wishes/:id/records` 读取，不改变媒体、
 记录或服务端契约。详细计划见 `harness/build/phase-49-app-wish-memory-states.md`。
 
+### Phase 50 — Make App album story reads failure-safe
+
+为 App 故事列表与详情区分加载、请求失败和成功空数据：失败时展示可重试错误，不再落入“没有故事/没有媒体”
+的空状态。复用既有故事查询和收藏 API，不改故事数据、权限或收藏语义。详细计划见
+`harness/build/phase-50-app-story-read-states.md`。
+
 ## 后续阶段的准入条件
 
 新增实现阶段前必须：

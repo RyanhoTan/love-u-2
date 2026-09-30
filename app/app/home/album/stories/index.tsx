@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -17,7 +17,7 @@ import {
   type AlbumStory,
 } from "@/app/features/album/api";
 import { ImagesAuthBackgroundPng, ImagesCoverPng } from "@/assets";
-import { NavBar, toast } from "@/components/common";
+import { NavBar } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
 
@@ -30,26 +30,45 @@ export default function Stories() {
   const { width: screenWidth } = useWindowDimensions();
   const [stories, setStories] = useState<AlbumStory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const requestId = useRef(0);
 
   const cardWidth = (screenWidth - PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
   const sections = useMemo(() => [{ data: chunk(stories, COLUMNS) }], [stories]);
 
   const refreshStories = useCallback(async () => {
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setStories([]);
+    setLoadError("");
+    setIsLoading(true);
+
     try {
-      setIsLoading(true);
       const response = await getAlbumStories();
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       setStories(response.stories);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载故事失败";
-      toast.error(message);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(error instanceof Error ? error.message : "加载故事失败");
     } finally {
-      setIsLoading(false);
+      if (requestId.current === currentRequestId) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       void refreshStories();
+      return () => {
+        requestId.current += 1;
+      };
     }, [refreshStories]),
   );
 
@@ -97,7 +116,20 @@ export default function Stories() {
           <NavBar title="全部故事" />
           {isLoading ? (
             <View style={styles.centerState}>
-              <ActivityIndicator />
+              <ActivityIndicator color="#FF4F7A" />
+            </View>
+          ) : loadError ? (
+            <View style={styles.centerState}>
+              <Text accessibilityRole="alert" style={styles.errorText}>
+                {loadError}
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => void refreshStories()}
+                style={styles.retryButton}
+              >
+                <Text style={styles.retryText}>重新加载</Text>
+              </TouchableOpacity>
             </View>
           ) : stories.length === 0 ? (
             <View style={styles.centerState}>
@@ -140,5 +172,19 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: "#888",
+  },
+  errorText: {
+    color: "#B42318",
+    textAlign: "center",
+  },
+  retryButton: {
+    borderRadius: 20,
+    backgroundColor: "#FF4F7A",
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+  },
+  retryText: {
+    color: "#fff",
+    fontWeight: "700",
   },
 });
