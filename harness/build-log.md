@@ -1379,3 +1379,25 @@
 - **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
 - **Next action:** Continue the PRD R1/P0 audit; preserve remaining device/live-service validation gaps.
 - **Evidence references:** `harness/build/phase-55-app-wish-record-create-states.md`, `harness/context/phase-55-app-wish-record-create-context.md`, `app/app/home/wish-list/[id]/records/create.tsx`.
+
+## 2026-09-30 — Phase 56: App wish recycle read states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-WISH-001 App recycle-bin read reliability.
+- **Red:** A rejected `getDeletedWishes` only emitted a toast; after loading ended, the initial empty list displayed “回收站还是空的”.
+- **Decision:** Add visible loading/error/retry/ready states, show empty copy only after a successful read, and suppress stale responses after retry or blur.
+- **Operational evidence:** Phase 55 committed as `72ccc6d`; worktree was clean before Phase 56. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 56: App wish recycle read states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** The recycle screen now distinguishes loading, failed reads, successful empty results, and successful rows. Error includes an accessible in-page retry; empty copy is success-only.
+- **Reliability:** Request IDs suppress older retry results, and focus cleanup invalidates in-flight reads after blur/unmount.
+- **Mutation preservation:** Restore and permanent-delete confirmations and API calls remain unchanged; successful mutations still refresh the list.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review covered loading/error/ready gating, retry, stale-request suppression, focus cleanup, and unchanged restore/permanent-delete handlers.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 audit while preserving device/live-service validation gaps.
+- **Evidence references:** `harness/build/phase-56-app-wish-recycle-read-states.md`, `harness/context/phase-56-app-wish-recycle-read-states-context.md`, `app/app/home/wish-list/recycle.tsx`.

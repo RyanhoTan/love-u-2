@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–55 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–56 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -69,6 +69,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 53 | App All Media overview failure-safe states | Complete | PRD-MEMORY-001、Phase 50/52 | “全部”页区分聚合读取失败和成功空数据，并允许重试 |
 | 54 | App favorites failure-safe states | Complete | PRD-MEMORY-001、Phase 50 | 收藏故事、照片、视频只在成功读取后显示空状态，失败可重试 |
 | 55 | App wish record creation failure-safe states | Complete | PRD-WISH-001、Phase 51 | 创建记录前确认真实心愿已读取成功；失败可重试且不显示假目标 |
+| 56 | App wish recycle read failure-safe states | Complete | PRD-WISH-001、Phase 15 | 回收站区分读取失败与成功空状态，失败可重试且旧请求不会覆盖新状态 |
 
 ## 阶段顺序
 
@@ -396,6 +397,12 @@ API，不改变心愿状态、记录或媒体契约。详细计划见
 为 App 新增心愿过程记录页面补齐目标心愿加载、失败和重试状态。目标心愿确认成功前不展示可编辑记录表单、
 默认心愿卡片或保存操作；复用现有 `getWishById` 与记录草稿行为，不改变创建 API、媒体上传或服务端授权。
 详细计划见 `harness/build/phase-55-app-wish-record-create-states.md`。
+
+### Phase 56 — Make App wish recycle reads failure-safe
+
+为 App 心愿回收站补齐加载、失败/重试和成功状态，避免读取失败后把初始空列表误报为回收站为空。
+保留现有删除、恢复、永久删除 API 与确认行为；详细范围和验收见
+`harness/build/phase-56-app-wish-recycle-read-states.md`。
 
 ## 后续阶段的准入条件
 
