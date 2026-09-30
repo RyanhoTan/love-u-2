@@ -1,4 +1,4 @@
-import { Heart, Calendar, ChevronRight } from "lucide-react";
+import { Heart, Calendar, Clock, ChevronRight } from "lucide-react";
 import type { CoupleSpace } from "./types";
 import type { UserProfile } from "@/api/user";
 import { displayName, formatAnniversaryDot } from "@/lib/user";
@@ -8,11 +8,13 @@ export function BoundView({
   space,
   me,
   onEditAnniversary,
+  onEditTimeZone,
   onUnbind,
 }: {
   space: CoupleSpace;
   me: UserProfile;
   onEditAnniversary: () => void;
+  onEditTimeZone: () => void;
   onUnbind: () => void;
 }) {
   const partner = space.partner!;
@@ -88,6 +90,20 @@ export function BoundView({
               className="size-4 text-fg-muted"
               strokeWidth={2}
             />
+          </button>
+          <button
+            type="button"
+            onClick={onEditTimeZone}
+            className="flex min-h-11 w-full items-center gap-3 border-t border-border px-3.5 py-3 text-left hover:bg-surface-soft"
+          >
+            <Clock className="size-[18px] shrink-0 text-fg-secondary" strokeWidth={2} />
+            <span className="min-w-0 flex-1 text-[15px] font-medium text-fg">
+              共同时区
+              <span className="mt-1 block break-words text-xs font-normal text-fg-secondary">
+                {space.relationship?.timeZone || "待更新"}
+              </span>
+            </span>
+            <ChevronRight className="size-4 shrink-0 text-fg-muted" strokeWidth={2} />
           </button>
         </div>
       </section>

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { isCalendarDate } from "../../lib/couple-calendar";
+export { previewRemainingDays } from "../../lib/couple-calendar";
 import type {
   AnniversaryItem,
   AnniversaryPayload,
@@ -38,7 +40,8 @@ export const dayFormSchema = z.object({
     .refine((value) => value.trim().length > 0, "请输入名称")
     .refine((value) => value.trim().length <= 100, "名称最多 100 个字"),
   type: z.enum(["love", "birthday", "holiday", "custom"]),
-  date: z.string().regex(/^\d{4}\.\d{2}\.\d{2}$/, "请选择日期"),
+  date: z.string().regex(/^\d{4}\.\d{2}\.\d{2}$/, "请选择日期")
+    .refine((value) => isCalendarDate(dotDateToIso(value)), "请选择有效的日历日期"),
   repeatType: z.enum(["none", "yearly"]),
   reminderDaysBefore: z.number().int().min(0).max(30),
 });
@@ -111,77 +114,4 @@ export function dotDateToIso(dot: string): string {
     return "";
   }
   return dot.replaceAll(".", "-");
-}
-
-export function previewRemainingDays(
-  values: Partial<DayFormValues> | undefined,
-): number | null {
-  if (!values?.date || !values.repeatType) {
-    return null;
-  }
-
-  const originalDate = dotDateToIso(values.date);
-  const next = getNextOccurrenceDate(originalDate, values.repeatType);
-  return Math.max(0, differenceInDays(todayText(), next));
-}
-
-function todayText() {
-  const now = new Date();
-  return formatDateParts(now.getFullYear(), now.getMonth() + 1, now.getDate());
-}
-
-function formatDateParts(year: number, month: number, day: number) {
-  return [
-    String(year).padStart(4, "0"),
-    String(month).padStart(2, "0"),
-    String(day).padStart(2, "0"),
-  ].join("-");
-}
-
-function parseDateOnly(value: string) {
-  const [yearText, monthText, dayText] = value.split("-");
-  return {
-    year: Number(yearText),
-    month: Number(monthText),
-    day: Number(dayText),
-  };
-}
-
-function isLeapYear(year: number) {
-  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-}
-
-function normalizeAnnualOccurrenceDate(dateText: string, targetYear: number) {
-  const { month, day } = parseDateOnly(dateText);
-  if (month === 2 && day === 29 && !isLeapYear(targetYear)) {
-    return formatDateParts(targetYear, 2, 28);
-  }
-  return formatDateParts(targetYear, month, day);
-}
-
-function getNextOccurrenceDate(
-  dateText: string,
-  repeatType: AnniversaryRepeatType,
-) {
-  if (repeatType === "none") {
-    return dateText;
-  }
-
-  const today = todayText();
-  const { year } = parseDateOnly(today);
-  const currentYearOccurrence = normalizeAnnualOccurrenceDate(dateText, year);
-  if (currentYearOccurrence >= today) {
-    return currentYearOccurrence;
-  }
-  return normalizeAnnualOccurrenceDate(dateText, year + 1);
-}
-
-function differenceInDays(startDateText: string, endDateText: string) {
-  const start = parseDateOnly(startDateText);
-  const end = parseDateOnly(endDateText);
-  const startDate = new Date(start.year, start.month - 1, start.day);
-  const endDate = new Date(end.year, end.month - 1, end.day);
-  return Math.round(
-    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-  );
 }

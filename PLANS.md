@@ -80,7 +80,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 64 | Cover server bearer/JWT identity validation | Complete | PRD-AUTH-001 | 本地可重复验证缺失/错误 Bearer、签名与过期 token、无效 subject/user ID 均返回 401 |
 | 65 | Isolate explicitly assigned album relationships | Complete | PRD-MEMORY-001、PRD-COUPLE-001 | 当前伴侣不能通过创建者兜底读取其他关系的媒体/故事，查询和收藏写入重新检查有效关系 |
 | 66 | Store shared couple timezone and derive calendar counts | Complete | PRD-DAY-001、PRD-COUPLE-001、已确认时区规则 | 服务端共同日历已实现；45/45 测试与三端静态检查通过，真实迁移/API 仍待验证 |
-| 67 | Apply shared calendar rules in App and Web | Not started | Phase 66、PRD-DAY-001、PRD-TODAY-001 | 两端展示/设置共同时间规则，Web 预览与服务端计算一致；已获当前 Goal 授权 |
+| 67 | Apply shared calendar rules in App and Web | In progress | Phase 66、PRD-DAY-001、PRD-TODAY-001 | Web 设置/预览/跨日刷新代码与合成回归通过；继续 App 真实关系页面与时区，两端验收前不关闭 |
 
 ## 阶段顺序
 
@@ -476,6 +476,11 @@ server tests 45/45、lint/build、两进程时区聚焦测试、Web API/lint/bui
 在 Phase 66 的存储/计算契约上接入两端共同时间的展示和设置，以及 Web 纪念日预览和“今天”日期。
 保留 date-only 输入；跨午夜更新/聚焦刷新需遵守共同时间规则。该项已获 Goal 和用户时区选择授权，
 不能在服务端小点完成时把整个纪念日模块宣称完成。
+详细范围、分步验收和剩余项见 `harness/build/phase-67-shared-calendar-frontends.md`。预检还发现 App
+绑定完成页仍是硬编码、绑定按钮只是跳转；客户端小点会接入真实绑定/关系资料，不新增未决的解绑策略。
+Web 小点已实现共同时间设置、服务端参考日期预览/首页、跨午夜与恢复刷新，以及排除过去的一次性
+纪念日。server tests 56/56、UTC/纽约聚焦用例、server lint/build 和 Web lint/build 通过；
+App 接入与真实浏览器/设备/HTTP 验收仍未完成，阶段维持 `In progress`。
 
 ## 后续阶段的准入条件
 

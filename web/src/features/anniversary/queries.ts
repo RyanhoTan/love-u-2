@@ -10,16 +10,23 @@ import {
   updateAnniversary,
   type AnniversaryPayload,
 } from "@/api/anniversary";
+import { useCalendarRefresh } from "./calendar-refresh";
+import { anniversaryQueryKey } from "./query-scope";
+import { useAuth } from "@/features/auth/context";
 
 export const daysKeys = {
   all: ["anniversaries"] as const,
 };
 
 export function useAnniversariesQuery() {
-  return useQuery({
-    queryKey: daysKeys.all,
+  const { user } = useAuth();
+  const query = useQuery({
+    queryKey: anniversaryQueryKey(user?.id, user?.couple?.partner?.id),
     queryFn: getAnniversaries,
+    enabled: Boolean(user?.id),
   });
+  useCalendarRefresh(query.data?.timeZone, query.data?.todayDate, () => query.refetch());
+  return query;
 }
 
 export function useCreateAnniversaryMutation() {

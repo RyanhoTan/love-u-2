@@ -30,6 +30,9 @@ const FORM_ID = "day-form";
 
 export function DayNewPage() {
   const navigate = useNavigate();
+  const query = useAnniversariesQuery();
+  const timeZone = query.isError ? null : query.data?.timeZone ?? null;
+  const todayDate = query.isError || !timeZone ? null : query.data?.todayDate ?? null;
   const createMutation = useCreateAnniversaryMutation();
   const form = useForm<DayFormValues>({
     resolver: zodResolver(dayFormSchema),
@@ -55,7 +58,7 @@ export function DayNewPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button type="submit" form={FORM_ID}>
+          <Button type="submit" form={FORM_ID} disabled={createMutation.isPending || !todayDate || !timeZone}>
             添加
           </Button>
         </div>
@@ -73,6 +76,13 @@ export function DayNewPage() {
           >
           <div className="flex w-full max-w-[560px] flex-col gap-4">
             <DayFormFields disabled={createMutation.isPending} />
+            {query.isError ? <QueryError onRetry={() => void query.refetch()} /> : null}
+            {!query.isPending && !query.isError && (!todayDate || !timeZone) ? (
+              <div className="flex flex-col gap-2">
+                <ErrorBlock message="共同日历尚未准备好，请绑定情侣空间或重新加载。" unbound />
+                <Button variant="secondary" onClick={() => void query.refetch()}>重新加载共同日历</Button>
+              </div>
+            ) : null}
             {createMutation.isError ? (
               <ErrorBlock
                 message={errorMessage(createMutation.error)}
@@ -84,7 +94,9 @@ export function DayNewPage() {
           </div>
           <DayPreview
             values={values}
-            remain={previewRemainingDays(values)}
+            remain={previewRemainingDays(values, todayDate)}
+            todayDate={todayDate}
+            timeZone={timeZone}
           />
           </form>
         </FormProvider>
@@ -103,7 +115,7 @@ export function DayEditPage() {
 
   const item =
     query.data?.anniversaries.find((day) => day.id === anniversaryId) ?? null;
-  const canSubmit = Boolean(item && !query.isPending && !query.isError);
+  const canSubmit = Boolean(item && !query.isPending && !query.isError && query.data?.todayDate && query.data?.timeZone);
 
 
   let body: ReactNode;
@@ -114,7 +126,7 @@ export function DayEditPage() {
         <p className="text-sm text-fg-muted">加载中…</p>
       </PageBody>
     );
-  } else if (query.isError) {
+  } else if (query.isError || !query.data?.todayDate || !query.data?.timeZone) {
     body = (
       <PageBody className="items-center justify-center gap-4">
         <QueryError
@@ -131,7 +143,7 @@ export function DayEditPage() {
       return <Navigate to="/days" replace />;
     }
 
-    body = <DayEditForm key={item.id} item={item} />;
+    body = <DayEditForm key={item.id} item={item} todayDate={query.data.todayDate} timeZone={query.data.timeZone} />;
   }
 
   return (
@@ -164,7 +176,7 @@ export function DayEditPage() {
   );
 }
 
-function DayEditForm({ item }: { item: AnniversaryItem }) {
+function DayEditForm({ item, todayDate, timeZone }: { item: AnniversaryItem; todayDate: string; timeZone: string }) {
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const updateMutation = useUpdateAnniversaryMutation();
@@ -218,7 +230,9 @@ function DayEditForm({ item }: { item: AnniversaryItem }) {
             </div>
             <DayPreview
               values={values}
-              remain={previewRemainingDays(values)}
+              remain={previewRemainingDays(values, todayDate)}
+              todayDate={todayDate}
+              timeZone={timeZone}
             />
           </form>
         </FormProvider>

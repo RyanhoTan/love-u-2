@@ -1,5 +1,6 @@
 import {
   remindLabel,
+  dotDateToIso,
   repeatLabel,
   typeLabel,
   type DayFormValues,
@@ -8,15 +9,20 @@ import {
 export function DayPreview({
   values,
   remain,
+  todayDate,
+  timeZone,
 }: {
   values: Partial<DayFormValues> | undefined;
   remain: number | null;
+  todayDate: string | null;
+  timeZone: string | null;
 }) {
   const title = values?.title?.trim() ?? "";
   const date = values?.date?.trim() ?? "";
   const titled = title.length > 0;
   const dated = date.length > 0;
   const ready = titled || dated;
+  const past = remain !== null && todayDate && values?.repeatType === "none" && dotDateToIso(date) < todayDate;
 
   return (
     <aside className="flex w-full max-w-[360px] shrink-0 flex-col gap-3 self-start pt-2">
@@ -25,7 +31,7 @@ export function DayPreview({
       </p>
 
       <div className="flex flex-col gap-2.5 rounded-surface bg-surface px-7 pb-8 pt-7 shadow-[0_8px_24px_rgb(28_20_24_/_0.04)]">
-        <p className="text-[13px] text-fg-secondary">下一个纪念日</p>
+        <p className="text-[13px] text-fg-secondary">{past ? "已过去的纪念日" : "下一次纪念日"}</p>
         <h2
           className={
             titled
@@ -43,7 +49,7 @@ export function DayPreview({
                 : "text-[56px] font-semibold leading-[0.95] tracking-[-1.5px] text-fg-muted"
             }
           >
-            {remain != null ? remain : "—"}
+            {past ? "已过去" : remain != null ? remain : "—"}
           </p>
           <p
             className={
@@ -52,7 +58,7 @@ export function DayPreview({
                 : "pb-1.5 text-base font-semibold text-fg-muted"
             }
           >
-            天
+            {past ? "" : "天"}
           </p>
         </div>
         <p className="text-sm text-fg-muted">
@@ -61,6 +67,14 @@ export function DayPreview({
       </div>
 
       <div className="flex flex-col gap-2 px-1">
+        <PreviewMeta
+          label="共同时区"
+          value={timeZone ?? "等待共同日历"}
+        />
+        <PreviewMeta
+          label="参考日期"
+          value={todayDate ?? "—"}
+        />
         <PreviewMeta
           label="类型"
           value={ready && values?.type ? typeLabel(values.type) : "—"}

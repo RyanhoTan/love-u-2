@@ -1,7 +1,9 @@
 import { Heart } from "lucide-react";
+import { useCallback, useState } from "react";
 import { QueryError } from "@/components/query-state";
 import { useAuth } from "@/features/auth/context";
-import { formatTodayDate } from "@/lib/date";
+import { formatSharedTodayDate, formatTodayDate } from "@/lib/date";
+import { useCalendarRefresh } from "@/features/anniversary/calendar-refresh";
 import { displayName, formatAnniversaryDot } from "@/lib/user";
 import { PageBody } from "../../components/layout/page-body";
 import { Avatar } from "../../components/ui/avatar";
@@ -11,7 +13,17 @@ import { RecentMemories } from "./recent-memories";
 
 export function TodayPage() {
   const { user, profileStatus, refreshProfile } = useAuth();
+  const [calendarError, setCalendarError] = useState(false);
   const couple = user?.couple;
+  const reloadCalendar = useCallback(async (isCurrent: () => boolean = () => true) => {
+    try {
+      await refreshProfile();
+      if (isCurrent()) setCalendarError(false);
+    } catch {
+      if (isCurrent()) setCalendarError(true);
+    }
+  }, [refreshProfile]);
+  useCalendarRefresh(couple?.timeZone, couple?.todayDate, reloadCalendar, profileStatus === "ready");
   const bound = Boolean(couple?.isBound && couple.partner);
   const days = couple?.daysInLove;
   const since = formatAnniversaryDot(couple?.anniversaryDate);
@@ -27,15 +39,17 @@ export function TodayPage() {
             <h1 className="text-[22px] font-semibold leading-8 tracking-[-0.4px] text-fg">
               今天
             </h1>
-            <p className="text-xs text-fg-muted">{formatTodayDate()}</p>
+            <p className="text-xs text-fg-muted">
+              {profileStatus !== "ready" ? "正在加载日期…" : couple?.isBound ? formatSharedTodayDate(couple.todayDate) : formatTodayDate()}
+            </p>
           </div>
         </div>
       </header>
 
       <PageBody scroll={false} className="gap-9">
-        {profileStatus === "error" ? (
+        {profileStatus === "error" || calendarError ? (
           <QueryError
-            onRetry={() => void refreshProfile().catch(() => undefined)}
+            onRetry={() => void reloadCalendar()}
           />
         ) : profileStatus !== "ready" ? (
           <div
@@ -126,7 +140,11 @@ export function TodayPage() {
 
             {bound ? (
               <section className="flex shrink-0 gap-8">
-                <NextAnniversaryInsight />
+                <NextAnniversaryInsight
+                  timeZone={couple?.timeZone ?? null}
+                  todayDate={couple?.todayDate ?? null}
+                  onCalendarMismatch={reloadCalendar}
+                />
               </section>
             ) : null}
 

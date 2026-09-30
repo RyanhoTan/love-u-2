@@ -5,6 +5,7 @@ import { PageBody } from "@/components/layout/page-body";
 import { QueryError } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
 import { isoToDotDate } from "./types";
+import { getUpcomingAnniversaries } from "@/lib/couple-calendar";
 
 export function DaysPage() {
   const query = useAnniversariesQuery();
@@ -15,7 +16,7 @@ export function DaysPage() {
   if (query.isPending) {
     bodyClassName = "items-center justify-center";
     body = <p className="text-sm text-fg-muted">加载中…</p>;
-  } else if (query.isError) {
+  } else if (query.isError || (items.length > 0 && !query.data?.todayDate)) {
     bodyClassName = "items-center justify-center";
     body = <QueryError onRetry={() => void query.refetch()} />;
   } else if (items.length === 0) {
@@ -36,11 +37,12 @@ export function DaysPage() {
       </>
     );
   } else {
-    const [next, ...upcoming] = items;
+    const next = getUpcomingAnniversaries(items, query.data?.todayDate)[0];
+    const remaining = items.filter((item) => item.id !== next?.id);
 
     body = (
       <>
-        <Link
+        {next ? <Link
           to={`/days/${next.id}`}
           className="flex flex-col gap-2 transition-transform duration-100 ease-out active:scale-[0.99]"
         >
@@ -59,11 +61,11 @@ export function DaysPage() {
           <p className="text-sm text-fg-muted">
             {isoToDotDate(next.nextOccurrenceDate)}
           </p>
-        </Link>
+        </Link> : <p className="text-sm text-fg-secondary">暂无将来的纪念日，已过去的记录保留在下方。</p>}
 
-        {upcoming.length > 0 ? (
+        {remaining.length > 0 ? (
           <section className="flex flex-col divide-y divide-border">
-            {upcoming.map((day) => (
+            {remaining.map((day) => (
               <Link
                 key={day.id}
                 to={`/days/${day.id}`}
@@ -75,12 +77,14 @@ export function DaysPage() {
                     {isoToDotDate(day.nextOccurrenceDate)}
                   </p>
                 </div>
-                <div className="flex items-end gap-1">
+                {query.data?.todayDate && day.nextOccurrenceDate < query.data.todayDate ? (
+                  <span className="text-[13px] text-fg-muted">已过去</span>
+                ) : <div className="flex items-end gap-1">
                   <p className="text-[22px] font-semibold tracking-[-0.4px] text-fg">
                     {day.remainingDays}
                   </p>
                   <p className="pb-0.5 text-[13px] text-fg-muted">天</p>
-                </div>
+                </div>}
               </Link>
             ))}
           </section>

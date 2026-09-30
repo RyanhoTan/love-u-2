@@ -1,6 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/context";
 import {
   bindCoupleSpace,
@@ -14,18 +15,34 @@ import { emptyAuthUser } from "@/features/auth/session-user";
 import { PageBody } from "@/components/layout/page-body";
 import { QueryError } from "@/components/query-state";
 import { BoundView } from "./bound-view";
-import { AnniversarySheet, UnbindDialog } from "./dialogs";
+import { AnniversarySheet, TimeZoneSheet, UnbindDialog } from "./dialogs";
+import { daysKeys } from "@/features/anniversary/queries";
+import { useCalendarRefresh } from "@/features/anniversary/calendar-refresh";
 import type { CoupleSpace } from "./types";
 import { UnboundView } from "./unbound-view";
 
-type Panel = "none" | "unbind" | "anniversary";
+type Panel = "none" | "unbind" | "anniversary" | "timezone";
 
 export function CouplePage() {
   const { user, refreshProfile } = useAuth();
+  const queryClient = useQueryClient();
   const [space, setSpace] = useState<CoupleSpace | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [panel, setPanel] = useState<Panel>("none");
+  const [savedNotice, setSavedNotice] = useState("");
+
+  useCalendarRefresh(space?.relationship?.timeZone, space?.todayDate, async (isCurrent) => {
+    try {
+      const response = await getCoupleSpace();
+      if (isCurrent()) {
+        setSpace(response.coupleSpace);
+        setLoadError("");
+      }
+    } catch (caught) {
+      if (isCurrent()) setLoadError(caught instanceof Error ? caught.message : "request failed");
+    }
+  });
 
   async function loadSpace(): Promise<CoupleSpace> {
     const response = await getCoupleSpace();
@@ -118,6 +135,7 @@ export function CouplePage() {
         space={space}
         me={selfProfile}
         onEditAnniversary={() => setPanel("anniversary")}
+        onEditTimeZone={() => { setSavedNotice(""); setPanel("timezone"); }}
         onUnbind={() => setPanel("unbind")}
       />
     ) : (
@@ -133,6 +151,7 @@ export function CouplePage() {
         }}
         onBind={async (inviteCode) => {
           await bindCoupleSpace({ inviteCode });
+          void queryClient.invalidateQueries({ queryKey: daysKeys.all });
           await loadSpace();
           await refreshProfile();
         }}
@@ -159,12 +178,33 @@ export function CouplePage() {
         </div>
       </header>
       <PageBody className={bodyClassName}>{body}</PageBody>
+      {savedNotice ? <p className="px-8 pb-3 text-sm text-fg-secondary" role="status">{savedNotice}</p> : null}
+
+      {!loading && !loadError && space?.isBound && panel === "timezone" ? (
+        <TimeZoneSheet
+          initialTimeZone={space.relationship?.timeZone ?? ""}
+          onClose={() => setPanel("none")}
+          onSave={async (timeZone) => {
+            const response = await updateCoupleSpace({ timeZone });
+            setSpace(response.coupleSpace);
+            setPanel("none");
+            void queryClient.invalidateQueries({ queryKey: daysKeys.all });
+            try {
+              await refreshProfile();
+              setSavedNotice("共同时区已保存");
+            } catch {
+              setSavedNotice("共同时区已保存；首页资料刷新失败，请在首页重新加载。");
+            }
+          }}
+        />
+      ) : null}
 
       {!loading && !loadError && space && panel === "unbind" ? (
         <UnbindDialog
           onCancel={() => setPanel("none")}
           onConfirm={async () => {
             await unbindCoupleSpace();
+            void queryClient.invalidateQueries({ queryKey: daysKeys.all });
             setPanel("none");
             await loadSpace();
             await refreshProfile();

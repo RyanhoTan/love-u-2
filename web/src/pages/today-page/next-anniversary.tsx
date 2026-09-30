@@ -1,14 +1,28 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 import { useAnniversariesQuery } from "@/features/anniversary/queries";
 import { QueryError } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
+import { getUpcomingAnniversaries, sharedCalendarsMatch } from "@/lib/couple-calendar";
 
 function formatDayDate(iso: string) {
   return iso ? iso.replaceAll("-", ".") : "";
 }
 
-export function NextAnniversaryInsight() {
+export function NextAnniversaryInsight({ timeZone, todayDate, onCalendarMismatch }: {
+  timeZone: string | null;
+  todayDate: string | null;
+  onCalendarMismatch: () => Promise<void>;
+}) {
   const query = useAnniversariesQuery();
+  const mismatch = Boolean(query.data && !sharedCalendarsMatch(query.data, { timeZone, todayDate }));
+  const refetch = query.refetch;
+  useEffect(() => {
+    if (mismatch) {
+      void refetch();
+      void onCalendarMismatch();
+    }
+  }, [mismatch, refetch, onCalendarMismatch]);
 
   if (query.isPending) {
     return (
@@ -32,7 +46,26 @@ export function NextAnniversaryInsight() {
     );
   }
 
-  const next = query.data.anniversaries[0];
+  if (mismatch) {
+    return (
+      <div className="flex flex-col gap-2" role="status">
+        <p className="text-sm text-fg-muted">
+          {query.isFetching ? "正在同步共同日期…" : "共同日历尚未同步，请重新加载。"}
+        </p>
+        {!query.isFetching ? (
+          <Button variant="secondary" onClick={() => {
+            void refetch();
+            void onCalendarMismatch();
+          }}>重新加载</Button>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (query.data.anniversaries.length && !query.data.todayDate) {
+    return <QueryError onRetry={() => void query.refetch()} />;
+  }
+  const next = getUpcomingAnniversaries(query.data.anniversaries, query.data.todayDate)[0];
 
   if (!next) {
     return (

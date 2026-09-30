@@ -75,6 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const response = await getUserInfo();
     const user = response.user;
+    if (readAuthSession()?.token !== token) {
+      throw new Error("session changed");
+    }
     applySession({ token, user });
     setProfileError("");
     setProfileStatus("ready");

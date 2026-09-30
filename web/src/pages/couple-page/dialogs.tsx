@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cx } from "@/lib/cx";
+import { isSupportedTimeZone } from "@/lib/couple-calendar";
 
 function Overlay({
   children,
@@ -180,6 +181,61 @@ export function AnniversarySheet({
           </p>
         ) : null}
       </div>
+    </Overlay>
+  );
+}
+
+export function TimeZoneSheet({ initialTimeZone, onClose, onSave }: {
+  initialTimeZone: string;
+  onClose: () => void;
+  onSave: (timeZone: string) => Promise<void>;
+}) {
+  const [timeZone, setTimeZone] = useState(initialTimeZone);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  return (
+    <Overlay onDismiss={submitting ? undefined : onClose}>
+      <form
+        role="dialog" aria-modal="true" aria-labelledby="timezone-title"
+        className="rounded-surface bg-surface p-5"
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && !submitting) onClose();
+        }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (submitting) return;
+          const value = timeZone.trim();
+          if (value.length > 64 || !isSupportedTimeZone(value)) {
+            setError("请输入有效时区，例如 Asia/Shanghai、America/New_York 或 UTC");
+            return;
+          }
+          setSubmitting(true);
+          setError("");
+          void onSave(value).catch((caught) => {
+            setError(caught instanceof Error ? caught.message : "保存失败，请重试");
+            setSubmitting(false);
+          });
+        }}
+      >
+        <h2 id="timezone-title" className="text-lg font-semibold text-fg">共同时区</h2>
+        <p id="timezone-help" className="mt-3 text-sm leading-5 text-fg-secondary">
+          双方的“今天”、关系天数和纪念日倒数都按此时区计算。初始为北京时间；修改不会改变已保存的日期。
+        </p>
+        <label className="mt-4 flex flex-col gap-1.5 text-xs text-fg-muted">
+          时区名称
+          <Input value={timeZone} onChange={(event) => setTimeZone(event.target.value)}
+            disabled={submitting} maxLength={64} list="couple-timezones"
+            aria-describedby="timezone-help" autoComplete="off" spellCheck={false} />
+        </label>
+        <datalist id="couple-timezones">
+          {["Asia/Shanghai", "Asia/Tokyo", "Europe/London", "America/New_York", "America/Los_Angeles", "UTC"].map((zone) => <option key={zone} value={zone} />)}
+        </datalist>
+        {error ? <p className="mt-3 text-sm text-danger" role="alert">{error}</p> : null}
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="secondary" onClick={onClose} disabled={submitting}>取消</Button>
+          <Button type="submit" disabled={submitting}>{submitting ? "保存中…" : "保存"}</Button>
+        </div>
+      </form>
     </Overlay>
   );
 }
