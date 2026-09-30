@@ -1,11 +1,21 @@
 import type { RouteObject } from "react-router-dom";
 import { WishesPage } from "@/pages/wishes-page";
+import { WishRecyclePage } from "@/pages/wishes-page/recycle-page";
 import { WishNewPage } from "@/pages/wishes-page/new-page";
 import { WishDetailPage } from "@/pages/wishes-page/detail-page";
 import { body } from "./shared";
 import type { RouteHandle } from "./types";
 
 export const wishesRoutes = [
+  {
+    path: "wishes/recycle",
+    handle: {
+      navId: "wishes",
+      placeholder: "心愿回收站",
+      bodyClassName: body.wishes,
+    } satisfies RouteHandle,
+    Component: WishRecyclePage,
+  },
   {
     path: "wishes",
     handle: {

@@ -146,6 +146,9 @@ export function WishesPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="secondary" to="/wishes/recycle">
+            回收站
+          </Button>
           <Button to="/wishes/new">添加心愿</Button>
         </div>
       </header>

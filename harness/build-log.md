@@ -49,6 +49,7 @@
 | 40 — Acknowledge partner chat delivery | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 DB/WS/双端设备验证 |
 | 41 — Retry uncertain uploaded partner audio | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无 durable outbox/R2/WS/设备集成；孤儿清理策略未定 |
 | 42 — Serialize concurrent couple bindings | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；服务端单测/lint/build 通过 | 无真实 MySQL 并发集成 |
+| 43 — Web wish recycle and restore | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | Web 永久删除语义未含在本阶段 |
 
 ## Activity
 
@@ -1087,3 +1088,25 @@
 - **Limitations:** The helper unit test and SQL review do not prove deployed InnoDB race behavior. A real same-invite/shared-account concurrency test remains necessary when an isolated MySQL environment is available. Invite rate limiting remains a separate gap.
 - **Next action:** Continue auditing remaining PRD R1/P0 requirements and retain the MySQL integration gap as visible evidence debt.
 - **Evidence references:** `harness/build/phase-42-couple-binding-concurrency.md`, `harness/context/phase-42-couple-binding-concurrency-context.md`, `server/src/couple/bind-locks.ts`, `server/src/router_handler/couple.ts`, `server/test/couple-bind-locks.test.ts`.
+
+## 2026-09-30 — Phase 43: Web wish recycle and restore started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 Web soft-delete and restore path using existing authorized endpoints; show server-provided delete/cleanup timestamps.
+- **Red:** Web has no soft-delete action, recycle route, or restore flow even though the service and generated API contract expose the operations; App already has a recycle screen.
+- **Decision:** Add Web soft delete from wish detail, a recycle page, and restore. Do not add permanent deletion because the current server endpoint deletes only the parent Wish row while process records and media lifecycle are not resolved.
+- **Operational evidence:** Phase 42 implementation and plan-status correction are committed; worktree was clean before Phase 43. No API/DB/account or external service was accessed.
+- **Verification plan:** Web lint/build, static route/API review, and `git diff --check`. No live server/browser test is available.
+- **Limitations:** Permanent delete effect on wish records/private media remains an explicit product/data-lifecycle issue.
+
+## 2026-09-30 — Phase 43: Web wish recycle and restore completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Web can soft-delete a wish from detail after confirmation, enter a recycle page, view server `deletedAt`/`deleteExpiresAt` and approximate remaining time, and restore it. Successful writes refresh the active/recycle queries; failures stay visible and actionable.
+- **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`. Web build retains existing Zod Rollup annotation and >500 kB chunk warnings.
+- **Review:** Existing OpenAPI/server paths and response shapes match the typed client calls. Static review covered route matching, relationship-scoped server endpoints, delete confirmation/cancel, restore confirmation, mutation errors, query invalidation, and absence of a permanent-delete control.
+- **Operational evidence:** No live browser, API, database, credentials, account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** No browser/server integration. Permanent deletion remains absent from Web because server deletion currently removes only the parent Wish row; related records/media policy remains unresolved. App behavior is unchanged.
+- **Next action:** Continue the remaining PRD R1/P0 audit; treat permanent-delete and media cleanup semantics as unresolved data-lifecycle work.
+- **Evidence references:** `harness/build/phase-43-web-wish-recycle-restore.md`, `harness/context/phase-43-web-wish-recycle-restore-context.md`, `web/src/api/wish.ts`, `web/src/features/wish/queries.ts`, Web wish routes/pages, `server/src/router_handler/wish.ts`.

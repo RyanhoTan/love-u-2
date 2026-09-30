@@ -1,10 +1,17 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Trash2 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { uploadWishMedia } from "@/api/wish";
 import { useAuth } from "@/features/auth/context";
 import {
   errorMessage,
+  useDeleteWishMutation,
   useUpdateWishMutation,
   useWishQuery,
   useWishRecordsQuery,
@@ -27,8 +34,10 @@ export function WishDetailPage() {
   const wishId = Number(id);
   const [params, setParams] = useSearchParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const wishQuery = useWishQuery(wishId);
   const recordsQuery = useWishRecordsQuery(wishId);
+  const deleteMutation = useDeleteWishMutation();
   const updateMutation = useUpdateWishMutation();
   const [showTitleEditor, setShowTitleEditor] = useState(false);
   const [showDescriptionEditor, setShowDescriptionEditor] = useState(false);
@@ -76,6 +85,23 @@ export function WishDetailPage() {
       setCoverPending(false);
     }
   }
+
+  function handleSoftDelete() {
+    if (
+      !wish ||
+      deleteMutation.isPending ||
+      !window.confirm(
+        `将“${wish.title}”移入回收站。清理截止前可以在回收站恢复。`,
+      )
+    ) {
+      return;
+    }
+
+    deleteMutation.mutate(wishId, {
+      onSuccess: () => navigate("/wishes"),
+    });
+  }
+
   function closeQuery(key: "done" | "record") {
     const next = new URLSearchParams(params);
     next.delete(key);
@@ -346,6 +372,15 @@ export function WishDetailPage() {
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          disabled={!wish || deleteMutation.isPending}
+          onClick={handleSoftDelete}
+          className="text-danger hover:bg-danger/8"
+        >
+          <Trash2 className="size-4" aria-hidden="true" />
+          {deleteMutation.isPending ? "移入中…" : "移入回收站"}
+        </Button>
         <Button variant="ghost" to="?done=1">
           标记完成
         </Button>
@@ -354,6 +389,11 @@ export function WishDetailPage() {
         </Button>
       </div>
     </header>
+      {deleteMutation.isError ? (
+        <p className="px-8 pt-3 text-sm text-danger" role="alert">
+          {errorMessage(deleteMutation.error, "移入回收站失败，请重试")}
+        </p>
+      ) : null}
       <PageBody scroll={false} className={`${bodyClassName} max-lg:overflow-y-auto`}>
         {body}
       </PageBody>
