@@ -46,11 +46,14 @@ export function WishDetailPage() {
   const [showLocationEditor, setShowLocationEditor] = useState(false);
   const [coverPending, setCoverPending] = useState(false);
   const [coverError, setCoverError] = useState("");
+  const [statusActionError, setStatusActionError] = useState("");
 
   const showDone = params.get("done") === "1";
   const showRecord = params.get("record") === "1";
   const wish = wishQuery.data?.wish;
-  const isDone = wish?.status === "done";
+  const canShowCompletion = wish?.status === "doing";
+  const statusActionLabel =
+    wish?.status === "todo" ? "开始计划" : "标记完成";
 
   async function handleReplaceCover(file: File) {
     setCoverPending(true);
@@ -102,6 +105,33 @@ export function WishDetailPage() {
     });
   }
 
+  function handleAdvanceStatus() {
+    if (!wish || updateMutation.isPending) {
+      return;
+    }
+
+    setStatusActionError("");
+    updateMutation.reset();
+
+    if (wish.status === "todo") {
+      updateMutation.mutate(
+        { id: wishId, payload: { status: "doing" } },
+        {
+          onError: (error) => {
+            setStatusActionError(
+              errorMessage(error, "开始计划失败，请重试"),
+            );
+          },
+        },
+      );
+      return;
+    }
+
+    if (wish.status === "doing") {
+      openQuery("done");
+    }
+  }
+
   function closeQuery(key: "done" | "record") {
     const next = new URLSearchParams(params);
     next.delete(key);
@@ -115,7 +145,7 @@ export function WishDetailPage() {
   }
 
   useEffect(() => {
-    if (!isDone || !showDone) {
+    if (!showDone || wishQuery.isPending || canShowCompletion) {
       return;
     }
     setParams(
@@ -126,7 +156,7 @@ export function WishDetailPage() {
       },
       { replace: true },
     );
-  }, [isDone, showDone, setParams]);
+  }, [canShowCompletion, showDone, wishQuery.isPending, setParams]);
 
   if (!Number.isInteger(wishId) || wishId <= 0) {
     return <Navigate to="/wishes" replace />;
@@ -167,7 +197,9 @@ export function WishDetailPage() {
         <WishDetailInfo
           wish={wish}
           creator={creator}
-          onMarkDone={() => openQuery("done")}
+          onAdvanceStatus={handleAdvanceStatus}
+          statusActionLabel={statusActionLabel}
+          statusActionDisabled={updateMutation.isPending}
           onAddRecord={() => openQuery("record")}
           onEditTitle={() => {
             updateMutation.reset();
@@ -203,7 +235,7 @@ export function WishDetailPage() {
           />
         </div>
 
-        {showDone && !isDone ? (
+        {showDone && wish.status === "doing" ? (
           <MarkDoneDialog
             title={wish.title}
             pending={updateMutation.isPending}
@@ -381,9 +413,17 @@ export function WishDetailPage() {
           <Trash2 className="size-4" aria-hidden="true" />
           {deleteMutation.isPending ? "移入中…" : "移入回收站"}
         </Button>
-        <Button variant="ghost" to="?done=1">
-          标记完成
-        </Button>
+        {wish?.status === "todo" || wish?.status === "doing" ? (
+          <Button
+            variant={wish.status === "todo" ? "secondary" : "ghost"}
+            disabled={updateMutation.isPending}
+            onClick={handleAdvanceStatus}
+          >
+            {updateMutation.isPending && wish.status === "todo"
+              ? "开始中…"
+              : statusActionLabel}
+          </Button>
+        ) : null}
         <Button variant="primary" to="?record=1">
           记一笔
         </Button>
@@ -392,6 +432,11 @@ export function WishDetailPage() {
       {deleteMutation.isError ? (
         <p className="px-8 pt-3 text-sm text-danger" role="alert">
           {errorMessage(deleteMutation.error, "移入回收站失败，请重试")}
+        </p>
+      ) : null}
+      {statusActionError ? (
+        <p className="px-8 pt-3 text-sm text-danger" role="alert">
+          {statusActionError}
         </p>
       ) : null}
       <PageBody scroll={false} className={`${bodyClassName} max-lg:overflow-y-auto`}>

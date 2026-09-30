@@ -22,7 +22,9 @@ type Creator = {
 export function WishDetailInfo({
   wish,
   creator,
-  onMarkDone,
+  onAdvanceStatus,
+  statusActionLabel,
+  statusActionDisabled,
   onAddRecord,
   onEditTitle,
   onEditDescription,
@@ -36,7 +38,9 @@ export function WishDetailInfo({
 }: {
   wish: WishItem;
   creator: Creator | null;
-  onMarkDone: () => void;
+  onAdvanceStatus: () => void;
+  statusActionLabel: string;
+  statusActionDisabled: boolean;
   onAddRecord: () => void;
   onEditTitle: () => void;
   onEditDescription: () => void;
@@ -182,8 +186,12 @@ export function WishDetailInfo({
 
       <div className="flex gap-2 lg:hidden">
         {!isDone ? (
-          <Button className="flex-1" onClick={onMarkDone}>
-            标记完成
+          <Button
+            className="flex-1"
+            disabled={statusActionDisabled}
+            onClick={onAdvanceStatus}
+          >
+            {statusActionLabel}
           </Button>
         ) : null}
         <Button variant="secondary" className="flex-1" onClick={onAddRecord}>

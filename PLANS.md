@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–43 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–44 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -57,6 +57,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 41 | Retry uncertain uploaded partner audio | Complete | PRD-CHAT-001、Phase 35/37 | 已上传但发送结果不确定的语音可在当前会话内复用原消息 ID 与对象键重试；对象键仅留在内存 |
 | 42 | Serialize concurrent couple bindings | Complete | PRD-COUPLE-001、Phase 39 | 邀请码与参与账户在绑定事务中加锁，关系冲突检查使用当前读；真实 MySQL 并发结果仍待集成验证 |
 | 43 | Web wish recycle and restore | Complete | PRD-WISH-001、现有回收站 API | Web 可软删除、查看服务端保留截止时间并恢复；本阶段不新增永久删除入口 |
+| 44 | Web wish status progression | Complete | PRD-WISH-001 | Web 心愿按 `todo → doing → done` 顺序推进，复用既有 PATCH 契约 |
 
 ## 阶段顺序
 
@@ -308,6 +309,12 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 `/wishes`、`/wishes/recycle`、`/wishes/:id/restore` 契约并保持情侣授权不变。暂不暴露 Web 永久删除：
 当前服务端永久删除只删除心愿主记录，过程记录和媒体对象的共同处置策略尚不明确。详细计划见
 `harness/build/phase-43-web-wish-recycle-restore.md`。
+
+### Phase 44 — Web wish status progression
+
+补齐 Web 对服务端既有 `todo`、`doing`、`done` 三态的用户操作：待办心愿可开始计划，进行中心愿可
+确认完成，已完成心愿不再展示重复的完成操作。复用原有关系授权 PATCH，不改状态模型、App 行为或
+服务端契约。详细计划见 `harness/build/phase-44-web-wish-status-progression.md`。
 
 ## 后续阶段的准入条件
 

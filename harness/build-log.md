@@ -50,6 +50,7 @@
 | 41 — Retry uncertain uploaded partner audio | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无 durable outbox/R2/WS/设备集成；孤儿清理策略未定 |
 | 42 — Serialize concurrent couple bindings | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；服务端单测/lint/build 通过 | 无真实 MySQL 并发集成 |
 | 43 — Web wish recycle and restore | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | Web 永久删除语义未含在本阶段 |
+| 44 — Web wish status progression | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | 无浏览器/API 集成 |
 
 ## Activity
 
@@ -1110,3 +1111,25 @@
 - **Limitations:** No browser/server integration. Permanent deletion remains absent from Web because server deletion currently removes only the parent Wish row; related records/media policy remains unresolved. App behavior is unchanged.
 - **Next action:** Continue the remaining PRD R1/P0 audit; treat permanent-delete and media cleanup semantics as unresolved data-lifecycle work.
 - **Evidence references:** `harness/build/phase-43-web-wish-recycle-restore.md`, `harness/context/phase-43-web-wish-recycle-restore-context.md`, `web/src/api/wish.ts`, `web/src/features/wish/queries.ts`, Web wish routes/pages, `server/src/router_handler/wish.ts`.
+
+## 2026-09-30 — Phase 44: Web wish status progression started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 Web controls for the existing Wish status progression using current `PATCH /wishes/:id`.
+- **Red:** Web exposes “标记完成” for both `todo` and `doing`, and still shows it for `done`; only App has a `todo` → `doing` start-plan action. Server accepts the existing three statuses.
+- **Decision:** For `todo`, save `doing` immediately as “开始计划”; for `doing`, open the existing explicit completion dialog; for `done`, show no further forward transition. Do not add state rollback or new business states.
+- **Operational evidence:** Phase 43 was committed as `ab7261f`; the branch was clean before this phase. No server/API/account was accessed.
+- **Verification plan:** Web lint/build and `git diff --check`; statically verify status-specific labels, PATCH payloads, errors, and cache refresh.
+- **Limitations:** No browser/API account integration. Status validation is currently build/static coverage only because Web has no configured unit test runner.
+
+## 2026-09-30 — Phase 44: Web wish status progression completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** `todo` now saves `doing` from a “开始计划” action and shows a visible error if PATCH fails. `doing` opens the existing confirmed completion flow to save `done`. `done` no longer offers a redundant completion action. Deep-linked completion confirmation is accepted only for a currently doing wish.
+- **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`. Web build retains existing Zod Rollup annotation and >500 kB chunk warnings.
+- **Review:** Static review confirmed all status writes use the existing PATCH/status schema and existing query invalidation; App/server state model and permissions were unchanged.
+- **Operational evidence:** No live browser, API, account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** No browser/API integration or dedicated Web unit-test runner; retry/error and UI behavior are covered by type/build review only.
+- **Next action:** Continue auditing remaining PRD R1/P0 requirements and preserve undecided relationship/media/date policies.
+- **Evidence references:** `harness/build/phase-44-web-wish-status-progression.md`, `harness/context/phase-44-web-wish-status-progression-context.md`, Web wish detail and update query hook, `server/src/schema/wish.ts`.
