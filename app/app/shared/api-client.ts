@@ -53,6 +53,41 @@ export async function getAuthToken() {
   return getStoredAuthToken();
 }
 
+async function invalidateRejectedToken(token: string) {
+  try {
+    await removeStoredAuthSessionIfTokenMatches(token);
+  } catch {
+    // The provider still clears matching in-memory auth; restore validates storage later.
+  }
+  notifyAuthInvalidation(token);
+}
+
+export async function fetchWithAuth(
+  path: string,
+  init?: RequestInit,
+  tokenOverride?: string,
+) {
+  const token = tokenOverride ?? (await getStoredAuthToken());
+
+  if (!token) {
+    throw new Error("login required");
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...init?.headers,
+    },
+  });
+
+  if (response.status === 401) {
+    await invalidateRejectedToken(token);
+  }
+
+  return response;
+}
+
 export async function requestWithAuth<T>(
   path: string,
   init?: RequestInit,
@@ -74,12 +109,7 @@ export async function requestWithAuth<T>(
     });
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      try {
-        await removeStoredAuthSessionIfTokenMatches(token);
-      } catch {
-        // The provider still clears matching in-memory auth; restore validates storage later.
-      }
-      notifyAuthInvalidation(token);
+      await invalidateRejectedToken(token);
     }
 
     throw error;

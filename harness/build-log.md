@@ -68,6 +68,7 @@
 | 59 — Unify anniversary reminder plan inputs | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck、Web lint/build 通过 | 无 UI/设备/API 集成；时区策略未定 |
 | 60 — Preserve full password bytes in bcrypt auth | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build 通过 | 无 MySQL 登录迁移集成；遗留长密码策略未定 |
 | 61 — Map concurrent duplicate registrations to conflict | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 22/22、lint/build 通过 | 无 MySQL 并发集成 |
+| 62 — Invalidate App sessions on raw media-upload 401 | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | App 无已配置测试运行器；无设备/API 集成 |
 
 ## Activity
 
@@ -1516,3 +1517,25 @@
 - **Limitations:** No configured MySQL integration environment; concurrent HTTP/DB behavior is established by route wiring and classifier unit tests, not a live database race.
 - **Next action:** Continue the active R1/P0 Goal with another independently verifiable item; keep auth recovery, timezone, and media lifecycle questions visible rather than guessing product policy.
 - **Evidence references:** `harness/build/phase-61-duplicate-registration-conflict.md`, `harness/context/phase-61-duplicate-registration-conflict-context.md`, `server/src/auth/registration.ts`, `server/test/auth-registration-error.test.ts`, `server/src/router_handler/user.ts`.
+
+## 2026-09-30 — Phase 62: App media-upload auth invalidation started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-AUTH-001 expired-token behavior and existing Phase 38 conditional session invalidation contract.
+- **Evidence:** App `requestWithAuth` clears only the rejected token's matching stored session and notifies the in-memory provider on 401. `uploadAlbumFile` and `uploadWishFile` used raw authenticated `fetch` calls and bypassed that behavior; the album uploader is also used for partner-chat audio.
+- **Decision:** Add one raw authenticated fetch helper sharing the same conditional invalidation behavior, and route both upload functions through it. Keep upload path, payload, response/error behavior, and server contract unchanged.
+- **Verification plan:** App lint, App TypeScript check, source review of every `fetch` in `app/app`, and `git diff --check`. App has no configured test runner; no API/DB/device interaction is authorized or required for this code-level change.
+- **Operational evidence:** Phase 61 commit is `c25e462`; branch was clean at start. No `.env`, credentials, API, database, storage service, or user data was read or accessed.
+- **Evidence references:** `app/app/shared/api-client.ts`, `app/app/features/album/api.ts`, `app/app/features/wish-list/api.ts`, `app/app/features/auth/auth-context.tsx`, `app/app/shared/auth-session.ts`.
+
+## 2026-09-30 — Phase 62: App media-upload auth invalidation completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Added `fetchWithAuth` for raw responses, sharing token-matched persistent cleanup and in-memory auth notification with JSON requests. Both App upload functions use it; path, body, content headers, response parsing, and existing upload failure message remain unchanged.
+- **Safety:** A 401 only invalidates the exact rejected token. A changed/new token is preserved by the existing serialized compare-and-clear guard and provider token check. Non-401 responses and network failures do not trigger invalidation.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`. Source search confirmed the only remaining direct App `fetch` calls are the two local file-URI reads and the shared API client's JSON/raw authenticated transports.
+- **Operational evidence:** No `.env`, credentials, live API, DB, object storage, device, or user data was accessed; no push/deployment occurred.
+- **Limitations:** No App test runner or device/API integration is configured, so the behavior was not exercised at runtime. Static review confirmed both upload consumers call the shared helper.
+- **Next action:** Continue the active PRD R1/P0 audit; preserve product decisions around media deletion/retention and anniversary timezone rather than inferring them.
+- **Evidence references:** `harness/build/phase-62-app-media-upload-auth-invalidation.md`, `harness/context/phase-62-app-media-upload-auth-invalidation-context.md`, `app/app/shared/api-client.ts`, `app/app/features/album/api.ts`, `app/app/features/wish-list/api.ts`.

@@ -1,6 +1,5 @@
 import {
-  API_BASE_URL,
-  getAuthToken,
+  fetchWithAuth,
   requestWithAuth,
 } from "@/app/shared/api-client";
 
@@ -197,20 +196,13 @@ export async function uploadWishFile(
   fileName: string,
   contentType: string,
 ) {
-  const token = await getAuthToken();
-
-  if (!token) {
-    throw new Error("login required");
-  }
-
   const fileResponse = await fetch(uri);
   const fileBlob = await fileResponse.blob();
-  const response = await fetch(
-    `${API_BASE_URL}/upload/media?folder=album`,
+  const response = await fetchWithAuth(
+    "/upload/media?folder=album",
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": contentType,
         "x-file-name": fileName,
       },
