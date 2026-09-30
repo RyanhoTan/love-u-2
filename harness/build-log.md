@@ -1193,3 +1193,23 @@
 - **Limitations:** No DB/R2 integration test; existing persisted keys are not audited or migrated.
 - **Next action:** Continue the PRD R1/P0 loop while keeping live integration and unresolved data-lifecycle decisions visible.
 - **Evidence references:** `harness/build/phase-47-album-object-key-ownership.md`, `harness/context/phase-47-album-object-key-ownership-context.md`, `server/src/media/objectKey.ts`, `server/src/router_handler/album.ts`, `server/src/router_handler/wish.ts`, `server/test/media-object-key.test.ts`.
+
+## 2026-09-30 — Phase 48: remove hidden Web daily-interaction routes started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-TODAY-001/PRD R1 rule that unfinished daily status and One Line features must not appear usable.
+- **Red:** Web `todayRoutes` still registered `/status` and `/sentence` as generic pages with “完成” and “留下” actions, despite both flows being unavailable and hidden from Today navigation.
+- **Decision:** Remove the two entries and rely on the existing authenticated unknown-route redirect; preserve placeholders used by other domains.
+- **Operational evidence:** Phase 47 committed as `22af49b`; worktree was clean before Phase 48. No browser, API, or external service was accessed.
+
+## 2026-09-30 — Phase 48: remove hidden Web daily-interaction routes completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Removed the `/status` and `/sentence` placeholders and their nonfunctional action buttons. Unknown routes now continue through the authenticated router's existing redirect to `/`; generic placeholders used elsewhere remain intact.
+- **Verification:** Targeted route search found no stale route/actions; static review confirmed the wildcard redirect. Passed `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`. Web build retains existing Zod/Rollup and >500 kB chunk warnings.
+- **Review:** Only `web/src/routes/today.tsx` route entries/imports changed; Today homepage, other domain routes, and status/One Line product scope are unchanged.
+- **Operational evidence:** No browser, API, account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** No live browser navigation test; the redirect behavior is verified through the route tree and build.
+- **Next action:** Continue the PRD R1/P0 loop; daily status and One Line remain deferred until their real R2 flows.
+- **Evidence references:** `harness/build/phase-48-hide-web-daily-interaction-routes.md`, `harness/context/phase-48-hide-web-daily-interaction-routes-context.md`, `web/src/routes/today.tsx`, `web/src/routes/index.tsx`.

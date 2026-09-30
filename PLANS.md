@@ -337,6 +337,12 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 或 `.` / `..` 路径段的对象键。复用并加固现有共享检查，保留情侣关系授权及读取行为不变。详细计划见
 `harness/build/phase-47-album-object-key-ownership.md`。
 
+### Phase 48 — Remove hidden Web daily-interaction routes
+
+移除 Web 中已不再上线的 `/status` 与 `/sentence` 占位路由，避免直接访问旧地址后看到带有“完成/留下”
+按钮的伪入口；依赖现有应用通配路由回到首页。保留仍服务于其他模块的通用占位组件，不实现 P1 状态/一句话功能。
+详细计划见 `harness/build/phase-48-hide-web-daily-interaction-routes.md`。
+
 ## 后续阶段的准入条件
 
 新增实现阶段前必须：
