@@ -1133,3 +1133,23 @@
 - **Limitations:** No browser/API integration or dedicated Web unit-test runner; retry/error and UI behavior are covered by type/build review only.
 - **Next action:** Continue auditing remaining PRD R1/P0 requirements and preserve undecided relationship/media/date policies.
 - **Evidence references:** `harness/build/phase-44-web-wish-status-progression.md`, `harness/context/phase-44-web-wish-status-progression-context.md`, Web wish detail and update query hook, `server/src/schema/wish.ts`.
+
+## 2026-09-30 — Phase 45: enforce media upload policy started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 declared folder/type/size validation for the existing media upload endpoint.
+- **Red:** The upload handler trusted arbitrary folders, declared MIME types, and filename extensions. The raw parser had a 100 MiB cap but overflow returned generic 500. Added policy tests first; the initial run failed because the policy module did not yet exist.
+- **Decision:** Preserve the existing cap and media callers; allow album images/videos and interact audio; derive extensions from allowlisted Content-Type; explicitly defer file-signature sniffing.
+- **Operational evidence:** Phase 44 committed as `7276b92`; worktree was clean before Phase 45. No R2, API, credentials, or user account was accessed.
+
+## 2026-09-30 — Phase 45: enforce media upload policy completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Shared server policy now validates folders, declared MIME/category, and size. Express and helper use the same 100 MiB constant; parser overflow maps to 413. Filename extension is no longer trusted, internal JPEG thumbnail uploads remain supported, and OpenAPI/generated Web types describe the contract.
+- **Verification:** Passed server tests (11 tests including five upload-policy tests), server lint/build, `pnpm --dir web api`, Web lint/build, and `git diff --check`.
+- **Review:** All upload helper call sites use supported combinations; upload response remains private `{ key }`, key ownership namespace uses the authenticated/user ID, and parser errors are mapped without internal details.
+- **Operational evidence:** No R2, live API, credentials, user data, or external service was accessed; no push/deployment occurred.
+- **Limitations:** Declared MIME is not matched against bytes. Express middleware and object storage success/interruption are not integration-tested; orphan cleanup and deletion policy remain unresolved.
+- **Next action:** Continue the PRD R1/P0 loop; keep media byte-sniffing/integration and lifecycle gaps explicit.
+- **Evidence references:** `harness/build/phase-45-media-upload-policy.md`, `harness/context/phase-45-media-upload-policy-context.md`, `server/src/media/uploadPolicy.ts`, `server/src/router_handler/upload.ts`, `server/src/app.ts`, `server/test/upload-policy.test.ts`, `web/openapi.json`.

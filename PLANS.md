@@ -316,6 +316,13 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 确认完成，已完成心愿不再展示重复的完成操作。复用原有关系授权 PATCH，不改状态模型、App 行为或
 服务端契约。详细计划见 `harness/build/phase-44-web-wish-status-progression.md`。
 
+### Phase 45 — Enforce media upload policy
+
+补齐 PRD-MEMORY-001 / PRD 安全要求中的服务端上传限制：仅允许 `album` 图片/视频与 `interact` 音频，
+按声明 MIME 白名单生成安全对象扩展名，拒绝空文件，并将 100 MiB 超限映射为 413。保留当前客户端
+私有对象键契约与大小上限；不新增内容嗅探、大小策略或外部 R2 集成。详细计划见
+`harness/build/phase-45-media-upload-policy.md`。
+
 ## 后续阶段的准入条件
 
 新增实现阶段前必须：

@@ -369,7 +369,6 @@ async function generateVideoThumbnailObjectKey(userId: number, videoUrl: string)
     const result = await uploadMediaBuffer(
       userId,
       "album",
-      `${randomUUID()}-thumbnail.jpg`,
       "image/jpeg",
       thumbnail,
     );

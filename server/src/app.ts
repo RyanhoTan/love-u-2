@@ -5,6 +5,7 @@ import albumRouter from "./router/album.js";
 import anniversaryRouter from "./router/anniversary.js";
 import coupleRouter from "./router/couple.js";
 import { isHttpError } from "./errors.js";
+import { MAX_MEDIA_UPLOAD_BYTES } from "./media/uploadPolicy.js";
 import mediaRouter from "./router/media.js";
 import partnerChatRouter from "./router/partnerChat.js";
 import uploadRouter from "./router/upload.js";
@@ -29,7 +30,7 @@ function isRequestParseError(error: unknown): error is RequestParseError {
 }
 
 app.use(cors());
-app.use("/upload", express.raw({ type: "*/*", limit: "100mb" }));
+app.use("/upload", express.raw({ type: "*/*", limit: MAX_MEDIA_UPLOAD_BYTES }));
 app.use(express.json());
 
 // 路由
@@ -59,6 +60,11 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     res.status(err.statusCode || err.status || 400).json({
       message: "invalid json payload",
     });
+    return;
+  }
+
+  if (isRequestParseError(err) && err.type === "entity.too.large") {
+    res.status(413).json({ message: "media upload exceeds 100 MiB limit" });
     return;
   }
 

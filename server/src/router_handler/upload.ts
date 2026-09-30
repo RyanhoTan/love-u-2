@@ -10,6 +10,7 @@ import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { getAuthenticatedUserId } from "../auth.js";
 import { config } from "../config.js";
+import { getMediaUploadPolicy } from "../media/uploadPolicy.js";
 
 const proxyUrl = process.env.HTTPS_PROXY?.trim() || process.env.HTTP_PROXY?.trim();
 
@@ -40,27 +41,21 @@ export async function createMediaReadUrl(objectKey: string, expiresIn = 300) {
   );
 }
 
-function getExtension(fileName: string) {
-  const parts = fileName.split(".");
-  return parts[parts.length - 1];
-}
-
 export async function uploadMediaBuffer(
   userId: number,
   folder: string,
-  fileName: string,
   contentType: string,
   body: Buffer,
 ) {
-  const extension = getExtension(fileName);
-  const key = `${folder}/${userId}/${Date.now()}-${randomUUID()}.${extension}`;
+  const policy = getMediaUploadPolicy(folder, contentType, body.length);
+  const key = `${policy.folder}/${userId}/${Date.now()}-${randomUUID()}.${policy.extension}`;
 
   await r2Client.send(
     new PutObjectCommand({
       Bucket: config.r2Bucket,
       Key: key,
       Body: body,
-      ContentType: contentType,
+      ContentType: policy.contentType,
     }),
   );
 
@@ -72,15 +67,14 @@ export async function uploadMediaBuffer(
 
 export async function uploadMedia(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(req);
-  const folder = String(req.query.folder);
-  const fileName = String(req.header("x-file-name"));
-  const contentType = String(req.header("content-type"));
+  const folder = typeof req.query.folder === "string" ? req.query.folder : "";
+  const contentType = req.header("content-type") ?? "";
+  const body = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
   const result = await uploadMediaBuffer(
     userId,
     folder,
-    fileName,
     contentType,
-    req.body as Buffer,
+    body,
   );
 
   // Do not expose the public object URL. Access URLs will be generated

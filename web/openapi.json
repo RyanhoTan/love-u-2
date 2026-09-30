@@ -2005,7 +2005,7 @@
       "post": {
         "summary": "上传媒体文件",
         "deprecated": false,
-        "description": "请求体为原始二进制；成功响应为 `{ key }`，无 message。对象读取 URL 由各自的授权资源接口签发。",
+        "description": "请求体为原始二进制。仅允许 `album` 图片/视频和 `interact` 音频，最大 100 MiB；服务端依据 Content-Type 白名单派生对象后缀，不信任文件名。类型校验基于客户端声明的 MIME，不检查文件签名。成功响应为 `{ key }`，无 message；对象读取 URL 由各自的授权资源接口签发。",
         "operationId": "uploadMedia",
         "tags": [
           "Upload"
@@ -2014,21 +2014,15 @@
           {
             "name": "folder",
             "in": "query",
-            "description": "Storage folder segment. Not Zod-validated; clients use values like `album`.\n",
+            "description": "Upload folder. `album` accepts supported image/video MIME types; `interact` accepts supported audio MIME types.",
             "required": true,
             "example": "",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-file-name",
-            "in": "header",
-            "description": "Original file name (used for extension)",
-            "required": true,
-            "example": "",
-            "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "album",
+                "interact"
+              ]
             }
           }
         ],
@@ -2063,6 +2057,39 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Unsupported folder or empty upload body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "413": {
+            "description": "Upload exceeds 100 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "415": {
+            "description": "Unsupported declared media type for folder",
             "content": {
               "application/json": {
                 "schema": {

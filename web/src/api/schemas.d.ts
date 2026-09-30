@@ -368,7 +368,7 @@ export interface paths {
         put?: never;
         /**
          * 上传媒体文件
-         * @description 请求体为原始二进制；成功响应为 `{ key }`，无 message。对象读取 URL 由各自的授权资源接口签发。
+         * @description 请求体为原始二进制。仅允许 `album` 图片/视频和 `interact` 音频，最大 100 MiB；服务端依据 Content-Type 白名单派生对象后缀，不信任文件名。类型校验基于客户端声明的 MIME，不检查文件签名。成功响应为 `{ key }`，无 message；对象读取 URL 由各自的授权资源接口签发。
          */
         post: operations["uploadMedia"];
         delete?: never;
@@ -2529,18 +2529,12 @@ export interface operations {
         parameters: {
             query: {
                 /**
-                 * @description Storage folder segment. Not Zod-validated; clients use values like `album`.
+                 * @description Upload folder. `album` accepts supported image/video MIME types; `interact` accepts supported audio MIME types.
                  * @example
                  */
-                folder: string;
+                folder: "album" | "interact";
             };
-            header: {
-                /**
-                 * @description Original file name (used for extension)
-                 * @example
-                 */
-                "x-file-name": string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2560,8 +2554,35 @@ export interface operations {
                     "application/json": components["schemas"]["UploadMediaResponse"];
                 };
             };
+            /** @description Unsupported folder or empty upload body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Upload exceeds 100 MiB */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Unsupported declared media type for folder */
+            415: {
                 headers: {
                     [name: string]: unknown;
                 };
