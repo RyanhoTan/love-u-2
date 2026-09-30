@@ -130,10 +130,6 @@ function mergeMessages(
           return 4;
         case "sent":
           return 3;
-        case "partner_offline":
-          return 2;
-        case "sending":
-          return 1;
         default:
           return 0;
       }
@@ -200,10 +196,6 @@ function mergeDeliveryStatus(
         return 4;
       case "sent":
         return 3;
-      case "partner_offline":
-        return 1;
-      case "sending":
-        return 2;
       default:
         return 0;
     }

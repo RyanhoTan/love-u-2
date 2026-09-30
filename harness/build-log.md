@@ -1031,3 +1031,11 @@
 - **Limitations:** Live DB migration, dropped-frame recovery, paired-device behavior, and cross-process sender receipt delivery remain unverified/deferred. Legacy non-negotiated clients retain the old status guarantee during upgrades.
 - **Next action:** Continue the PRD R1/P0 audit for remaining core-flow and media lifecycle gaps; preserve unresolved unbind retention decisions.
 - **Evidence references:** `harness/build/phase-40-chat-delivery-ack.md`, `server/src/ws/partnerChat.ts`, `server/src/db/schema.ts`, `web/openapi.json`, Web/App `use-partner-chat.ts`.
+
+## 2026-09-30 — Phase 40 delivery status merge correction
+
+- **Finding:** Client merge ordering treated `partner_offline` and `sending` as permanently ranked states, so an offline server response could be hidden by a local optimistic `sending` state, and a later replay attempt could be hidden by stale history.
+- **Change:** Web/App history and live-event merges now accept the latest observed non-terminal state (`sending` or `partner_offline`) while preserving terminal `sent` and `read` states against regressions.
+- **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`. Web build retained existing Zod Rollup comment-position and >500 kB chunk warnings.
+- **Operational evidence:** No server, database, credentials, external service, or user data was accessed; no push or deployment occurred.
+- **Evidence references:** Web/App `use-partner-chat.ts`, Phase 40.
