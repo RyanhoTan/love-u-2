@@ -67,6 +67,7 @@
 | 58 — Verify uploaded media signatures | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build、Web lint/build 通过 | 无真实 R2/HTTP/设备集成 |
 | 59 — Unify anniversary reminder plan inputs | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck、Web lint/build 通过 | 无 UI/设备/API 集成；时区策略未定 |
 | 60 — Preserve full password bytes in bcrypt auth | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build 通过 | 无 MySQL 登录迁移集成；遗留长密码策略未定 |
+| 61 — Map concurrent duplicate registrations to conflict | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 22/22、lint/build 通过 | 无 MySQL 并发集成 |
 
 ## Activity
 
@@ -1494,3 +1495,24 @@
 - **Limitations:** The password-hash re-encoding query was not exercised against MySQL. Legacy ≥72-byte accounts remain ambiguous and need a future safe password-change/recovery policy; no such flow was invented.
 - **Next action:** Continue the PRD R1/P0 audit; keep legacy account recovery, complete auth/security path testing, anniversary timezone policy, and media lifecycle policy visible as remaining gaps.
 - **Evidence references:** `harness/build/phase-60-password-hash-compatibility.md`, `harness/context/phase-60-password-hash-compatibility-context.md`, `server/src/auth/password.ts`, `server/test/auth-password.test.ts`, `server/src/router_handler/user.ts`.
+
+## 2026-09-30 — Phase 61: Concurrent duplicate registration conflict started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-AUTH-001 registration failure behavior.
+- **Evidence:** The users table has a username unique index. Registration performs a prior lookup, but concurrent requests can both pass it; the global handler maps unknown MySQL errors to 500.
+- **Decision:** Keep the current lookup and unique index; map only an `ER_DUP_ENTRY` from the users insert to the established HTTP 409 response and rethrow other failures.
+- **Operational evidence:** Phase 60 commit is `eb7c39b`. The only pre-existing working-tree change was the Phase 61 status update in `PLANS.md`; no business code had been modified yet. No live database, credentials, or user data was accessed.
+- **Evidence references:** `harness/build/phase-61-duplicate-registration-conflict.md`, `harness/context/phase-61-duplicate-registration-conflict-context.md`, `server/src/router_handler/user.ts`, `server/src/db/schema.ts`, `server/src/app.ts`.
+
+## 2026-09-30 — Phase 61: Concurrent duplicate registration conflict completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** A duplicate-key error from the users `INSERT` becomes the established HTTP 409 `username already exists` response; unrelated failures are rethrown unchanged. Sequential pre-check behavior is untouched.
+- **Verification:** Passed `pnpm --dir server test` (22/22 across 10 suites), `pnpm --dir server lint`, `pnpm --dir server build`, and `git diff --check`.
+- **Review:** Confirmed the `try/catch` wraps only the user insert and the current users table has one unique key, on username. No schema, client, or API contract change.
+- **Operational evidence:** Only synthetic error objects were used. No live MySQL database, credentials, user data, production service, push, or deployment was accessed.
+- **Limitations:** No configured MySQL integration environment; concurrent HTTP/DB behavior is established by route wiring and classifier unit tests, not a live database race.
+- **Next action:** Continue the active R1/P0 Goal with another independently verifiable item; keep auth recovery, timezone, and media lifecycle questions visible rather than guessing product policy.
+- **Evidence references:** `harness/build/phase-61-duplicate-registration-conflict.md`, `harness/context/phase-61-duplicate-registration-conflict-context.md`, `server/src/auth/registration.ts`, `server/test/auth-registration-error.test.ts`, `server/src/router_handler/user.ts`.

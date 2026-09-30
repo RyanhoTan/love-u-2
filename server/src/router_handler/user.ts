@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import type { RowDataPacket } from "mysql2";
 import { hashPassword, verifyPassword } from "../auth/password.js";
+import { isMySqlDuplicateEntryError } from "../auth/registration.js";
 import { config } from "../config.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
@@ -22,10 +23,17 @@ export async function register(req: Request, res: Response) {
 
   const passwordHash = await hashPassword(password);
 
-  await db.query("INSERT INTO users (username, password_hash) VALUES (?, ?)", [
-    username,
-    passwordHash
-  ]);
+  try {
+    await db.query("INSERT INTO users (username, password_hash) VALUES (?, ?)", [
+      username,
+      passwordHash
+    ]);
+  } catch (error) {
+    if (isMySqlDuplicateEntryError(error)) {
+      throw new HttpError(409, "username already exists");
+    }
+    throw error;
+  }
 
   res.status(201).json({ message: "register success" });
 }

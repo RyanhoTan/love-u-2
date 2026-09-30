@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–60 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–61 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -74,6 +74,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 58 | Verify uploaded media signatures | Complete | PRD-MEMORY-001、Phase 45 | 在对象写入前核对已允许 MIME 与文件头/容器标识，明显不匹配时返回 415 |
 | 59 | Unify anniversary reminder plan inputs | Complete | PRD-DAY-001、Phase 20/22 | App/Web 用单选表达服务端的单个提醒天数，并在 Web 编辑时无损保留已有 0–30 天值 |
 | 60 | Preserve full password bytes in bcrypt auth | Complete | PRD-AUTH-001 | 新密码用版本化 SHA-256 预哈希后 bcrypt；兼容旧哈希并安全渐进迁移可证明未被截断的旧密码 |
+| 61 | Map concurrent duplicate registrations to conflict | Complete | PRD-AUTH-001 | 并发注册触发用户名唯一约束时返回既有 409 冲突，而非通用 500 |
 
 ## 阶段顺序
 
@@ -430,6 +431,11 @@ API，不改变心愿状态、记录或媒体契约。详细计划见
 
 bcrypt 仅使用 UTF-8 密码的前 72 字节；新凭证先做版本化 SHA-256 预哈希再 bcrypt，保留旧哈希登录兼容，并只在旧凭证输入短于 72 字节时条件升级，避免猜测旧长密码的原始后缀。详细范围见
 `harness/build/phase-60-password-hash-compatibility.md`。
+
+### Phase 61 — Map concurrent duplicate registrations to conflict
+
+保留注册前的用户名查重与数据库唯一索引；当并发注册在 `INSERT` 处碰撞时，将 MySQL `ER_DUP_ENTRY` 映射到与查重一致的 HTTP 409，其他数据库错误仍走原有内部错误路径。详细范围见
+`harness/build/phase-61-duplicate-registration-conflict.md`。阶段已完成；服务端 22 项测试、lint、build 和差异检查通过。实际 MySQL 并发集成仍未运行。
 
 ## 后续阶段的准入条件
 
