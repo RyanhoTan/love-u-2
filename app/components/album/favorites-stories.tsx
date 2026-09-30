@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -14,7 +14,6 @@ import {
   type AlbumStory,
 } from "@/app/features/album/api";
 import { ImagesImageErrorPng } from "@/assets";
-import { toast } from "@/components/common";
 import { Column, Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
 
@@ -28,32 +27,70 @@ export function FavoritesStoriesGrid({
 }) {
   const router = useRouter();
   const [stories, setStories] = useState<AlbumStory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
+  const requestId = useRef(0);
   const cardWidth =
     contentWidth > 0 ? (contentWidth - GAP * (COLUMNS - 1)) / COLUMNS : 0;
   const sections = useMemo(() => [{ data: chunk(stories, COLUMNS) }], [stories]);
 
   const refreshStories = useCallback(async () => {
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setStories([]);
+    setLoadError("");
+    setLoadState("loading");
+
     try {
-      setIsLoading(true);
       const response = await getFavoriteAlbumStories();
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       setStories(response.stories);
+      setLoadState("ready");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载收藏故事失败";
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(
+        error instanceof Error ? error.message : "加载收藏故事失败，请重试",
+      );
+      setLoadState("error");
     }
   }, []);
 
   useEffect(() => {
     void refreshStories();
+    return () => {
+      requestId.current += 1;
+    };
   }, [refreshStories]);
 
-  if (isLoading) {
+  if (loadState === "loading") {
     return (
       <View style={styles.centerState}>
         <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <View style={styles.centerState}>
+        <Text accessibilityRole="alert" style={styles.errorText}>
+          {loadError || "加载收藏故事失败，请重试"}
+        </Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => void refreshStories()}
+          style={styles.retryButton}
+        >
+          <Text style={styles.retryText}>重新加载</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -132,5 +169,19 @@ const styles = StyleSheet.create({
   emptyText: {
     color: "#888",
     fontSize: 14,
+  },
+  errorText: {
+    color: "#b42318",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  retryButton: {
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  retryText: {
+    color: "#FF4F7A",
+    fontWeight: "600",
   },
 });

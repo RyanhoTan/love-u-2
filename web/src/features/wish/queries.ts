@@ -6,9 +6,12 @@ import {
 import {
   createWish,
   createWishRecord,
+  deleteWish,
+  getDeletedWishes,
   getWishById,
   getWishRecords,
   getWishes,
+  restoreWish,
   updateWish,
   type CreateWishPayload,
   type CreateWishRecordPayload,
@@ -17,6 +20,7 @@ import {
 
 export const wishKeys = {
   all: ["wishes"] as const,
+  recycle: () => ["wishes", "recycle"] as const,
   detail: (id: number) => ["wishes", id] as const,
   records: (id: number) => ["wishes", id, "records"] as const,
 };
@@ -25,6 +29,15 @@ export function useWishesQuery() {
   return useQuery({
     queryKey: wishKeys.all,
     queryFn: getWishes,
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function useDeletedWishesQuery() {
+  return useQuery({
+    queryKey: wishKeys.recycle(),
+    queryFn: getDeletedWishes,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -33,6 +46,7 @@ export function useWishQuery(id: number) {
     queryKey: wishKeys.detail(id),
     queryFn: () => getWishById(id),
     enabled: Number.isInteger(id) && id > 0,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -41,6 +55,7 @@ export function useWishRecordsQuery(id: number) {
     queryKey: wishKeys.records(id),
     queryFn: () => getWishRecords(id),
     enabled: Number.isInteger(id) && id > 0,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -51,6 +66,42 @@ export function useCreateWishMutation() {
     mutationFn: (payload: CreateWishPayload) => createWish(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: wishKeys.all });
+    },
+  });
+}
+
+export function useDeleteWishMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => deleteWish(id),
+    onSuccess: (_response, id) => {
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: wishKeys.all,
+          exact: true,
+        }),
+        queryClient.invalidateQueries({ queryKey: wishKeys.recycle() }),
+        queryClient.removeQueries({ queryKey: wishKeys.detail(id) }),
+        queryClient.removeQueries({ queryKey: wishKeys.records(id) }),
+      ]);
+    },
+  });
+}
+
+export function useRestoreWishMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => restoreWish(id),
+    onSuccess: () => {
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: wishKeys.all,
+          exact: true,
+        }),
+        queryClient.invalidateQueries({ queryKey: wishKeys.recycle() }),
+      ]);
     },
   });
 }

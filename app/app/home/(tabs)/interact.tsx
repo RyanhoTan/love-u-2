@@ -3,12 +3,14 @@ import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import {
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
   type ImageSourcePropType,
   type NativeScrollEvent,
@@ -18,6 +20,7 @@ import { useIsFocused } from "@react-navigation/native";
 import { ImagesAvatarFemalePng, ImagesAvatarMalePng } from "@/assets";
 import { uploadAlbumFile } from "@/app/features/album/api";
 import { useAuth } from "@/app/features/auth/auth-context";
+import { getPartnerChatAudioUrl } from "@/app/features/partner-chat/api";
 import {
   getCoupleSpace,
   type CoupleSpace,
@@ -45,6 +48,7 @@ function formatMessageTime(value: string) {
 
 function getStatusText(status: string) {
   if (status === "read") return "已读";
+  if (status === "sent") return "已送达";
   if (status === "sending") return "发送中";
   if (status === "partner_offline") return "对方离线";
   if (status === "failed") return "发送失败";
@@ -61,12 +65,28 @@ export default function Interact() {
   const isAtBottomRef = useRef(true);
   const [inputValue, setInputValue] = useState("");
   const [coupleSpace, setCoupleSpace] = useState<CoupleSpace | null>(null);
-  const [playingAudioUrl, setPlayingAudioUrl] = useState<string | null>(null);
-  const { messages, sendMessage, sendAudioMessage } =
-    usePartnerChat(token, { isVisible: isFocused });
+  const [playingAudioMessageId, setPlayingAudioMessageId] = useState<string | null>(null);
+  const {
+    messages,
+    errorMessage,
+    isConnected,
+    hasOlderMessages,
+    historyLoadFailed,
+    isLoadingOlderMessages,
+    loadOlderMessages,
+    sendMessage,
+    retryMessage,
+    sendAudioMessage,
+  } = usePartnerChat(token, { isVisible: isFocused });
 
   const isBound = Boolean(coupleSpace?.isBound && coupleSpace.partner);
-  const canSendMessage = isBound;
+  const canSendMessage = isBound && isConnected;
+  const activeRelationshipIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    activeRelationshipIdRef.current = isBound
+      ? coupleSpace?.relationship?.id ?? null
+      : null;
+  }, [coupleSpace, isBound]);
 
   const selfAvatar: ImageSourcePropType = user?.avatar
     ? { uri: user.avatar }
@@ -94,13 +114,19 @@ export default function Interact() {
     const nextValue = inputValue.trim();
     if (!nextValue || !canSendMessage) return;
 
-    sendMessage(nextValue);
-    setInputValue("");
-    isAtBottomRef.current = true;
-    scrollToBottom();
+    if (sendMessage(nextValue)) {
+      setInputValue("");
+      isAtBottomRef.current = true;
+      scrollToBottom();
+    }
   };
 
   const handleSendVoice = async (audioUri: string) => {
+    const targetRelationshipId = activeRelationshipIdRef.current;
+    if (targetRelationshipId === null) {
+      Alert.alert("语音发送失败", "当前没有有效的情侣关系，请稍后重试。");
+      return;
+    }
     const fileName = audioUri.split("/").pop() || "voice.m4a";
     const extension = fileName.split(".").pop()?.toLowerCase();
     const contentType =
@@ -111,27 +137,46 @@ export default function Interact() {
           : extension === "aac"
             ? "audio/aac"
             : "audio/mp4";
-    const upload = await uploadAlbumFile(
-      audioUri,
-      fileName,
-      contentType,
-      "interact",
-    );
-    sendAudioMessage(upload.url);
-    isAtBottomRef.current = true;
-    scrollToBottom();
+    try {
+      const upload = await uploadAlbumFile(
+        audioUri,
+        fileName,
+        contentType,
+        "interact",
+      );
+      if (activeRelationshipIdRef.current !== targetRelationshipId) {
+        throw new Error("relationship changed during audio upload");
+      }
+      if (!upload.key || !sendAudioMessage(upload.key, audioUri)) {
+        throw new Error("voice message could not be sent");
+      }
+      isAtBottomRef.current = true;
+      scrollToBottom();
+    } catch {
+      Alert.alert("语音发送失败", "请检查网络后重试。");
+    }
   };
 
-  const handlePressAudioMessage = (audioUrl: string) => {
-    if (playingAudioUrl === audioUrl && audioStatus.playing) {
+  const handlePressAudioMessage = async (message: (typeof messages)[number]) => {
+    if (playingAudioMessageId === message.id && audioStatus.playing) {
       audioPlayer.pause();
-      setPlayingAudioUrl(null);
+      setPlayingAudioMessageId(null);
       return;
     }
 
-    audioPlayer.replace(audioUrl);
-    audioPlayer.play();
-    setPlayingAudioUrl(audioUrl);
+    try {
+      const audioUrl = message.serverMessageId && token
+        ? await getPartnerChatAudioUrl(message.serverMessageId, token)
+        : message.audioUrl;
+      if (!audioUrl) {
+        throw new Error("audio URL unavailable");
+      }
+      audioPlayer.replace(audioUrl);
+      audioPlayer.play();
+      setPlayingAudioMessageId(message.id);
+    } catch {
+      Alert.alert("语音暂时无法播放", "请检查网络或情侣绑定状态后重试。");
+    }
   };
 
   useEffect(() => {
@@ -181,6 +226,29 @@ export default function Interact() {
               end={{ x: 0, y: 1 }}
               style={styles.threadHighlight}
             />
+            {errorMessage ? (
+              <Text accessibilityRole="alert" style={styles.connectionError}>
+                {errorMessage}
+              </Text>
+            ) : null}
+            {hasOlderMessages ||
+            isLoadingOlderMessages ||
+            historyLoadFailed ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                disabled={isLoadingOlderMessages}
+                onPress={loadOlderMessages}
+                style={styles.historyButton}
+              >
+                <Text style={styles.historyButtonText}>
+                  {isLoadingOlderMessages
+                    ? "正在加载…"
+                    : historyLoadFailed && !hasOlderMessages
+                      ? "重试加载聊天记录"
+                      : "加载更早消息"}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
             <ScrollView
               ref={scrollRef}
               style={styles.scroll}
@@ -233,16 +301,26 @@ export default function Interact() {
                       avatar={item.isSelf ? selfAvatar : partnerAvatar}
                       message={
                         item.messageType === "audio"
-                          ? playingAudioUrl === audioUrl && audioStatus.playing
+                          ? playingAudioMessageId === item.id && audioStatus.playing
                             ? "播放中..."
                             : "语音消息"
                           : item.text
                       }
                       time={timeText}
                       isSelf={item.isSelf}
+                      onRetry={
+                        item.isSelf &&
+                        (item.messageType === "text" ||
+                          Boolean(item.audioObjectKey)) &&
+                        item.status === "failed" &&
+                        item.retryable
+                          ? () => retryMessage(item.id)
+                          : undefined
+                      }
+                      retryDisabled={!isConnected}
                       onPress={
-                        item.messageType === "audio" && audioUrl
-                          ? () => handlePressAudioMessage(audioUrl)
+                        item.messageType === "audio" && (audioUrl || item.serverMessageId)
+                          ? () => void handlePressAudioMessage(item)
                           : undefined
                       }
                     />
@@ -370,5 +448,19 @@ const styles = StyleSheet.create({
     color: "#8d6b77",
   },
   inputWrap: { paddingTop: 12 },
+  connectionError: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    color: "#7d4b5a",
+    fontSize: 12,
+  },
+  historyButton: {
+    alignSelf: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  historyButtonText: {
+    color: "#8d6b77",
+    fontSize: 12,
+  },
 });
-

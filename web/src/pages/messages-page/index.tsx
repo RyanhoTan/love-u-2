@@ -92,6 +92,8 @@ function buildThreadItems(messages: PartnerChatMessage[]): ThreadItem[] {
 
 function statusLabel(status: PartnerChatMessage["status"]) {
   if (status === "read") return "已读";
+  if (status === "sent") return "已送达";
+  if (status === "sending") return "发送中…";
   if (status === "partner_offline") return "对方离线";
   if (status === "failed") return "发送失败";
   return "";
@@ -213,6 +215,23 @@ export function MessagesPage() {
         </p>
       ) : null}
 
+      {chat.hasOlderMessages ||
+      chat.isLoadingOlderMessages ||
+      chat.historyLoadFailed ? (
+        <button
+          type="button"
+          onClick={chat.loadOlderMessages}
+          disabled={chat.isLoadingOlderMessages}
+          className="shrink-0 self-center rounded-full px-4 py-2 text-xs text-fg-muted transition hover:bg-surface-soft disabled:opacity-60"
+        >
+          {chat.isLoadingOlderMessages
+            ? "正在加载…"
+            : chat.historyLoadFailed && !chat.hasOlderMessages
+              ? "重试加载聊天记录"
+              : "加载更早消息"}
+        </button>
+      ) : null}
+
       <div
         ref={threadRef}
         className="flex min-h-0 flex-1 flex-col overflow-y-auto px-18 py-7"
@@ -277,9 +296,15 @@ export function MessagesPage() {
                           aria-label="发送中"
                         />
                       ) : null}
-                      {message.messageType === "audio" && message.audioUrl ? (
+                      {message.messageType === "audio" &&
+                      (message.audioUrl || message.serverMessageId) ? (
                         <VoiceBubble
                           src={message.audioUrl}
+                          resolveSrc={
+                            message.serverMessageId
+                              ? () => chat.getAudioUrl(message.serverMessageId!)
+                              : undefined
+                          }
                           incoming={incoming}
                           durationSeconds={message.audioDurationSeconds}
                         />
@@ -304,6 +329,25 @@ export function MessagesPage() {
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
+                    {!incoming &&
+                    (message.messageType === "text" ||
+                      Boolean(message.audioObjectKey)) &&
+                    message.status === "failed" &&
+                    message.retryable ? (
+                      <button
+                        type="button"
+                        aria-label={
+                          message.messageType === "audio"
+                            ? "重试发送语音"
+                            : "重试发送消息"
+                        }
+                        disabled={!chat.isConnected}
+                        onClick={() => chat.retryMessage(message.id)}
+                        className="text-xs text-accent underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        重试
+                      </button>
+                    ) : null}
                   </div>
                   {incoming ? null : (
                     <Avatar

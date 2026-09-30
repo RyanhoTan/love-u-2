@@ -1,10 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
-import BRAND from "@brand";
+import {
+  getStoredAuthToken,
+  notifyAuthInvalidation,
+  removeStoredAuthSessionIfTokenMatches,
+} from "./auth-session";
 
 const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
-const AUTH_STORAGE_KEY = BRAND.storage.authSession;
-const LEGACY_AUTH_STORAGE_KEY = "love-u-auth-session";
 
 export const API_BASE_URL =
   envApiUrl ||
@@ -12,6 +13,16 @@ export const API_BASE_URL =
     android: "http://10.0.2.2:3001",
     default: "http://localhost:3001",
   });
+
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
 
 export async function request<T>(path: string, init?: RequestInit) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -32,33 +43,49 @@ export async function request<T>(path: string, init?: RequestInit) {
       data && typeof data === "object" && "message" in data
         ? data.message
         : "request failed";
-    throw new Error(message || "request failed");
+    throw new ApiError(message || "request failed", response.status);
   }
 
   return data as T;
 }
 
-async function getStoredToken() {
-  const storedSession =
-    (await AsyncStorage.getItem(AUTH_STORAGE_KEY)) ??
-    (await AsyncStorage.getItem(LEGACY_AUTH_STORAGE_KEY));
-
-  if (!storedSession) {
-    return null;
-  }
-
-  try {
-    const session = JSON.parse(storedSession) as { token?: unknown };
-    return typeof session.token === "string" && session.token
-      ? session.token
-      : null;
-  } catch {
-    return null;
-  }
+export async function getAuthToken() {
+  return getStoredAuthToken();
 }
 
-export async function getAuthToken() {
-  return getStoredToken();
+async function invalidateRejectedToken(token: string) {
+  try {
+    await removeStoredAuthSessionIfTokenMatches(token);
+  } catch {
+    // The provider still clears matching in-memory auth; restore validates storage later.
+  }
+  notifyAuthInvalidation(token);
+}
+
+export async function fetchWithAuth(
+  path: string,
+  init?: RequestInit,
+  tokenOverride?: string,
+) {
+  const token = tokenOverride ?? (await getStoredAuthToken());
+
+  if (!token) {
+    throw new Error("login required");
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...init?.headers,
+    },
+  });
+
+  if (response.status === 401) {
+    await invalidateRejectedToken(token);
+  }
+
+  return response;
 }
 
 export async function requestWithAuth<T>(
@@ -66,17 +93,25 @@ export async function requestWithAuth<T>(
   init?: RequestInit,
   tokenOverride?: string,
 ) {
-  const token = tokenOverride ?? (await getStoredToken());
+  const token = tokenOverride ?? (await getStoredAuthToken());
 
   if (!token) {
     throw new Error("login required");
   }
 
-  return request<T>(path, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...init?.headers,
-    },
-  });
+  try {
+    return await request<T>(path, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...init?.headers,
+      },
+    });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      await invalidateRejectedToken(token);
+    }
+
+    throw error;
+  }
 }

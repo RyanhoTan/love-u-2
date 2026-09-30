@@ -86,7 +86,7 @@ export function UploadPage() {
 
         await createAlbumMedia({
           mediaType: file.type.startsWith("video/") ? "video" : "image",
-          url: uploaded.url,
+          objectKey: uploaded.key,
           thumbnailUrl: "",
           locationName: "",
           latitude: null,

@@ -22,19 +22,35 @@ type Creator = {
 export function WishDetailInfo({
   wish,
   creator,
-  onMarkDone,
+  onAdvanceStatus,
+  statusActionLabel,
+  statusActionDisabled,
   onAddRecord,
   onEditTitle,
   onEditDescription,
   onEditTargetDate,
+  onEditBudget,
+  onEditLocation,
+  onReplaceCover,
+  onClearCover,
+  coverPending,
+  coverError,
 }: {
   wish: WishItem;
   creator: Creator | null;
-  onMarkDone: () => void;
+  onAdvanceStatus: () => void;
+  statusActionLabel: string;
+  statusActionDisabled: boolean;
   onAddRecord: () => void;
   onEditTitle: () => void;
   onEditDescription: () => void;
   onEditTargetDate: () => void;
+  onEditBudget: () => void;
+  onEditLocation: () => void;
+  onReplaceCover: (file: File) => void;
+  onClearCover: () => void;
+  coverPending: boolean;
+  coverError: string;
 }) {
   const isDone = wish.status === "done";
 
@@ -51,6 +67,42 @@ export function WishDetailInfo({
           无封面
         </div>
       )}
+      <div className="flex justify-end gap-2">
+        <label
+          className={cx(
+            "inline-flex h-9 cursor-pointer items-center rounded-control px-3 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft",
+            coverPending && "pointer-events-none opacity-60",
+          )}
+        >
+          <input
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            disabled={coverPending}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) onReplaceCover(file);
+              event.target.value = "";
+            }}
+          />
+          {coverPending ? "保存中…" : "更换封面"}
+        </label>
+        {wish.cover ? (
+          <button
+            type="button"
+            disabled={coverPending}
+            className="h-9 rounded-control px-3 text-sm font-semibold text-fg-secondary transition-colors hover:bg-surface disabled:opacity-60"
+            onClick={onClearCover}
+          >
+            清除封面
+          </button>
+        ) : null}
+      </div>
+      {coverError ? (
+        <p role="alert" className="-mt-3 text-sm text-danger">
+          {coverError}
+        </p>
+      ) : null}
 
       <div className="flex items-start justify-between gap-3">
         <h2 className="min-w-0 flex-1 whitespace-pre-wrap break-words text-[22px] font-semibold leading-[1.35] tracking-[-0.4px] text-fg">
@@ -101,12 +153,14 @@ export function WishDetailInfo({
           icon={<MapPin className="size-[18px]" strokeWidth={2} />}
           label="地点"
           value={wish.locationName || "—"}
+          onEdit={onEditLocation}
         />
         <div className="h-px bg-border" />
         <MetaRow
           icon={<Wallet className="size-[18px]" strokeWidth={2} />}
           label="预算"
           value={formatBudget(wish.budgetAmount)}
+          onEdit={onEditBudget}
         />
         <div className="h-px bg-border" />
         <div className="flex h-12 items-center gap-3 px-4">
@@ -132,8 +186,12 @@ export function WishDetailInfo({
 
       <div className="flex gap-2 lg:hidden">
         {!isDone ? (
-          <Button className="flex-1" onClick={onMarkDone}>
-            标记完成
+          <Button
+            className="flex-1"
+            disabled={statusActionDisabled}
+            onClick={onAdvanceStatus}
+          >
+            {statusActionLabel}
           </Button>
         ) : null}
         <Button variant="secondary" className="flex-1" onClick={onAddRecord}>

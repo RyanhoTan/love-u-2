@@ -1,9 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useFocusEffect } from "expo-router";
 import { getAlbumMedia, type AlbumMediaItem } from "@/app/features/album/api";
 import { ImagesImageErrorPng } from "@/assets";
-import { toast } from "@/components/common";
 import { useImageViewer } from "@/hooks/use-image-viewer";
 import { Column, Row } from "../layout";
 
@@ -51,6 +57,13 @@ function groupPhotosByMonth(media: AlbumMediaItem[]) {
 export function Photos({ refreshKey = 0 }: PhotosProps) {
   const [gridWidth, setGridWidth] = useState(0);
   const [photos, setPhotos] = useState<PhotoGroup[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
+  const requestId = useRef(0);
+  const isFocused = useRef(false);
+  const lastRefreshKey = useRef(refreshKey);
   const { openViewer, Viewer } = useImageViewer();
 
   const imageSize = useMemo(() => {
@@ -60,30 +73,93 @@ export function Photos({ refreshKey = 0 }: PhotosProps) {
   }, [gridWidth]);
 
   const refreshPhotos = useCallback(async () => {
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setPhotos([]);
+    setLoadError("");
+    setLoadState("loading");
+
     try {
       const response = await getAlbumMedia();
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       const imageMedia = response.media.filter(
         (item) => item.mediaType === "image",
       );
 
       setPhotos(groupPhotosByMonth(imageMedia));
+      setLoadState("ready");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载照片失败";
-      toast.error(message);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(
+        error instanceof Error ? error.message : "加载照片失败，请重试",
+      );
+      setLoadState("error");
     }
   }, []);
 
   useEffect(() => {
-    if (refreshKey > 0) {
+    if (lastRefreshKey.current === refreshKey) {
+      return;
+    }
+
+    lastRefreshKey.current = refreshKey;
+    if (isFocused.current) {
       void refreshPhotos();
     }
-  }, [refreshPhotos, refreshKey]);
+  }, [refreshKey, refreshPhotos]);
 
   useFocusEffect(
     useCallback(() => {
+      isFocused.current = true;
       void refreshPhotos();
+      return () => {
+        isFocused.current = false;
+        requestId.current += 1;
+      };
     }, [refreshPhotos]),
   );
+
+  if (loadState !== "ready") {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 12,
+          padding: 24,
+        }}
+      >
+        {loadState === "loading" ? (
+          <>
+            <ActivityIndicator color="#FF4F7A" />
+            <Text style={{ color: "#666" }}>正在加载照片…</Text>
+          </>
+        ) : (
+          <>
+            <Text accessibilityRole="alert" style={{ color: "#b42318" }}>
+              {loadError || "加载照片失败，请重试"}
+            </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => void refreshPhotos()}
+              style={{ minHeight: 44, justifyContent: "center", padding: 8 }}
+            >
+              <Text style={{ color: "#FF4F7A", fontWeight: "600" }}>
+                重新加载
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    );
+  }
 
   return (
     <ScrollView

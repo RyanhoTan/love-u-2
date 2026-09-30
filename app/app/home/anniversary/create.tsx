@@ -3,7 +3,6 @@ import type { SvgProps } from "react-native-svg";
 import {
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -32,18 +31,17 @@ type CategoryItem = {
   Icon: ComponentType<SvgProps>;
 };
 
-type RemindItem = {
-  key: string;
-  label: string;
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-};
-
 const CATEGORIES: CategoryItem[] = [
   { id: "love", label: "恋爱", Icon: IconsAnniversaryLetterLoveSvg },
   { id: "birthday", label: "生日", Icon: IconsAnniversaryCakeSvg },
   { id: "holiday", label: "节日", Icon: IconsAnniversaryCakeSvg },
   { id: "custom", label: "自定义", Icon: IconsAnniversaryLetterLoveSvg },
+];
+
+const REMINDER_OPTIONS = [
+  { days: 0, label: "当天" },
+  { days: 3, label: "提前 3 天" },
+  { days: 7, label: "提前 7 天" },
 ];
 
 function formatDate(date: Date) {
@@ -62,24 +60,8 @@ function formatApiDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function getReminderDaysBefore(
-  remind7: boolean,
-  remind3: boolean,
-  remindDay: boolean,
-) {
-  if (remind7) {
-    return 7;
-  }
-
-  if (remind3) {
-    return 3;
-  }
-
-  if (remindDay) {
-    return 0;
-  }
-
-  return 0;
+function reminderLabel(days: number) {
+  return days === 0 ? "当天" : `提前 ${days} 天`;
 }
 
 export default function AnniversaryCreateScreen() {
@@ -91,31 +73,8 @@ export default function AnniversaryCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const [repeatType, setRepeatType] = useState<AnniversaryRepeatType>("yearly");
-  const [remind7, setRemind7] = useState(true);
-  const [remind3, setRemind3] = useState(false);
-  const [remindDay, setRemindDay] = useState(true);
+  const [reminderDaysBefore, setReminderDaysBefore] = useState(7);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const remindOptions: RemindItem[] = [
-    {
-      key: "7-days",
-      label: "提前 7 天提醒",
-      value: remind7,
-      onValueChange: setRemind7,
-    },
-    {
-      key: "3-days",
-      label: "提前 3 天提醒",
-      value: remind3,
-      onValueChange: setRemind3,
-    },
-    {
-      key: "same-day",
-      label: "当天提醒",
-      value: remindDay,
-      onValueChange: setRemindDay,
-    },
-  ];
 
   const openRepeatSelector = () => {
     showStyledActionSheet(
@@ -131,6 +90,27 @@ export default function AnniversaryCreateScreen() {
 
         if (selectedIndex === 1) {
           setRepeatType("none");
+        }
+      },
+    );
+  };
+
+  const openReminderSelector = () => {
+    const options = [...REMINDER_OPTIONS.map((option) => option.label), "取消"];
+    showStyledActionSheet(
+      {
+        title: "选择提醒计划",
+        message: "每个纪念日仅保存一个计划；当前不会发送通知",
+        options,
+        cancelButtonIndex: options.length - 1,
+      },
+      (selectedIndex) => {
+        const option =
+          selectedIndex === undefined
+            ? undefined
+            : REMINDER_OPTIONS[selectedIndex];
+        if (option) {
+          setReminderDaysBefore(option.days);
         }
       },
     );
@@ -153,7 +133,7 @@ export default function AnniversaryCreateScreen() {
         type: selectedCategory,
         originalDate: formatApiDate(selectedDate),
         repeatType,
-        reminderDaysBefore: getReminderDaysBefore(remind7, remind3, remindDay),
+        reminderDaysBefore,
       });
       toast.success("纪念日已保存");
       router.back();
@@ -255,26 +235,17 @@ export default function AnniversaryCreateScreen() {
             仅保存计划时间；通知功能尚未上线，当前不会发送提醒。
           </Text>
 
-          {remindOptions.map((option) => (
-            <Row
-              key={option.key}
-              content="space-between"
-              items="center"
-              style={styles.remindRow}
-            >
-              <Text style={styles.remindText}>{option.label}</Text>
-              <Switch
-                value={option.value}
-                onValueChange={option.onValueChange}
-                disabled={isSubmitting}
-                trackColor={{
-                  false: "#D9D9D9",
-                  true: colors.theme.primaryBorder,
-                }}
-                thumbColor={option.value ? colors.theme.primary : "#F4F4F4"}
-              />
-            </Row>
-          ))}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.selector}
+            onPress={openReminderSelector}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.selectorValue}>
+              {reminderLabel(reminderDaysBefore)}
+            </Text>
+            <ChevronRight size={18} color="#C3C3C3" />
+          </TouchableOpacity>
         </Column>
       </ScrollView>
 
@@ -353,16 +324,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.semantic.textPrimary,
   },
-  remindRow: {
-    paddingVertical: 2,
-  },
   reminderNotice: {
     fontSize: 13,
     lineHeight: 19,
     color: colors.semantic.textSecondary,
-  },
-  remindText: {
-    fontSize: 15,
-    color: colors.semantic.textPrimary,
   },
 });

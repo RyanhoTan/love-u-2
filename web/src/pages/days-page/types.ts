@@ -22,6 +22,16 @@ export const DAY_REPEAT_OPTIONS: {
   { value: "yearly", label: "每年", description: "每年同一天倒数" },
 ];
 
+export const DAY_REMINDER_OPTIONS: {
+  value: number;
+  label: string;
+  description: string;
+}[] = [
+  { value: 0, label: "当天", description: "记录当天的计划时间" },
+  { value: 3, label: "提前 3 天", description: "记录提前三天的计划时间" },
+  { value: 7, label: "提前 7 天", description: "记录提前一周的计划时间" },
+];
+
 export const dayFormSchema = z.object({
   title: z
     .string()
@@ -30,8 +40,7 @@ export const dayFormSchema = z.object({
   type: z.enum(["love", "birthday", "holiday", "custom"]),
   date: z.string().regex(/^\d{4}\.\d{2}\.\d{2}$/, "请选择日期"),
   repeatType: z.enum(["none", "yearly"]),
-  remind7: z.boolean(),
-  remindDay: z.boolean(),
+  reminderDaysBefore: z.number().int().min(0).max(30),
 });
 
 export type DayFormValues = z.infer<typeof dayFormSchema>;
@@ -42,8 +51,7 @@ export function emptyDayForm(): DayFormValues {
     type: "birthday",
     date: "",
     repeatType: "yearly",
-    remind7: true,
-    remindDay: true,
+    reminderDaysBefore: 7,
   };
 }
 
@@ -53,8 +61,7 @@ export function anniversaryToForm(item: AnniversaryItem): DayFormValues {
     type: item.type,
     date: isoToDotDate(item.originalDate),
     repeatType: item.repeatType,
-    remind7: item.reminderDaysBefore >= 7,
-    remindDay: item.reminderDaysBefore === 0 || item.reminderDaysBefore >= 7,
+    reminderDaysBefore: item.reminderDaysBefore,
   };
 }
 
@@ -64,7 +71,7 @@ export function formToPayload(values: DayFormValues): AnniversaryPayload {
     type: values.type,
     originalDate: dotDateToIso(values.date),
     repeatType: values.repeatType,
-    reminderDaysBefore: values.remind7 ? 7 : 0,
+    reminderDaysBefore: values.reminderDaysBefore,
   };
 }
 
@@ -80,14 +87,16 @@ export function repeatLabel(repeatType: AnniversaryRepeatType): string {
 }
 
 export function remindLabel(values: Partial<DayFormValues>): string {
-  const parts: string[] = [];
-  if (values.remind7) {
-    parts.push("提前 7 天");
+  const days = values.reminderDaysBefore;
+  if (
+    typeof days !== "number" ||
+    !Number.isInteger(days) ||
+    days < 0 ||
+    days > 30
+  ) {
+    return "—";
   }
-  if (values.remindDay) {
-    parts.push("当天");
-  }
-  return parts.length > 0 ? parts.join(" · ") : "—";
+  return days === 0 ? "当天" : `提前 ${days} 天`;
 }
 
 export function isoToDotDate(iso: string): string {

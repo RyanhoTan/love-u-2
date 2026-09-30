@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   ActivityIndicator,
   ScrollView,
   StyleSheet,
@@ -11,9 +12,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { DatePickerModal } from "@/components/wish-list/date-picker-modal";
+import { CoverPicker } from "@/components/wish-list/cover-picker";
 import {
   getWishById,
   updateWish,
+  uploadWishFile,
   type WishItem,
 } from "@/app/features/wish-list/api";
 import { formatLocalDateOnly } from "@/app/features/wish-list/date";
@@ -21,6 +24,7 @@ import { NavBar, toast } from "@/components/common";
 
 const MAX_DESCRIPTION_LENGTH = 1000;
 const MAX_TITLE_LENGTH = 100;
+const MAX_BUDGET_AMOUNT = 2_147_483_647;
 
 function parseLocalDate(dateText: string) {
   const [year, month, day] = dateText.split("-").map(Number);
@@ -31,13 +35,31 @@ function formatDisplayDate(date: Date) {
   return formatLocalDateOnly(date).replaceAll("-", ".");
 }
 
+function parseBudgetAmount(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  if (!/^\d+$/.test(trimmed)) {
+    return undefined;
+  }
+
+  const amount = Number(trimmed);
+  return Number.isSafeInteger(amount) && amount <= MAX_BUDGET_AMOUNT
+    ? amount
+    : undefined;
+}
+
 export default function EditWish() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const wishId = Number(id);
   const [wish, setWish] = useState<WishItem | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [locationName, setLocationName] = useState("");
   const [targetDate, setTargetDate] = useState(new Date());
+  const [budgetText, setBudgetText] = useState("");
+  const [coverValue, setCoverValue] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     "loading",
@@ -46,11 +68,17 @@ export default function EditWish() {
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
   const normalizedTitle = title.trim();
+  const normalizedLocationName = locationName.trim();
+  const budgetAmount = parseBudgetAmount(budgetText);
+  const isBudgetValid = budgetAmount !== undefined;
   const hasChanges =
     wish !== null &&
     (normalizedTitle !== wish.title ||
       description !== wish.description ||
-      formatLocalDateOnly(targetDate) !== wish.targetDate);
+      formatLocalDateOnly(targetDate) !== wish.targetDate ||
+      normalizedLocationName !== wish.locationName ||
+      (isBudgetValid && budgetAmount !== wish.budgetAmount) ||
+      coverValue !== (wish.cover || null));
 
   const loadWish = useCallback(async () => {
     if (!Number.isInteger(wishId) || wishId <= 0) {
@@ -66,7 +94,10 @@ export default function EditWish() {
       setWish(response.wish);
       setTitle(response.wish.title);
       setDescription(response.wish.description);
+      setLocationName(response.wish.locationName);
       setTargetDate(parseLocalDate(response.wish.targetDate));
+      setBudgetText(response.wish.budgetAmount?.toString() ?? "");
+      setCoverValue(response.wish.cover || null);
       setLoadState("ready");
     } catch (error) {
       setLoadError(
@@ -81,25 +112,55 @@ export default function EditWish() {
   }, [loadWish]);
 
   async function handleSave() {
-    if (!wish || saving || normalizedTitle.length === 0 || !hasChanges) {
+    if (
+      !wish ||
+      saving ||
+      normalizedTitle.length === 0 ||
+      !isBudgetValid ||
+      !hasChanges
+    ) {
       return;
     }
 
     const titleChanged = normalizedTitle !== wish.title;
     const descriptionChanged = description !== wish.description;
     const targetDateChanged = formatLocalDateOnly(targetDate) !== wish.targetDate;
+    const locationChanged = normalizedLocationName !== wish.locationName;
+    const budgetChanged = budgetAmount !== wish.budgetAmount;
+    const coverChanged = coverValue !== (wish.cover || null);
     const payload: {
       title?: string;
       description?: string;
       targetDate?: string;
+      budgetAmount?: number | null;
+      locationName?: string;
+      coverObjectKey?: string | null;
     } = {};
     if (titleChanged) payload.title = normalizedTitle;
     if (descriptionChanged) payload.description = description.trim();
     if (targetDateChanged) payload.targetDate = formatLocalDateOnly(targetDate);
+    if (budgetChanged) payload.budgetAmount = budgetAmount;
+    if (locationChanged) payload.locationName = normalizedLocationName;
 
     try {
       setSaving(true);
       setSaveError("");
+      if (coverChanged) {
+        if (coverValue) {
+          const fileName = coverValue.split("/").pop() || "cover.jpg";
+          const contentType = fileName.toLowerCase().endsWith(".png")
+            ? "image/png"
+            : "image/jpeg";
+          const uploaded = await uploadWishFile(
+            coverValue,
+            fileName,
+            contentType,
+          );
+          payload.coverObjectKey = uploaded.key;
+        } else {
+          payload.coverObjectKey = null;
+        }
+      }
       await updateWish(wish.id, payload);
       toast.success("心愿保存成功");
       router.back();
@@ -188,6 +249,73 @@ export default function EditWish() {
               <Text style={styles.dateText}>{formatDisplayDate(targetDate)}</Text>
               <Text style={styles.dateHint}>点击修改</Text>
             </TouchableOpacity>
+            <Text style={styles.label}>预算</Text>
+            <View style={styles.budgetField}>
+              <Text style={styles.budgetCurrency}>¥</Text>
+              <TextInput
+                accessibilityLabel="心愿预算"
+                value={budgetText}
+                onChangeText={(value) => {
+                  setBudgetText(value);
+                  setSaveError("");
+                }}
+                placeholder="未设置，留空可清除"
+                placeholderTextColor="#C3B8BE"
+                keyboardType="number-pad"
+                maxLength={10}
+                editable={!saving}
+                style={styles.budgetInput}
+              />
+            </View>
+            {!isBudgetValid ? (
+              <Text style={styles.errorText}>预算须为 0–2,147,483,647 的整数</Text>
+            ) : null}
+            <Text style={styles.label}>地点名称</Text>
+            <TextInput
+              accessibilityLabel="心愿地点名称"
+              value={locationName}
+              onChangeText={(value) => {
+                setLocationName(value);
+                setSaveError("");
+              }}
+              placeholder="例如：想去的餐厅或城市"
+              placeholderTextColor="#C3B8BE"
+              maxLength={100}
+              editable={!saving}
+              style={styles.titleInput}
+            />
+            <Text style={styles.fieldHint}>仅修改地点名称，不更改已保存的坐标；留空可清除名称。</Text>
+            <Text style={styles.label}>封面</Text>
+            <CoverPicker
+              value={coverValue}
+              disabled={saving}
+              onChange={(value) => {
+                setCoverValue(value);
+                setSaveError("");
+              }}
+            />
+            {coverValue ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                disabled={saving}
+                onPress={() =>
+                  Alert.alert("清除封面", "保存后将移除这个心愿的封面。", [
+                    { text: "取消", style: "cancel" },
+                    {
+                      text: "清除",
+                      style: "destructive",
+                      onPress: () => {
+                        setCoverValue(null);
+                        setSaveError("");
+                      },
+                    },
+                  ])
+                }
+                style={styles.clearCoverButton}
+              >
+                <Text style={styles.clearCoverText}>清除封面</Text>
+              </TouchableOpacity>
+            ) : null}
             {saveError ? (
               <Text accessibilityRole="alert" style={styles.errorText}>
                 {saveError}
@@ -197,7 +325,13 @@ export default function EditWish() {
 
           <TouchableOpacity
             accessibilityRole="button"
-            disabled={saving || !wish || !hasChanges || normalizedTitle.length === 0}
+            disabled={
+              saving ||
+              !wish ||
+              !hasChanges ||
+              normalizedTitle.length === 0 ||
+              !isBudgetValid
+            }
             onPress={() => void handleSave()}
             style={[styles.saveButton, saving && styles.disabledButton]}
           >
@@ -278,6 +412,43 @@ const styles = StyleSheet.create({
   dateHint: {
     color: "#8F7D88",
     fontSize: 13,
+  },
+  fieldHint: {
+    color: "#8F7D88",
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  clearCoverButton: {
+    alignSelf: "flex-end",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  clearCoverText: {
+    color: "#D13B66",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  budgetField: {
+    minHeight: 50,
+    borderWidth: 1,
+    borderColor: "#EADDE3",
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  budgetCurrency: {
+    color: "#8F7D88",
+    fontSize: 15,
+    marginRight: 8,
+  },
+  budgetInput: {
+    flex: 1,
+    paddingVertical: 12,
+    color: "#2E2430",
+    fontSize: 15,
+    textAlign: "right",
   },
   counter: {
     alignSelf: "flex-end",

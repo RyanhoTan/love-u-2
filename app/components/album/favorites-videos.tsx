@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -14,7 +14,6 @@ import {
   type AlbumMediaItem,
 } from "@/app/features/album/api";
 import { ImagesImageErrorPng } from "@/assets";
-import { toast } from "@/components/common";
 import { Row } from "@/components/layout";
 import { chunk } from "@/utils/grid";
 import { useVideoViewer } from "@/hooks/use-video-viewer";
@@ -26,31 +25,69 @@ export function FavoritesVideosGrid({
 }) {
   const size = contentWidth > 0 ? (contentWidth - 4 * 2) / 3 : 0;
   const [videos, setVideos] = useState<AlbumMediaItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
+  const requestId = useRef(0);
   const { openViewer, Viewer } = useVideoViewer();
   const sections = useMemo(() => [{ data: chunk(videos, 3) }], [videos]);
 
   const refreshVideos = useCallback(async () => {
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setVideos([]);
+    setLoadError("");
+    setLoadState("loading");
+
     try {
-      setIsLoading(true);
       const media = await getFavoriteAlbumMedia();
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       setVideos(media.filter((item) => item.mediaType === "video"));
+      setLoadState("ready");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载收藏视频失败";
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(
+        error instanceof Error ? error.message : "加载收藏视频失败，请重试",
+      );
+      setLoadState("error");
     }
   }, []);
 
   useEffect(() => {
     void refreshVideos();
+    return () => {
+      requestId.current += 1;
+    };
   }, [refreshVideos]);
 
-  if (isLoading) {
+  if (loadState === "loading") {
     return (
       <View style={styles.centerState}>
         <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <View style={styles.centerState}>
+        <Text accessibilityRole="alert" style={styles.errorText}>
+          {loadError || "加载收藏视频失败，请重试"}
+        </Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => void refreshVideos()}
+          style={styles.retryButton}
+        >
+          <Text style={styles.retryText}>重新加载</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -117,6 +154,20 @@ const styles = StyleSheet.create({
   emptyText: {
     color: "#888",
     fontSize: 14,
+  },
+  errorText: {
+    color: "#b42318",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  retryButton: {
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  retryText: {
+    color: "#FF4F7A",
+    fontWeight: "600",
   },
   playButton: {
     position: "absolute",

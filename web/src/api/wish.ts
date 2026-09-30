@@ -24,6 +24,24 @@ export function getWishes() {
   });
 }
 
+export function getDeletedWishes() {
+  return requestWithAuth<SchemaWishListResponse>("/wishes/recycle", {
+    method: "GET",
+  });
+}
+
+export function deleteWish(id: number) {
+  return requestWithAuth<SchemaWishItemResponse>(`/wishes/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export function restoreWish(id: number) {
+  return requestWithAuth<SchemaWishItemResponse>(`/wishes/${id}/restore`, {
+    method: "POST",
+  });
+}
+
 export function getWishById(id: number) {
   return requestWithAuth<SchemaWishItemResponse>(`/wishes/${id}`, {
     method: "GET",

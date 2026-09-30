@@ -1,6 +1,5 @@
 import {
-  API_BASE_URL,
-  getAuthToken,
+  fetchWithAuth,
   requestWithAuth,
 } from "@/app/shared/api-client";
 
@@ -31,6 +30,7 @@ export interface AlbumStory {
   title: string;
   description: string;
   coverMediaId: number | null;
+  coverMediaType: AlbumMediaType | null;
   coverUrl: string;
   coverThumbnailUrl: string;
   photos: number;
@@ -63,7 +63,7 @@ interface GetAlbumStoryResponse {
 
 export interface CreateAlbumMediaPayload {
   mediaType: AlbumMediaType;
-  url: string;
+  objectKey: string;
   thumbnailUrl?: string;
   takenAt?: string;
   locationName?: string;
@@ -89,7 +89,6 @@ interface CreateAlbumStoryResponse {
 
 interface UploadMediaResponse {
   key: string;
-  url: string;
 }
 
 interface UpdateAlbumStoryFavoriteResponse {
@@ -161,24 +160,17 @@ export async function uploadAlbumFile(
   contentType: string,
   folder: string,
 ) {
-  const token = await getAuthToken();
-
-  if (!token) {
-    throw new Error("login required");
-  }
-
   const fileResponse = await fetch(uri);
   const fileBlob = await fileResponse.blob();
-  const response = await fetch(
-    `${API_BASE_URL}/upload/media?folder=${encodeURIComponent(folder)}`,
+  const response = await fetchWithAuth(
+    `/upload/media?folder=${encodeURIComponent(folder)}`,
     {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": contentType,
-      "x-file-name": fileName,
-    },
-    body: fileBlob,
+      method: "POST",
+      headers: {
+        "Content-Type": contentType,
+        "x-file-name": fileName,
+      },
+      body: fileBlob,
     },
   );
 

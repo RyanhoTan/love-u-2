@@ -11,7 +11,8 @@ const MAX_DURATION_SECONDS = 60;
 const MIN_WAVE_BARS = 4;
 
 type VoiceBubbleProps = {
-  src: string;
+  src?: string;
+  resolveSrc?: () => Promise<string>;
   incoming: boolean;
   durationSeconds?: number;
 };
@@ -63,12 +64,14 @@ function readAudioDuration(audio: HTMLAudioElement) {
 
 export function VoiceBubble({
   src,
+  resolveSrc,
   incoming,
   durationSeconds,
 }: VoiceBubbleProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [measuredDuration, setMeasuredDuration] = useState<number | null>(null);
+  const [playbackFailed, setPlaybackFailed] = useState(false);
 
   const duration =
     durationSeconds != null &&
@@ -81,11 +84,14 @@ export function VoiceBubble({
   const bars = WAVE_HEIGHTS.slice(0, waveBarCount(resolvedDuration));
 
   useEffect(() => {
-    const audio = new Audio(src);
-    audio.preload = "metadata";
+    const audio = src ? new Audio(src) : new Audio();
+    if (src) {
+      audio.preload = "metadata";
+    }
     audioRef.current = audio;
     setMeasuredDuration(null);
     setPlaying(false);
+    setPlaybackFailed(false);
 
     function applyDuration(next: number | null) {
       if (next != null) {
@@ -162,16 +168,30 @@ export function VoiceBubble({
     }
 
     try {
+      setPlaybackFailed(false);
+      if (resolveSrc) {
+        const resolvedSrc = await resolveSrc();
+        audio.src = resolvedSrc;
+        audio.load();
+      }
       await audio.play();
     } catch {
       setPlaying(false);
+      setPlaybackFailed(true);
     }
   }
 
   return (
     <button
       type="button"
-      aria-label={playing ? "暂停语音" : "播放语音"}
+      aria-label={
+        playbackFailed
+          ? "语音加载失败，点击重试"
+          : playing
+            ? "暂停语音"
+            : "播放语音"
+      }
+      title={playbackFailed ? "语音加载失败，点击重试" : undefined}
       className={cx(
         "flex h-11 items-center gap-2.5 px-3.5",
         incoming

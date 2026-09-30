@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
@@ -70,7 +70,9 @@ export default function StoryDetail() {
   const [story, setStory] = useState<AlbumStory | null>(null);
   const [media, setMedia] = useState<AlbumMediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
+  const requestId = useRef(0);
   const { openViewer: openImageViewer, Viewer: ImageViewer } = useImageViewer();
   const { openViewer: openVideoViewer, Viewer: VideoViewer } = useVideoViewer();
 
@@ -86,29 +88,48 @@ export default function StoryDetail() {
 
   const refreshStory = useCallback(async () => {
     const storyId = Number(id);
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setStory(null);
+    setMedia([]);
+    setLoadError("");
+    setIsLoading(true);
 
     if (!Number.isInteger(storyId) || storyId <= 0) {
-      toast.error("故事不存在");
+      setLoadError("故事不存在");
       setIsLoading(false);
       return;
     }
 
     try {
-      setIsLoading(true);
       const response = await getAlbumStory(storyId);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       setStory(response.story);
       setMedia(response.media);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载故事失败";
-      toast.error(message);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(error instanceof Error ? error.message : "加载故事失败");
     } finally {
-      setIsLoading(false);
+      if (requestId.current === currentRequestId) {
+        setIsLoading(false);
+      }
     }
   }, [id]);
 
-  useEffect(() => {
-    void refreshStory();
-  }, [refreshStory]);
+  useFocusEffect(
+    useCallback(() => {
+      void refreshStory();
+      return () => {
+        requestId.current += 1;
+      };
+    }, [refreshStory]),
+  );
 
   const handleToggleFavorite = async () => {
     if (!story || isUpdatingFavorite) {
@@ -153,7 +174,20 @@ export default function StoryDetail() {
       />
       {isLoading ? (
         <View style={styles.centerState}>
-          <ActivityIndicator />
+          <ActivityIndicator color="#FF4F7A" />
+        </View>
+      ) : loadError ? (
+        <View style={styles.centerState}>
+          <Text accessibilityRole="alert" style={styles.errorText}>
+            {loadError}
+          </Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={() => void refreshStory()}
+            style={styles.retryButton}
+          >
+            <Text style={styles.retryText}>重新加载</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <ScrollView
@@ -186,8 +220,8 @@ export default function StoryDetail() {
                 >
                   {imageSize > 0 &&
                     group.items.map((item) => {
-                      const uri = item.thumbnailUrl || item.url;
                       const isVideo = item.mediaType === "video";
+                      const uri = item.thumbnailUrl || item.url;
 
                       return (
                         <TouchableOpacity
@@ -202,14 +236,23 @@ export default function StoryDetail() {
                           }}
                         >
                           <View>
-                            <Image
-                              source={{ uri }}
-                              style={{
-                                width: imageSize,
-                                height: imageSize,
-                                borderRadius: 6,
-                              }}
-                            />
+                            {isVideo ? (
+                              <View
+                                style={[
+                                  styles.videoThumbnail,
+                                  { width: imageSize, height: imageSize },
+                                ]}
+                              />
+                            ) : (
+                              <Image
+                                source={{ uri }}
+                                style={{
+                                  width: imageSize,
+                                  height: imageSize,
+                                  borderRadius: 6,
+                                }}
+                              />
+                            )}
                             {isVideo ? (
                               <View style={styles.videoOverlay}>
                                 <Play color="#fff" fill="#fff" size={16} />
@@ -246,6 +289,20 @@ const styles = StyleSheet.create({
     color: "#aaa",
     fontSize: 14,
   },
+  errorText: {
+    color: "#B42318",
+    textAlign: "center",
+  },
+  retryButton: {
+    borderRadius: 20,
+    backgroundColor: "#FF4F7A",
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+  },
+  retryText: {
+    color: "#fff",
+    fontWeight: "700",
+  },
   timeTitle: {
     fontSize: 16,
     fontWeight: "bold",
@@ -271,6 +328,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#00000066",
     alignItems: "center",
     justifyContent: "center",
+  },
+  videoThumbnail: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 6,
+    backgroundColor: "#34252D",
   },
   favoriteButton: {
     padding: 6,

@@ -15,6 +15,8 @@ interface ChatListItemProps {
   time: string;
   isSelf?: boolean;
   onPress?: () => void;
+  onRetry?: () => void;
+  retryDisabled?: boolean;
 }
 
 export function ChatListItem({
@@ -23,6 +25,8 @@ export function ChatListItem({
   time,
   isSelf = false,
   onPress,
+  onRetry,
+  retryDisabled = false,
 }: ChatListItemProps) {
   const bubble = isSelf ? (
     <LinearGradient
@@ -57,6 +61,19 @@ export function ChatListItem({
       <Text style={[styles.time, isSelf ? styles.selfTime : styles.otherTime]}>
         {time}
       </Text>
+      {onRetry ? (
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="重试发送消息"
+          disabled={retryDisabled}
+          onPress={onRetry}
+          activeOpacity={0.75}
+        >
+          <Text style={[styles.retry, retryDisabled && styles.retryDisabled]}>
+            重试
+          </Text>
+        </TouchableOpacity>
+      ) : null}
     </Column>
   );
 }
@@ -115,5 +132,15 @@ const styles = StyleSheet.create({
   otherTime: {
     color: "#9f7a88",
     paddingLeft: 46,
+  },
+  retry: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: "#c44563",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  retryDisabled: {
+    opacity: 0.45,
   },
 });

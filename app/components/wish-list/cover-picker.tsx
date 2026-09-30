@@ -9,9 +9,10 @@ import { colors } from "@/styles/colors";
 type CoverPickerProps = {
   value: string | null;
   onChange: (value: string) => void;
+  disabled?: boolean;
 };
 
-export function CoverPicker({ value, onChange }: CoverPickerProps) {
+export function CoverPicker({ value, onChange, disabled = false }: CoverPickerProps) {
   const { showStyledActionSheet } = useStyledActionSheet();
   const { pickFromLibrary, takePhoto } = useMediaPicker({
     mediaTypes: "image",
@@ -31,6 +32,8 @@ export function CoverPicker({ value, onChange }: CoverPickerProps) {
   };
 
   const onPress = () => {
+    if (disabled) return;
+
     showStyledActionSheet(
       {
         options: ["拍照", "从相册选择", "取消"],
@@ -59,8 +62,9 @@ export function CoverPicker({ value, onChange }: CoverPickerProps) {
 
   return (
     <TouchableOpacity
-      style={styles.coverTouchable}
+      style={[styles.coverTouchable, disabled && styles.disabled]}
       activeOpacity={0.8}
+      disabled={disabled}
       onPress={onPress}
     >
       <LinearGradient
@@ -99,6 +103,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: colors.theme.primaryBorder,
+  },
+  disabled: {
+    opacity: 0.6,
   },
   contentContainer: {
     flex: 1,

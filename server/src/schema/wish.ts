@@ -2,6 +2,12 @@ import { z } from "zod";
 import { isValidCalendarDateOnly } from "./dateOnly.js";
 
 export const wishStatusSchema = z.enum(["todo", "doing", "done"]);
+const wishBudgetAmountSchema = z
+  .number()
+  .int()
+  .min(0)
+  .max(2_147_483_647)
+  .nullable();
 
 function wishDateOnlySchema(fieldName: "targetDate" | "recordDate") {
   return z
@@ -9,6 +15,25 @@ function wishDateOnlySchema(fieldName: "targetDate" | "recordDate") {
     .regex(/^\d{4}-\d{2}-\d{2}$/, `${fieldName} must be in YYYY-MM-DD format`)
     .refine(isValidCalendarDateOnly, `${fieldName} must be a valid calendar date`);
 }
+
+const wishMediaObjectKeySchema = z
+  .string()
+  .trim()
+  .min(1, "objectKey is required")
+  .max(2048, "objectKey must be at most 2048 characters")
+  .refine((value) => {
+    const segments = value.split("/");
+    return (
+      segments.length === 3 &&
+      segments[0] === "album" &&
+      /^\d+$/.test(segments[1] ?? "") &&
+      Boolean(segments[2]) &&
+      segments[2] !== "." &&
+      segments[2] !== ".." &&
+      !/[?#\\]/.test(value) &&
+      !Array.from(value).some((character) => character.charCodeAt(0) <= 31)
+    );
+  }, "objectKey must be an album media object key");
 
 export const createWishSchema = z.object({
   title: z
@@ -27,8 +52,8 @@ export const createWishSchema = z.object({
     .trim()
     .url("cover must be a valid URL")
     .optional()
-    .or(z.literal(""))
-    .default(""),
+    .or(z.literal("")),
+  coverObjectKey: wishMediaObjectKeySchema.optional(),
   targetDate: wishDateOnlySchema("targetDate"),
   locationName: z
     .string()
@@ -38,7 +63,7 @@ export const createWishSchema = z.object({
     .default(""),
   latitude: z.number().min(-90).max(90).nullable().optional().default(null),
   longitude: z.number().min(-180).max(180).nullable().optional().default(null),
-  budgetAmount: z.number().int().min(0).nullable().optional().default(null),
+  budgetAmount: wishBudgetAmountSchema.optional().default(null),
 });
 
 export const updateWishSchema = z
@@ -56,10 +81,33 @@ export const updateWishSchema = z
       .max(1000, "description must be at most 1000 characters")
       .optional(),
     targetDate: wishDateOnlySchema("targetDate").optional(),
+    budgetAmount: wishBudgetAmountSchema.optional(),
+    locationName: z
+      .string()
+      .trim()
+      .max(100, "locationName must be at most 100 characters")
+      .optional(),
+    coverObjectKey: wishMediaObjectKeySchema.nullable().optional(),
   })
   .strict()
   .refine((payload) => Object.keys(payload).length > 0, {
     message: "at least one wish field is required",
+  });
+
+const wishRecordMediaSchema = z
+  .object({
+    objectKey: wishMediaObjectKeySchema.optional(),
+    url: z
+      .string()
+      .trim()
+      .pipe(z.url({ message: "media url must be a valid URL" }))
+      .optional(),
+    mediaType: z.enum(["image", "video"]),
+    thumbnailUrl: z.string().trim().optional().default(""),
+  })
+  .strict()
+  .refine(({ objectKey, url }) => Boolean(objectKey) !== Boolean(url), {
+    message: "provide exactly one of objectKey or legacy url",
   });
 
 export const createWishRecordSchema = z.object({
@@ -86,16 +134,7 @@ export const createWishRecordSchema = z.object({
   longitude: z.number().min(-180).max(180).nullable().optional().default(null),
   budgetAmount: z.number().int().min(0).nullable().optional().default(null),
   media: z
-    .array(
-      z.object({
-        url: z
-          .string()
-          .trim()
-          .pipe(z.url({ message: "media url must be a valid URL" })),
-        mediaType: z.enum(["image", "video"]),
-        thumbnailUrl: z.string().trim().optional().default(""),
-      }),
-    )
+    .array(wishRecordMediaSchema)
     .max(99, "media must contain at most 99 items")
     .optional()
     .default([]),

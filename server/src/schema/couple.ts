@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { isSupportedTimeZone } from "../couple/calendar.js";
+import { isValidCalendarDateOnly } from "./dateOnly.js";
 
 export const bindCoupleSchema = z.object({
   inviteCode: z
@@ -19,8 +21,19 @@ export const updateCoupleProfileSchema = z.object({
       /^\d{4}-\d{2}-\d{2}$/,
       "anniversaryDate must be in YYYY-MM-DD format"
     )
-    .nullable(),
-});
+    .refine(isValidCalendarDateOnly, "anniversaryDate must be a valid calendar date")
+    .nullable()
+    .optional(),
+  timeZone: z
+    .string()
+    .trim()
+    .max(64)
+    .refine(isSupportedTimeZone, "timeZone must be a supported named timezone or UTC")
+    .optional(),
+}).refine(
+  (payload) => payload.anniversaryDate !== undefined || payload.timeZone !== undefined,
+  "at least one couple profile field is required",
+);
 
 export type BindCoupleInput = z.infer<typeof bindCoupleSchema>;
 export type UpdateCoupleProfileInput = z.infer<typeof updateCoupleProfileSchema>;

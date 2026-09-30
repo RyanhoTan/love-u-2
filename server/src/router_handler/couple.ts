@@ -3,14 +3,17 @@ import type { PoolConnection, ResultSetHeader, RowDataPacket } from "mysql2/prom
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
+import { acquireCoupleBindingLocks } from "../couple/bind-locks.js";
+import { generateInviteCode } from "../couple/invite-code.js";
+import { getCalendarDateText, getDaysInLove } from "../couple/calendar.js";
+import { buildCoupleProfileUpdate } from "../couple/profile-update.js";
 import { bindCoupleSchema, updateCoupleProfileSchema } from "../schema/couple.js";
 import { parseRequestBody } from "../validation.js";
+import { closePartnerChatConnectionsForRelationship } from "../ws/partnerChat.js";
 
 const COUPLE_INVITES_TABLE = "couple_invites";
 const COUPLE_RELATIONSHIPS_TABLE = "couple_relationships";
-const INVITE_CODE_LENGTH = 6;
 const INVITE_EXPIRES_IN_MINUTES = 30;
-const INVITE_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 interface ColumnNameRow extends RowDataPacket {
   COLUMN_NAME: string;
@@ -36,6 +39,7 @@ interface CoupleRelationshipRow extends RowDataPacket {
   user_a_id: number;
   user_b_id: number;
   anniversary_date: Date | string | null;
+  time_zone: string;
   status: string;
   created_at: Date | string;
   updated_at: Date | string;
@@ -132,6 +136,7 @@ async function getUsersTableColumns() {
 async function findActiveRelationshipByUserId(
   executor: typeof db | PoolConnection,
   userId: number,
+  forUpdate = false,
 ) {
   const [rows] = await executor.query<CoupleRelationshipRow[]>(
     `
@@ -139,7 +144,8 @@ async function findActiveRelationshipByUserId(
         id,
         user_a_id,
         user_b_id,
-        anniversary_date,
+        DATE_FORMAT(anniversary_date, '%Y-%m-%d') AS anniversary_date,
+        time_zone,
         status,
         created_at,
         updated_at,
@@ -148,6 +154,7 @@ async function findActiveRelationshipByUserId(
       WHERE status = 'bound'
         AND (user_a_id = ? OR user_b_id = ?)
       LIMIT 1
+      ${forUpdate ? "FOR UPDATE" : ""}
     `,
     [userId, userId]
   );
@@ -235,6 +242,48 @@ async function findInviteByCode(
   return rows[0] ?? null;
 }
 
+async function findInviteByCodeForUpdate(
+  executor: PoolConnection,
+  inviteCode: string,
+) {
+  const [rows] = await executor.query<CoupleInviteRow[]>(
+    `
+      SELECT
+        code,
+        inviter_user_id,
+        invitee_user_id,
+        status,
+        expires_at,
+        created_at,
+        updated_at,
+        used_at
+      FROM ${COUPLE_INVITES_TABLE}
+      WHERE code = ?
+      LIMIT 1
+      FOR UPDATE
+    `,
+    [inviteCode]
+  );
+
+  return rows[0] ?? null;
+}
+
+async function lockCoupleBindingAccounts(
+  connection: PoolConnection,
+  userIds: readonly number[],
+) {
+  await acquireCoupleBindingLocks(userIds, async (userId) => {
+    const [rows] = await connection.query<RowDataPacket[]>(
+      `SELECT id FROM users WHERE id = ? FOR UPDATE`,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      throw new HttpError(404, "invite code not found");
+    }
+  });
+}
+
 function serializePartner(partner: UserSummaryRow | null) {
   if (!partner) {
     return null;
@@ -272,38 +321,11 @@ function serializeRelationship(relationship: CoupleRelationshipRow | null) {
     id: relationship.id,
     status: relationship.status,
     anniversaryDate: formatDateOnly(relationship.anniversary_date),
+    timeZone: relationship.time_zone,
     createdAt: formatDateTime(relationship.created_at),
     updatedAt: formatDateTime(relationship.updated_at),
     unboundAt: formatDateTime(relationship.unbound_at),
   };
-}
-
-function getDaysInLove(anniversaryDate: Date | string | null) {
-  const dateText = formatDateOnly(anniversaryDate);
-  if (!dateText) {
-    return null;
-  }
-
-  const start = new Date(`${dateText}T00:00:00.000Z`);
-  const now = new Date();
-  const diffMs = now.getTime() - start.getTime();
-
-  if (Number.isNaN(diffMs) || diffMs < 0) {
-    return 0;
-  }
-
-  return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-}
-
-function generateInviteCode() {
-  let result = "";
-
-  for (let index = 0; index < INVITE_CODE_LENGTH; index += 1) {
-    const randomIndex = Math.floor(Math.random() * INVITE_CODE_ALPHABET.length);
-    result += INVITE_CODE_ALPHABET[randomIndex];
-  }
-
-  return result;
 }
 
 async function createUniqueInviteCode(executor: PoolConnection) {
@@ -333,13 +355,20 @@ async function buildCoupleSpaceResponse(userId: number) {
     partner = await findUserSummaryById(db, partnerId, userColumns);
   }
 
+  const todayDate = relationship
+    ? getCalendarDateText(relationship.time_zone)
+    : null;
+
   return {
     message: "get couple space success",
     coupleSpace: {
       isBound: Boolean(relationship),
       partner: serializePartner(partner),
       relationship: serializeRelationship(relationship),
-      daysInLove: relationship ? getDaysInLove(relationship.anniversary_date) : null,
+      todayDate,
+      daysInLove: relationship && todayDate
+        ? getDaysInLove(formatDateOnly(relationship.anniversary_date), todayDate)
+        : null,
       activeInvite: serializeInvite(activeInvite),
     },
   };
@@ -435,12 +464,7 @@ export async function bindCoupleSpace(req: Request, res: Response) {
   try {
     await connection.beginTransaction();
 
-    const selfRelationship = await findActiveRelationshipByUserId(connection, userId);
-    if (selfRelationship) {
-      throw new HttpError(409, "you are already bound to a partner");
-    }
-
-    const invite = await findInviteByCode(connection, payload.inviteCode);
+    const invite = await findInviteByCodeForUpdate(connection, payload.inviteCode);
     if (!invite || invite.status !== "pending") {
       throw new HttpError(404, "invite code not found");
     }
@@ -454,9 +478,24 @@ export async function bindCoupleSpace(req: Request, res: Response) {
       throw new HttpError(400, "cannot bind with your own invite code");
     }
 
+    await lockCoupleBindingAccounts(connection, [
+      invite.inviter_user_id,
+      userId,
+    ]);
+
+    const selfRelationship = await findActiveRelationshipByUserId(
+      connection,
+      userId,
+      true,
+    );
+    if (selfRelationship) {
+      throw new HttpError(409, "you are already bound to a partner");
+    }
+
     const inviterRelationship = await findActiveRelationshipByUserId(
       connection,
-      invite.inviter_user_id
+      invite.inviter_user_id,
+      true,
     );
     if (inviterRelationship) {
       throw new HttpError(409, "the inviter is already bound to a partner");
@@ -474,7 +513,7 @@ export async function bindCoupleSpace(req: Request, res: Response) {
       [invite.inviter_user_id, userId]
     );
 
-    await connection.query<ResultSetHeader>(
+    const [inviteUpdate] = await connection.query<ResultSetHeader>(
       `
         UPDATE ${COUPLE_INVITES_TABLE}
         SET
@@ -483,9 +522,16 @@ export async function bindCoupleSpace(req: Request, res: Response) {
           used_at = CURRENT_TIMESTAMP,
           updated_at = CURRENT_TIMESTAMP
         WHERE code = ?
+          AND inviter_user_id = ?
+          AND status = 'pending'
+          AND expires_at > CURRENT_TIMESTAMP(3)
       `,
-      [userId, invite.code]
+      [userId, invite.code, invite.inviter_user_id]
     );
+
+    if (inviteUpdate.affectedRows !== 1) {
+      throw new HttpError(410, "invite code has expired");
+    }
 
     await connection.commit();
 
@@ -507,16 +553,14 @@ export async function updateCoupleSpace(req: Request, res: Response) {
   const payload = parseRequestBody(updateCoupleProfileSchema, req.body);
   await assertCoupleSpaceTablesReady();
 
+  const relationship = await findActiveRelationshipByUserId(db, userId);
+  if (!relationship) {
+    throw new HttpError(404, "bound couple relationship not found");
+  }
+  const update = buildCoupleProfileUpdate(relationship.id, userId, payload);
   const [result] = await db.query<ResultSetHeader>(
-    `
-      UPDATE ${COUPLE_RELATIONSHIPS_TABLE}
-      SET
-        anniversary_date = ?,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE status = 'bound'
-        AND (user_a_id = ? OR user_b_id = ?)
-    `,
-    [payload.anniversaryDate, userId, userId]
+    update.sql,
+    update.values,
   );
 
   if (result.affectedRows === 0) {
@@ -557,6 +601,7 @@ export async function unbindCoupleSpace(req: Request, res: Response) {
     );
 
     await connection.commit();
+    closePartnerChatConnectionsForRelationship(relationship.id);
     res.status(200).json({ message: "unbind couple space success" });
   } catch (error) {
     await connection.rollback();

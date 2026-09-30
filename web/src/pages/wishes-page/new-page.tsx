@@ -1,5 +1,5 @@
 import { Calendar, ChevronLeft, ImagePlus, MapPin, Wallet } from "lucide-react";
-import { useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { uploadWishMedia } from "@/api/wish";
 import {
@@ -23,13 +23,23 @@ export function WishNewPage() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [cover, setCover] = useState("");
+  const [coverPreview, setCoverPreview] = useState("");
+  const [coverObjectKey, setCoverObjectKey] = useState("");
   const [targetDate, setTargetDate] = useState(todayIso());
   const [locationName, setLocationName] = useState("");
   const [budgetText, setBudgetText] = useState("");
   const [dateOpen, setDateOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [localError, setLocalError] = useState("");
+
+  useEffect(
+    () => () => {
+      if (coverPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(coverPreview);
+      }
+    },
+    [coverPreview],
+  );
 
   const pending = createMutation.isPending || uploading;
   async function handleCoverChange(file: File | undefined) {
@@ -38,10 +48,13 @@ export function WishNewPage() {
     }
     setLocalError("");
     setUploading(true);
+    const previewUrl = URL.createObjectURL(file);
     try {
       const uploaded = await uploadWishMedia(file);
-      setCover(uploaded.url);
+      setCoverObjectKey(uploaded.key);
+      setCoverPreview(previewUrl);
     } catch (caught) {
+      URL.revokeObjectURL(previewUrl);
       setLocalError(errorMessage(caught, "封面上传失败"));
     } finally {
       setUploading(false);
@@ -74,7 +87,7 @@ export function WishNewPage() {
       {
         title: trimmed,
         description: description.trim(),
-        cover,
+        coverObjectKey: coverObjectKey || undefined,
         targetDate,
         locationName: locationName.trim(),
         latitude: null,
@@ -134,8 +147,8 @@ export function WishNewPage() {
             "disabled:opacity-60",
           )}
         >
-          {cover ? (
-            <img src={cover} alt="" className="h-full w-full object-cover" />
+          {coverPreview ? (
+            <img src={coverPreview} alt="" className="h-full w-full object-cover" />
           ) : (
             <>
               <ImagePlus className="size-7 text-fg-muted" strokeWidth={1.75} />

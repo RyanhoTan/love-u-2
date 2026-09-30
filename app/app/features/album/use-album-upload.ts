@@ -1,23 +1,15 @@
 import { useState } from "react";
-import { createAlbumMedia } from "@/app/features/album/api";
+import {
+  createAlbumMedia,
+  uploadAlbumFile,
+} from "@/app/features/album/api";
 import {
   createAlbumUploadRecord,
   markAlbumUploadRecordFailed,
   markAlbumUploadRecordSuccess,
 } from "@/app/features/album/upload-records";
 import { toast } from "@/components/common";
-import type { PickedMediaItem } from "@/hooks";
 import { useMediaPicker } from "@/hooks";
-
-function getThumbnailUri(asset: PickedMediaItem) {
-  const source = asset.thumbnailSource;
-
-  if (source && typeof source === "object" && "uri" in source) {
-    return typeof source.uri === "string" ? source.uri : "";
-  }
-
-  return "";
-}
 
 export function useAlbumUpload(options?: { onSuccess?: () => void }) {
   const { pickFromLibrary } = useMediaPicker({
@@ -45,15 +37,25 @@ export function useAlbumUpload(options?: { onSuccess?: () => void }) {
       setIsUploadingMedia(true);
 
       await Promise.all(
-        assets.map((asset) =>
-          createAlbumMedia({
+        assets.map(async (asset) => {
+          const fileName =
+            asset.fileName ||
+            `${asset.id}.${asset.type === "image" ? "jpg" : "mp4"}`;
+          const uploaded = await uploadAlbumFile(
+            asset.uri,
+            fileName,
+            asset.mimeType ||
+              (asset.type === "image" ? "image/jpeg" : "video/mp4"),
+            "album",
+          );
+
+          return createAlbumMedia({
             mediaType: asset.type,
-            url: asset.uri,
-            thumbnailUrl: getThumbnailUri(asset),
+            objectKey: uploaded.key,
             latitude: null,
             longitude: null,
-          }),
-        ),
+          });
+        }),
       );
 
       markAlbumUploadRecordSuccess(uploadRecordId);

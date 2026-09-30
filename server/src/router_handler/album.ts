@@ -7,11 +7,14 @@ import type {
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
+import { createAlbumScope } from "../media/albumScope.js";
+import { isAlbumObjectKeyOwnedByUser } from "../media/objectKey.js";
 import {
   createAlbumMediaSchema,
   createAlbumStorySchema,
   updateAlbumStoryFavoriteSchema,
 } from "../schema/album.js";
+import { createMediaReadUrl } from "./upload.js";
 import { parseRequestBody } from "../validation.js";
 
 interface CoupleRelationshipRow extends RowDataPacket {
@@ -80,6 +83,8 @@ interface AlbumStoryRow extends RowDataPacket {
   cover_media_id: number | null;
   cover_url: string | null;
   cover_thumbnail_url: string | null;
+  cover_object_key: string | null;
+  cover_media_type: "image" | "video" | null;
   photo_count: number | string;
   video_count: number | string;
   is_favorite: number | boolean;
@@ -94,6 +99,7 @@ interface SerializedAlbumStory {
   title: string;
   description: string;
   coverMediaId: number | null;
+  coverMediaType: "image" | "video" | null;
   coverUrl: string;
   coverThumbnailUrl: string;
   photos: number;
@@ -126,7 +132,11 @@ function formatDateTime(value: Date | string) {
   return value.toISOString();
 }
 
-function serializeAlbumMedia(row: AlbumMediaRow): SerializedAlbumMedia {
+async function serializeAlbumMedia(
+  row: AlbumMediaRow,
+): Promise<SerializedAlbumMedia> {
+  const objectKey = row.object_key?.trim();
+
   return {
     id: row.id,
     relationshipId: row.relationship_id,
@@ -134,8 +144,8 @@ function serializeAlbumMedia(row: AlbumMediaRow): SerializedAlbumMedia {
     mediaType: row.media_type,
     sourceType: row.source_type,
     sourceId: row.source_id,
-    url: row.url,
-    thumbnailUrl: row.thumbnail_url || "",
+    url: objectKey ? await createMediaReadUrl(objectKey) : row.url,
+    thumbnailUrl: objectKey ? "" : row.thumbnail_url || "",
     takenAt: formatDateOnly(row.taken_at),
     locationName: row.location_name || "",
     latitude: row.latitude === null ? null : Number(row.latitude),
@@ -145,7 +155,11 @@ function serializeAlbumMedia(row: AlbumMediaRow): SerializedAlbumMedia {
   };
 }
 
-function serializeAlbumStory(row: AlbumStoryRow): SerializedAlbumStory {
+async function serializeAlbumStory(
+  row: AlbumStoryRow,
+): Promise<SerializedAlbumStory> {
+  const coverObjectKey = row.cover_object_key?.trim();
+
   return {
     id: row.id,
     relationshipId: row.relationship_id,
@@ -153,8 +167,11 @@ function serializeAlbumStory(row: AlbumStoryRow): SerializedAlbumStory {
     title: row.title,
     description: row.description || "",
     coverMediaId: row.cover_media_id,
-    coverUrl: row.cover_url || "",
-    coverThumbnailUrl: row.cover_thumbnail_url || "",
+    coverMediaType: row.cover_media_type,
+    coverUrl: coverObjectKey
+      ? await createMediaReadUrl(coverObjectKey)
+      : row.cover_url || "",
+    coverThumbnailUrl: coverObjectKey ? "" : row.cover_thumbnail_url || "",
     photos: Number(row.photo_count),
     videos: Number(row.video_count),
     isFavorite: Boolean(row.is_favorite),
@@ -191,9 +208,7 @@ function inferMediaType(url: string): "image" | "video" {
 }
 
 function assertObjectKeyBelongsToUser(userId: number, objectKey: string) {
-  const segments = objectKey.split("/");
-
-  if (segments.includes("..") || !segments.includes(String(userId))) {
+  if (!isAlbumObjectKeyOwnedByUser(userId, objectKey)) {
     throw new HttpError(403, "media object does not belong to the current user");
   }
 }
@@ -259,20 +274,7 @@ async function ensureAlbumStoriesFavoriteColumn() {
 
 export async function buildAlbumScope(userId: number) {
   const relationship = await findActiveRelationshipByUserId(userId);
-
-  if (relationship) {
-    return {
-      sql: "(relationship_id = ? OR created_by_user_id IN (?, ?))",
-      values: [relationship.id, relationship.user_a_id, relationship.user_b_id],
-      relationshipId: relationship.id,
-    };
-  }
-
-  return {
-    sql: "(created_by_user_id = ?)",
-    values: [userId],
-    relationshipId: null,
-  };
+  return createAlbumScope(userId, relationship);
 }
 
 function storySelectSql() {
@@ -286,6 +288,8 @@ function storySelectSql() {
       s.cover_media_id,
       cover.url AS cover_url,
       cover.thumbnail_url AS cover_thumbnail_url,
+      cover.object_key AS cover_object_key,
+      cover.media_type AS cover_media_type,
       COALESCE(SUM(m.media_type = 'image'), 0) AS photo_count,
       COALESCE(SUM(m.media_type = 'video'), 0) AS video_count,
       s.is_favorite,
@@ -295,7 +299,22 @@ function storySelectSql() {
     LEFT JOIN album_media m
       ON m.source_type = 'story'
       AND m.source_id = s.id
-    LEFT JOIN album_media cover ON cover.id = s.cover_media_id
+      AND (
+        m.relationship_id = s.relationship_id
+        OR (
+          m.relationship_id IS NULL
+          AND m.created_by_user_id = s.created_by_user_id
+        )
+      )
+    LEFT JOIN album_media cover
+      ON cover.id = s.cover_media_id
+      AND (
+        cover.relationship_id = s.relationship_id
+        OR (
+          cover.relationship_id IS NULL
+          AND cover.created_by_user_id = s.created_by_user_id
+        )
+      )
   `;
 }
 
@@ -309,7 +328,7 @@ async function getStoryRows(
   const [rows] = await db.query<AlbumStoryRow[]>(
     `
       ${storySelectSql()}
-      WHERE ${scope.sql.replaceAll("relationship_id", "s.relationship_id").replaceAll("created_by_user_id", "s.created_by_user_id")}
+      WHERE ${scope.stories.sql}
       ${options?.storyId ? "AND s.id = ?" : ""}
       ${options?.favoritesOnly ? "AND s.is_favorite = 1" : ""}
       GROUP BY
@@ -321,12 +340,16 @@ async function getStoryRows(
         s.cover_media_id,
         cover.url,
         cover.thumbnail_url,
+        cover.object_key,
+        cover.media_type,
         s.is_favorite,
         s.created_at,
         s.updated_at
       ORDER BY s.updated_at DESC, s.id DESC
     `,
-    options?.storyId ? [...scope.values, options.storyId] : scope.values,
+    options?.storyId
+      ? [...scope.stories.values, options.storyId]
+      : scope.stories.values,
   );
 
   return rows;
@@ -373,12 +396,12 @@ export async function getAlbumMedia(req: Request, res: Response) {
           longitude,
           created_at
         FROM album_media
-        WHERE ${scope.sql}
+        WHERE ${scope.media.sql}
       `,
-      scope.values,
+      scope.media.values,
     );
 
-    media.push(...rows.map(serializeAlbumMedia));
+    media.push(...(await Promise.all(rows.map(serializeAlbumMedia))));
   }
 
   if (
@@ -396,10 +419,10 @@ export async function getAlbumMedia(req: Request, res: Response) {
           wr.created_at
         FROM wish_records wr
         INNER JOIN wishes w ON w.id = wr.wish_id
-        WHERE ${scope.sql.replaceAll("relationship_id", "w.relationship_id").replaceAll("created_by_user_id", "wr.created_by_user_id")}
+        WHERE ${scope.legacyWishRecords.sql}
           AND wr.media_urls IS NOT NULL
       `,
-      scope.values,
+      scope.legacyWishRecords.values,
     );
 
     const existingLegacyMedia = new Set(
@@ -447,6 +470,7 @@ export async function getAlbumMedia(req: Request, res: Response) {
     return second.id - first.id;
   });
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "get album media success",
     media,
@@ -509,14 +533,20 @@ export async function createAlbumMedia(req: Request, res: Response) {
         created_at
       FROM album_media
       WHERE id = ?
+        AND ${scope.media.sql}
       LIMIT 1
     `,
-    [result.insertId],
+    [result.insertId, ...scope.media.values],
   );
 
+  if (!rows[0]) {
+    throw new HttpError(404, "media not found");
+  }
+
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(201).json({
     message: "create album media success",
-    media: serializeAlbumMedia(rows[0]),
+    media: await serializeAlbumMedia(rows[0]),
   });
 }
 
@@ -525,8 +555,11 @@ export async function getAlbumStories(req: Request, res: Response) {
   await assertAlbumStoriesTableReady();
 
   const scope = await buildAlbumScope(userId);
-  const stories = (await getStoryRows(scope)).map(serializeAlbumStory);
+  const stories = await Promise.all(
+    (await getStoryRows(scope)).map(serializeAlbumStory),
+  );
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "get album stories success",
     stories,
@@ -538,10 +571,13 @@ export async function getFavoriteAlbumStories(req: Request, res: Response) {
   await assertAlbumStoriesTableReady();
 
   const scope = await buildAlbumScope(userId);
-  const stories = (
-    await getStoryRows(scope, { favoritesOnly: true })
-  ).map(serializeAlbumStory);
+  const stories = await Promise.all(
+    (await getStoryRows(scope, { favoritesOnly: true })).map(
+      serializeAlbumStory,
+    ),
+  );
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "get favorite album stories success",
     stories,
@@ -584,15 +620,17 @@ export async function getAlbumStory(req: Request, res: Response) {
       FROM album_media
       WHERE source_type = 'story'
         AND source_id = ?
+        AND ${scope.media.sql}
       ORDER BY COALESCE(taken_at, created_at) DESC, id DESC
     `,
-    [storyId],
+    [storyId, ...scope.media.values],
   );
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "get album story success",
-    story: serializeAlbumStory(storyRow),
-    media: mediaRows.map(serializeAlbumMedia),
+    story: await serializeAlbumStory(storyRow),
+    media: await Promise.all(mediaRows.map(serializeAlbumMedia)),
   });
 }
 
@@ -699,9 +737,10 @@ export async function createAlbumStory(req: Request, res: Response) {
     throw new HttpError(500, "failed to create album story");
   }
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(201).json({
     message: "create album story success",
-    story: serializeAlbumStory(createdStory),
+    story: await serializeAlbumStory(createdStory),
   });
 }
 
@@ -723,20 +762,22 @@ export async function updateAlbumStoryFavorite(req: Request, res: Response) {
 
   await db.query(
     `
-      UPDATE album_stories
+      UPDATE album_stories AS s
       SET is_favorite = ?
-      WHERE id = ?
+      WHERE s.id = ?
+        AND ${scope.stories.sql}
     `,
-    [payload.isFavorite ? 1 : 0, storyId],
+    [payload.isFavorite ? 1 : 0, storyId, ...scope.stories.values],
   );
 
   const updatedStory = (await getStoryRows(scope, { storyId }))[0];
   if (!updatedStory) {
-    throw new HttpError(500, "failed to update album story favorite");
+    throw new HttpError(404, "album story not found");
   }
 
+  res.setHeader("Cache-Control", "private, no-store");
   res.status(200).json({
     message: "update album story favorite success",
-    story: serializeAlbumStory(updatedStory),
+    story: await serializeAlbumStory(updatedStory),
   });
 }

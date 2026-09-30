@@ -65,7 +65,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** 更新恋爱纪念日 */
+        /**
+         * 更新情侣共同资料
+         * @description 局部更新恋爱纪念日或共同时区；未提供的字段保持原值。双方使用关系保存的共同日历规则。
+         */
         patch: operations["updateCoupleSpace"];
         trace?: never;
     };
@@ -207,7 +210,7 @@ export interface paths {
         head?: never;
         /**
          * 更新心愿
-         * @description 可修改标题、描述、状态或目标日期；至少提供一个字段。
+         * @description 可修改标题、描述、状态、目标日期、预算或地点名称；至少提供一个字段。
          */
         patch: operations["updateWish"];
         trace?: never;
@@ -368,9 +371,49 @@ export interface paths {
         put?: never;
         /**
          * 上传媒体文件
-         * @description 请求体为原始二进制；成功响应为 `{ key, url }`，无 message。
+         * @description 请求体为原始二进制。仅允许 `album` 图片/视频和 `interact` 音频，最大 100 MiB；服务端依据 Content-Type 白名单派生对象后缀，不信任文件名，并在写入前核对文件签名/容器标识。该检查用于头部识别，不等同于完整解码或编解码轨道校验。成功响应为 `{ key }`，无 message；对象读取 URL 由各自的授权资源接口签发。
          */
         post: operations["uploadMedia"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/partner-chat/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取伴侣聊天历史
+         * @description Requires the exact relationship to remain bound and the caller to be one of its two members. Pages are returned in chronological order; beforeId is an exclusive server-message-id cursor. Private audio object keys and signed URLs are never returned.
+         */
+        get: operations["getPartnerChatHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/partner-chat/messages/{id}/audio-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取伴侣聊天语音播放地址
+         * @description Requires an authenticated sender/receiver who is still a member of this message's currently bound relationship. Key-backed audio returns a 300-second signed URL. Legacy URL-backed audio remains readable while the relationship is bound. Responses are private and not cacheable.
+         */
+        get: operations["getPartnerChatAudioUrl"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -387,15 +430,18 @@ export interface paths {
         /**
          * 伴侣聊天 WebSocket
          * @description Not a JSON REST endpoint. Clients open a WebSocket to
-         *     `ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade).
+         *     `ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade). Set optional `deliveryAck=1` to negotiate client delivery acknowledgements; the server advertises `deliveryAckVersion: 1` in `ready`, and clients send ACKs only after that negotiation.
          *
          *     Requires an active bound couple relationship; otherwise upgrade is rejected
          *     with HTTP 403.
          *
          *     Client → server message schemas:
          *     - PartnerChatClientMessageText
-         *     - PartnerChatClientMessageAudio
+         *     - PartnerChatClientMessageAudio (exactly one of `audioObjectKey` or legacy `audioUrl`)
+         *     - PartnerChatClientDeliveryAck
          *     - PartnerChatClientRead
+         *
+         *     New object keys must belong to the authenticated sender under `interact/<userId>/`. The server does not echo private keys or signed URLs over WebSocket; clients fetch playback URLs from `GET /partner-chat/messages/{id}/audio-url`.
          *
          *     Server → client message schemas:
          *     - PartnerChatServerReady
@@ -403,6 +449,8 @@ export interface paths {
          *     - PartnerChatServerDelivery
          *     - PartnerChatServerReadReceipt
          *     - PartnerChatServerError
+         *
+         *     For negotiated clients, `sending` means transport was attempted but the recipient runtime has not acknowledged it; `sent` follows the recipient acknowledgement. Legacy clients without negotiation retain transport-acceptance delivery behavior to avoid duplicate replay.
          *
          *     Message `id` values are **strings** (unlike HTTP resource ids).
          */
@@ -481,9 +529,13 @@ export interface components {
          */
         CoupleSummary: {
             isBound: boolean;
-            /** @description Days since anniversaryDate; null if unbound or no date */
+            /** @description Inclusive calendar days in the shared timezone; same day is 1, future date is 0; null if unbound or no date */
             daysInLove: number | null;
             anniversaryDate: components["schemas"]["DateOnlyNullable"];
+            /** @description Stored shared timezone; null when unbound */
+            timeZone: string | null;
+            /** @description Calendar today in the shared timezone; null when unbound */
+            todayDate: components["schemas"]["DateOnlyNullable"];
             partner: components["schemas"]["PartnerSummary"] | null;
         };
         /**
@@ -534,10 +586,16 @@ export interface components {
             updatedAt: components["schemas"]["IsoDateTimeNullable"];
             usedAt: components["schemas"]["IsoDateTimeNullable"];
         };
+        /**
+         * @description Runtime-supported named timezone or UTC. New relationships initially use Asia/Shanghai; saved date-only values are unchanged.
+         * @example Asia/Shanghai
+         */
+        CoupleTimeZone: string;
         CoupleRelationship: {
             id: number;
             status: string;
             anniversaryDate: components["schemas"]["DateOnlyNullable"];
+            timeZone: components["schemas"]["CoupleTimeZone"];
             createdAt: components["schemas"]["IsoDateTimeNullable"];
             updatedAt: components["schemas"]["IsoDateTimeNullable"];
             unboundAt: components["schemas"]["IsoDateTimeNullable"];
@@ -550,7 +608,10 @@ export interface components {
             isBound: boolean;
             partner: components["schemas"]["PartnerSummary"] | null;
             relationship: components["schemas"]["CoupleRelationship"] | null;
+            /** @description Inclusive calendar days in relationship.timeZone; same day is 1, future date is 0 */
             daysInLove: number | null;
+            /** @description Calendar today in relationship.timeZone; null when unbound */
+            todayDate: components["schemas"]["DateOnlyNullable"];
             activeInvite: components["schemas"]["CoupleInvite"] | null;
         };
         CoupleSpaceResponse: {
@@ -573,8 +634,10 @@ export interface components {
         BindCoupleRequest: {
             inviteCode: string;
         };
+        /** @description Partial update: at least one of anniversaryDate or timeZone is required. Omitted fields retain their stored value. */
         UpdateCoupleSpaceRequest: {
-            anniversaryDate: components["schemas"]["DateOnlyNullable"];
+            anniversaryDate?: components["schemas"]["DateOnlyNullable"];
+            timeZone?: components["schemas"]["CoupleTimeZone"];
         };
         /** @enum {string} */
         AnniversaryType: "love" | "birthday" | "holiday" | "custom";
@@ -612,6 +675,10 @@ export interface components {
         AnniversaryListResponse: {
             message: string;
             anniversaries: components["schemas"]["Anniversary"][];
+            /** @description Shared timezone used for this list; null when unbound */
+            timeZone: string | null;
+            /** @description Shared calendar date used for every countdown in this response; null when unbound */
+            todayDate: components["schemas"]["DateOnlyNullable"];
         };
         AnniversaryItemResponse: {
             message: string;
@@ -626,14 +693,14 @@ export interface components {
             title: string;
             /** @description DB null serialized as empty string */
             description: string;
-            /** @description DB null serialized as empty string */
+            /** @description Short-lived signed URL for a private object-key cover; legacy URL is returned unchanged */
             cover: string;
             targetDate: components["schemas"]["DateOnly"];
             /** @description DB null serialized as empty string */
             locationName: string;
             latitude: number | null;
             longitude: number | null;
-            /** @description Integer amount; unit not specified in code (open question) */
+            /** @description Integer budget in yuan; null means not set */
             budgetAmount: number | null;
             status: components["schemas"]["WishStatus"];
             /**
@@ -658,11 +725,10 @@ export interface components {
             title: string;
             /** @default  */
             description: string;
-            /**
-             * @description Valid URL or empty string; default ''
-             * @default
-             */
-            cover: string;
+            /** @description Legacy URL cover, retained for backward compatibility; omitted for private object-key covers */
+            cover?: string;
+            /** @description Private uploaded album media object key; must belong to the authenticated uploader */
+            coverObjectKey?: string;
             /** @description Valid calendar date from 1000-01-01 through 9999-12-31 */
             targetDate: components["schemas"]["DateOnly"];
             /** @default  */
@@ -674,7 +740,7 @@ export interface components {
             /** @default null */
             budgetAmount: number | null;
         };
-        /** @description PATCH at least one supported field: title, status, description, or targetDate */
+        /** @description PATCH at least one supported field: title, status, description, targetDate, budgetAmount, locationName, or coverObjectKey */
         UpdateWishRequest: {
             /** @description Updated wish title; trimmed by the server */
             title?: string;
@@ -683,6 +749,12 @@ export interface components {
             description?: string;
             /** @description Updated target date; a real calendar date in YYYY-MM-DD format, year 1000–9999 */
             targetDate?: components["schemas"]["DateOnly"];
+            /** @description Updated integer budget in yuan; null clears the budget */
+            budgetAmount?: number | null;
+            /** @description Updated location name; an empty string clears the name without changing coordinates */
+            locationName?: string;
+            /** @description Private album object key to replace the cover; null clears the legacy URL and private key; omitted leaves the cover unchanged */
+            coverObjectKey?: string | null;
         };
         WishRecordMedia: {
             /** Format: uri */
@@ -713,13 +785,23 @@ export interface components {
             records: components["schemas"]["WishRecord"][];
         };
         CreateWishRecordMediaInput: {
-            /** Format: uri */
-            url: string;
+            /** @description Private uploaded album object key; new clients should use this field */
+            objectKey?: string;
+            /**
+             * Format: uri
+             * @description Legacy URL input retained for older clients
+             */
+            url?: string;
             /** @enum {string} */
             mediaType: "image" | "video";
             /** @default  */
             thumbnailUrl: string;
-        };
+        } & ({
+            objectKey: string;
+        } | {
+            /** Format: uri */
+            url: string;
+        });
         CreateWishRecordRequest: {
             /** @default  */
             content: string;
@@ -758,8 +840,9 @@ export interface components {
             mediaType: components["schemas"]["AlbumMediaType"];
             sourceType: components["schemas"]["AlbumMediaSourceType"];
             sourceId: number | null;
+            /** @description Short-lived signed URL for object-key media (300 seconds); legacy media may return its existing URL */
             url: string;
-            /** @description Empty string when absent */
+            /** @description Empty for object-key media without a stored cross-device thumbnail */
             thumbnailUrl: string;
             /**
              * @description Date-only when set; empty string when unset
@@ -783,7 +866,8 @@ export interface components {
         };
         CreateAlbumMediaRequest: {
             mediaType: components["schemas"]["AlbumMediaType"];
-            url: string;
+            /** @description Object storage key returned by the authenticated upload endpoint */
+            objectKey: string;
             /** @default  */
             thumbnailUrl: string;
             takenAt?: components["schemas"]["DateOnly"];
@@ -801,7 +885,11 @@ export interface components {
             title: string;
             description: string;
             coverMediaId: number | null;
+            /** @description Media type of the selected cover, or null when unset */
+            coverMediaType: components["schemas"]["AlbumMediaType"] | null;
+            /** @description Short-lived signed URL for an object-key cover (300 seconds); legacy stories may return their existing URL */
             coverUrl: string;
+            /** @description Empty for object-key covers without a stored cross-device thumbnail */
             coverThumbnailUrl: string;
             /** @description Count of image media (API name photos, not photoCount) */
             photos: number;
@@ -825,7 +913,8 @@ export interface components {
         };
         CreateAlbumStoryMediaInput: {
             mediaType: components["schemas"]["AlbumMediaType"];
-            url: string;
+            /** @description Object storage key returned by the authenticated upload endpoint */
+            objectKey: string;
             /** @default  */
             thumbnailUrl: string;
             takenAt?: components["schemas"]["DateOnly"];
@@ -846,12 +935,10 @@ export interface components {
         UpdateAlbumStoryFavoriteRequest: {
             isFavorite: boolean;
         };
-        /** @description Success body has NO `message` field — keep as implemented. */
+        /** @description Success body returns a private object key only; it has NO `url` or `message` field. */
         UploadMediaResponse: {
             /** @description Object storage key */
             key: string;
-            /** @description Public URL */
-            url: string;
         };
         PartnerChatClientMessageText: {
             /** @enum {string} */
@@ -861,18 +948,70 @@ export interface components {
             text: string;
             clientMessageId?: string;
         };
-        PartnerChatClientMessageAudio: {
+        /** @description Exactly one form is accepted: new private object key or legacy URL. */
+        PartnerChatClientMessageAudio: components["schemas"]["PartnerChatClientMessageAudioObjectKey"] | components["schemas"]["PartnerChatClientMessageAudioLegacyUrl"];
+        PartnerChatClientMessageAudioObjectKey: {
             /** @enum {string} */
             type: "message";
             /** @enum {string} */
             messageType: "audio";
+            /** @description Must belong to the authenticated sender. */
+            audioObjectKey: string;
+            audioDurationSeconds?: number;
+            clientMessageId?: string;
+        };
+        PartnerChatClientMessageAudioLegacyUrl: {
+            /** @enum {string} */
+            type: "message";
+            /** @enum {string} */
+            messageType: "audio";
+            /** @description Legacy URL form; mutually exclusive with audioObjectKey. */
             audioUrl: string;
             audioDurationSeconds?: number;
             clientMessageId?: string;
         };
+        PartnerChatHistoryPage: {
+            relationshipId: number;
+            messages: components["schemas"]["PartnerChatHistoryMessage"][];
+            hasMore: boolean;
+            /** @description Oldest returned server message ID when older messages remain. */
+            nextBeforeId: string | null;
+        };
+        PartnerChatHistoryMessage: {
+            /** @description Server message ID as a string. */
+            id: string;
+            fromUserId: number;
+            relationshipId: number;
+            text: string;
+            /** @enum {string} */
+            messageType: "text" | "audio";
+            /** @description Legacy URL only; omitted for private key-backed audio. */
+            audioUrl?: string;
+            audioDurationSeconds?: number;
+            clientMessageId?: string;
+            sentAt: components["schemas"]["IsoDateTime"];
+            /**
+             * @description Persisted status relative to the authenticated requester.
+             * @enum {string}
+             */
+            deliveryStatus: "sent" | "sending" | "partner_offline" | "read";
+        };
+        PartnerChatAudioUrlResponse: {
+            messageId: string;
+            /** @description 300-second signed URL for private objects; legacy URL otherwise. */
+            url: string;
+            /** @description Present only when the URL is a short-lived signed URL. */
+            expiresIn?: number;
+        };
         PartnerChatClientRead: {
             /** @enum {string} */
             type: "read";
+        };
+        PartnerChatClientDeliveryAck: {
+            /** @enum {string} */
+            type: "delivered";
+            /** @description Positive safe-integer server message ID as a string. */
+            messageId: string;
         };
         PartnerChatServerReady: {
             /** @enum {string} */
@@ -880,6 +1019,11 @@ export interface components {
             userId: number;
             partnerId: number;
             relationshipId: number;
+            /**
+             * @description Present when receiver delivery acknowledgement is supported.
+             * @enum {integer}
+             */
+            deliveryAckVersion?: 1;
         };
         PartnerChatServerMessage: {
             /** @enum {string} */
@@ -900,7 +1044,7 @@ export interface components {
             /** @enum {string} */
             type: "delivery";
             /** @enum {string} */
-            status: "sent" | "partner_offline";
+            status: "sent" | "sending" | "partner_offline";
             clientMessageId?: string;
             serverMessageId?: string;
             sentAt?: components["schemas"]["IsoDateTime"];
@@ -918,6 +1062,7 @@ export interface components {
             type: "error";
             code: string;
             message: string;
+            clientMessageId?: string;
         };
     };
     responses: never;
@@ -945,6 +1090,7 @@ export type SchemaUser = components['schemas']['User'];
 export type SchemaUserInfoResponse = components['schemas']['UserInfoResponse'];
 export type SchemaUpdateUserProfileRequest = components['schemas']['UpdateUserProfileRequest'];
 export type SchemaCoupleInvite = components['schemas']['CoupleInvite'];
+export type SchemaCoupleTimeZone = components['schemas']['CoupleTimeZone'];
 export type SchemaCoupleRelationship = components['schemas']['CoupleRelationship'];
 export type SchemaCoupleSpace = components['schemas']['CoupleSpace'];
 export type SchemaCoupleSpaceResponse = components['schemas']['CoupleSpaceResponse'];
@@ -987,7 +1133,13 @@ export type SchemaUpdateAlbumStoryFavoriteRequest = components['schemas']['Updat
 export type SchemaUploadMediaResponse = components['schemas']['UploadMediaResponse'];
 export type SchemaPartnerChatClientMessageText = components['schemas']['PartnerChatClientMessageText'];
 export type SchemaPartnerChatClientMessageAudio = components['schemas']['PartnerChatClientMessageAudio'];
+export type SchemaPartnerChatClientMessageAudioObjectKey = components['schemas']['PartnerChatClientMessageAudioObjectKey'];
+export type SchemaPartnerChatClientMessageAudioLegacyUrl = components['schemas']['PartnerChatClientMessageAudioLegacyUrl'];
+export type SchemaPartnerChatHistoryPage = components['schemas']['PartnerChatHistoryPage'];
+export type SchemaPartnerChatHistoryMessage = components['schemas']['PartnerChatHistoryMessage'];
+export type SchemaPartnerChatAudioUrlResponse = components['schemas']['PartnerChatAudioUrlResponse'];
 export type SchemaPartnerChatClientRead = components['schemas']['PartnerChatClientRead'];
+export type SchemaPartnerChatClientDeliveryAck = components['schemas']['PartnerChatClientDeliveryAck'];
 export type SchemaPartnerChatServerReady = components['schemas']['PartnerChatServerReady'];
 export type SchemaPartnerChatServerMessage = components['schemas']['PartnerChatServerMessage'];
 export type SchemaPartnerChatServerDelivery = components['schemas']['PartnerChatServerDelivery'];
@@ -2400,18 +2552,12 @@ export interface operations {
         parameters: {
             query: {
                 /**
-                 * @description Storage folder segment. Not Zod-validated; clients use values like `album`.
+                 * @description Upload folder. `album` accepts supported image/video MIME types; `interact` accepts supported audio MIME types.
                  * @example
                  */
-                folder: string;
+                folder: "album" | "interact";
             };
-            header: {
-                /**
-                 * @description Original file name (used for extension)
-                 * @example
-                 */
-                "x-file-name": string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2422,7 +2568,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Uploaded — body is `{ key, url }` without message */
+            /** @description Uploaded — body is `{ key }` without message */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -2431,8 +2577,147 @@ export interface operations {
                     "application/json": components["schemas"]["UploadMediaResponse"];
                 };
             };
+            /** @description Unsupported folder or empty upload body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Upload exceeds 100 MiB */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Unsupported declared media type or mismatched media signature for folder */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+        };
+    };
+    getPartnerChatHistory: {
+        parameters: {
+            query: {
+                relationshipId: number;
+                beforeId?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chronological page of authorized chat history */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerChatHistoryPage"];
+                };
+            };
+            /** @description Invalid relationship id, cursor, or page size */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Relationship is not currently accessible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+        };
+    };
+    getPartnerChatAudioUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Positive integer resource id */
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized playback URL */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerChatAudioUrlResponse"];
+                };
+            };
+            /** @description Invalid message id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Audio message not found in a current authorized relationship */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Signed URL service temporarily unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2450,6 +2735,8 @@ export interface operations {
                  * @example
                  */
                 token?: string;
+                /** @description Set to 1 to negotiate receiver acknowledgement support. */
+                deliveryAck?: "1";
             };
             header?: never;
             path?: never;

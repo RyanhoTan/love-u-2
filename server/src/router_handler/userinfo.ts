@@ -3,6 +3,7 @@ import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
+import { getCalendarDateText, getDaysInLove } from "../couple/calendar.js";
 import { updateUserProfileSchema } from "../schema/user.js";
 import { parseRequestBody } from "../validation.js";
 
@@ -27,6 +28,7 @@ interface BoundCoupleRow extends RowDataPacket {
   user_a_id: number;
   user_b_id: number;
   anniversary_date: Date | string | null;
+  time_zone: string;
   status: string;
 }
 
@@ -45,6 +47,8 @@ type CoupleSummary = {
   isBound: boolean;
   daysInLove: number | null;
   anniversaryDate: string | null;
+  timeZone: string | null;
+  todayDate: string | null;
   partner: {
     id: number;
     username: string;
@@ -109,23 +113,6 @@ function formatDateTime(value: Date | string | null) {
   return value.toISOString();
 }
 
-function getDaysInLove(anniversaryDate: Date | string | null) {
-  const dateText = formatDateOnly(anniversaryDate);
-  if (!dateText) {
-    return null;
-  }
-
-  const start = new Date(`${dateText}T00:00:00.000Z`);
-  const now = new Date();
-  const diffMs = now.getTime() - start.getTime();
-
-  if (Number.isNaN(diffMs) || diffMs < 0) {
-    return 0;
-  }
-
-  return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-}
-
 async function findUserById(userId: number, columns: Set<string>) {
   const selectFields = [
     "`id`",
@@ -177,7 +164,8 @@ async function findBoundRelationship(userId: number) {
         id,
         user_a_id,
         user_b_id,
-        anniversary_date,
+        DATE_FORMAT(anniversary_date, '%Y-%m-%d') AS anniversary_date,
+        time_zone,
         status
       FROM couple_relationships
       WHERE status = 'bound'
@@ -222,6 +210,8 @@ async function buildCoupleSummary(
       isBound: false,
       daysInLove: null,
       anniversaryDate: null,
+      timeZone: null,
+      todayDate: null,
       partner: null,
     };
   }
@@ -231,11 +221,14 @@ async function buildCoupleSummary(
       ? relationship.user_b_id
       : relationship.user_a_id;
   const partner = await findPartnerSummary(partnerId, columns);
+  const todayDate = getCalendarDateText(relationship.time_zone);
 
   return {
     isBound: true,
-    daysInLove: getDaysInLove(relationship.anniversary_date),
+    daysInLove: getDaysInLove(formatDateOnly(relationship.anniversary_date), todayDate),
     anniversaryDate: formatDateOnly(relationship.anniversary_date),
+    timeZone: relationship.time_zone,
+    todayDate,
     partner: partner
       ? {
           id: partner.id,

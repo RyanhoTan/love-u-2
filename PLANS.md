@@ -8,8 +8,8 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–23 是这项授权下已完成的
-阶段。Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–65 已完成。
+Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
 |---|---|---|---|---|
@@ -37,6 +37,50 @@
 | 21 | Mobile anniversary list honest states | Complete | PRD-DAY-001、R1 可信核心闭环 | 移动端纪念日列表区分加载、空数据与请求失败并提供重试 |
 | 22 | Mobile anniversary editing and deletion | Complete | Phase 21、PRD-DAY-001 | 移动端列表可进入真实编辑表单并保存或删除纪念日 |
 | 23 | Wish target-date editing | Complete | Phase 14、PRD-WISH-001 | 服务端、Web 与移动端支持受校验的心愿目标日期更新 |
+| 24 | Wish budget editing | Complete | Phase 08、PRD-WISH-001 | 服务端、Web 与移动端支持校验、清空且不会覆盖其他字段的预算更新 |
+| 25 | Wish location-name editing | Complete | Phase 08、PRD-WISH-001 | Web 与移动端可修改或清除地点名称，保存失败有反馈且保留坐标 |
+| 26 | Album object-key write contract | Complete | PRD-MEMORY-001 | Web/App 上传后向相册和故事登记服务端返回的私有对象键，不再提交本地 URI |
+| 27 | Private album reads with short-lived signed URLs | Complete | Phase 26、PRD-MEMORY-001 | 在关系授权的相册/故事读取响应中签发短时媒体地址，并供两端页面显示 |
+| 28 | Wish private cover create/read | Complete | PRD-WISH-001、Phase 27 | Web/App 上传心愿封面后保存私有对象键，并在授权心愿读取中使用短期签名 URL |
+| 29 | Wish private cover update/clear | Complete | PRD-WISH-001、Phase 28 | Web/App 可替换或清除心愿封面；PATCH 持续使用私有对象键，不改变关系授权 |
+| 30 | Wish record private media | Complete | PRD-WISH-001、Phase 27/28/29 | App/Web 心愿过程记录上传并保存私有对象键，在授权记录读取中签发媒体/缩略图 URL |
+| 31 | Private voice messages in partner chat | Complete | PRD-CHAT-001、PRD-MEMORY-001、Phase 27 | Web/App 聊天语音使用私有对象键写入；播放时按当前关系授权刷新短时 URL，兼容旧 URL |
+| 32 | Revoke partner chat sockets after unbind | Complete | PRD-CHAT-001、Phase 31 | 解绑提交后关闭既有连接，并在消息/已读事件和心跳周期重新验证当前关系 |
+| 33 | Server-backed partner chat history | Complete | PRD-CHAT-001、Phase 32 | 增加当前绑定关系授权的历史分页，并由 Web/App 在连接后读取及按需加载旧消息 |
+| 34 | Accurate partner chat delivery states | Complete | PRD-CHAT-001、Phase 33 | 根据对方可用连接与持久化 delivered_at 回报离线/送达状态，并在两端显示状态 |
+| 35 | Reject conflicting partner chat idempotency keys | Complete | PRD-CHAT-001、Phase 34 | 同一 clientMessageId 重试保持幂等；复用 ID 发送不同内容时明确拒绝，避免发送端/接收端内容分叉 |
+| 36 | Isolate client chat state by relationship | Complete | PRD-CHAT-001、Phase 33/35 | 关系 ID 变化时仅展示对应关系的本地缓存、服务端历史和实时事件，不把旧内存消息带入新会话 |
+| 37 | Retry uncertain partner text messages | Complete | PRD-CHAT-001、Phase 35/36 | 发送结果不确定的文字消息可在连接恢复后以同一 clientMessageId 重试；服务端显式拒绝的消息不提供重试 |
+| 38 | Clear invalid App auth sessions | Complete | PRD-AUTH-001 | App 收到受保护请求 401 时清除匹配的持久与内存会话；旧 token 的迟到 401 不得清除新会话 |
+| 39 | Strengthen couple invite code entropy | Complete | PRD-COUPLE-001 | 新邀请码使用 12 位密码学随机码；旧码继续兼容，新增服务端单元测试 |
+| 40 | Acknowledge partner chat delivery | Complete | PRD-CHAT-001、Phase 34 | 协商版 1 客户端经接收端回执后才标记送达；未确认消息可补投，旧客户端兼容 |
+| 41 | Retry uncertain uploaded partner audio | Complete | PRD-CHAT-001、Phase 35/37 | 已上传但发送结果不确定的语音可在当前会话内复用原消息 ID 与对象键重试；对象键仅留在内存 |
+| 42 | Serialize concurrent couple bindings | Complete | PRD-COUPLE-001、Phase 39 | 邀请码与参与账户在绑定事务中加锁，关系冲突检查使用当前读；真实 MySQL 并发结果仍待集成验证 |
+| 43 | Web wish recycle and restore | Complete | PRD-WISH-001、现有回收站 API | Web 可软删除、查看服务端保留截止时间并恢复；本阶段不新增永久删除入口 |
+| 44 | Web wish status progression | Complete | PRD-WISH-001 | Web 心愿按 `todo → doing → done` 顺序推进，复用既有 PATCH 契约 |
+| 45 | Enforce media upload policy | Complete | PRD-MEMORY-001 | 服务端限制媒体目录、MIME、空文件和上传大小 |
+| 46 | Keep Web Today profile failures distinct | Complete | PRD-TODAY-001 | Web 首页区分资料加载/失败与真实未绑定状态 |
+| 47 | Enforce exact album media ownership keys | Complete | PRD-MEMORY-001 | 相册/故事上传对象键必须属于当前用户的精确 album 前缀 |
+| 48 | Remove hidden Web daily-interaction routes | Complete | PRD-TODAY-001、PRD R1 | 移除未上线状态/一句话假入口 |
+| 49 | Make App wish memories failure-safe | Complete | PRD-WISH-001 | App 回忆页只在读取成功后展示空数据或统计 |
+| 50 | Make App album story reads failure-safe | Complete | PRD-MEMORY-001 | App 故事列表/详情区分加载失败和成功空数据 |
+| 51 | App wish doing-page failure-safe states | Complete | PRD-WISH-001、Phase 49 | App 过程页只在读取成功后呈现心愿、记录及结束/添加操作；失败可重试 |
+| 52 | App album photo/video failure-safe states | Complete | PRD-MEMORY-001、Phase 50 | App 照片/视频标签区分加载、失败和成功空数据，并允许重试 |
+| 53 | App All Media overview failure-safe states | Complete | PRD-MEMORY-001、Phase 50/52 | “全部”页区分聚合读取失败和成功空数据，并允许重试 |
+| 54 | App favorites failure-safe states | Complete | PRD-MEMORY-001、Phase 50 | 收藏故事、照片、视频只在成功读取后显示空状态，失败可重试 |
+| 55 | App wish record creation failure-safe states | Complete | PRD-WISH-001、Phase 51 | 创建记录前确认真实心愿已读取成功；失败可重试且不显示假目标 |
+| 56 | App wish recycle read failure-safe states | Complete | PRD-WISH-001、Phase 15 | 回收站区分读取失败与成功空状态，失败可重试且旧请求不会覆盖新状态 |
+| 57 | App wish-list read failure-safe states | Complete | PRD-WISH-001、Phase 15/56 | 主列表区分加载、失败和分类空状态；失败时隐藏旧卡片并阻止旧选择参与删除 |
+| 58 | Verify uploaded media signatures | Complete | PRD-MEMORY-001、Phase 45 | 在对象写入前核对已允许 MIME 与文件头/容器标识，明显不匹配时返回 415 |
+| 59 | Unify anniversary reminder plan inputs | Complete | PRD-DAY-001、Phase 20/22 | App/Web 用单选表达服务端的单个提醒天数，并在 Web 编辑时无损保留已有 0–30 天值 |
+| 60 | Preserve full password bytes in bcrypt auth | Complete | PRD-AUTH-001 | 新密码用版本化 SHA-256 预哈希后 bcrypt；兼容旧哈希并安全渐进迁移可证明未被截断的旧密码 |
+| 61 | Map concurrent duplicate registrations to conflict | Complete | PRD-AUTH-001 | 并发注册触发用户名唯一约束时返回既有 409 冲突，而非通用 500 |
+| 62 | Invalidate App sessions on raw media-upload 401 | Complete | PRD-AUTH-001、Phase 38 | 相册/聊天和心愿媒体上传遇到失效 token 时清除匹配的持久与内存会话 |
+| 63 | Preserve App sessions on transient restore failures | Complete | PRD-AUTH-001、Phase 38/62 | 仅无效会话或明确 401 清除本地凭据；临时网络/API 错误保留有效恢复机会 |
+| 64 | Cover server bearer/JWT identity validation | Complete | PRD-AUTH-001 | 本地可重复验证缺失/错误 Bearer、签名与过期 token、无效 subject/user ID 均返回 401 |
+| 65 | Isolate explicitly assigned album relationships | Complete | PRD-MEMORY-001、PRD-COUPLE-001 | 当前伴侣不能通过创建者兜底读取其他关系的媒体/故事，查询和收藏写入重新检查有效关系 |
+| 66 | Store shared couple timezone and derive calendar counts | Complete | PRD-DAY-001、PRD-COUPLE-001、已确认时区规则 | 服务端共同日历已实现；45/45 测试与三端静态检查通过，真实迁移/API 仍待验证 |
+| 67 | Apply shared calendar rules in App and Web | Not started | Phase 66、PRD-DAY-001、PRD-TODAY-001 | 两端展示/设置共同时间规则，Web 预览与服务端计算一致；已获当前 Goal 授权 |
 
 ## 阶段顺序
 
@@ -176,6 +220,263 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 在既有真实日历日期校验基础上，扩展受当前心愿关系授权的 PATCH，仅更新用户提交的目标日期；Web 与移动端都可编辑，并保留 `YYYY-MM-DD` 本地日历日语义。此阶段不允许清空目标日期，也不修改地点、预算、封面等其他字段或数据库结构。详细计划见
 `harness/build/phase-23-wish-target-date-editing.md`。
 
+### Phase 24 — Wish budget editing
+
+为现有心愿 PATCH 增加可空的非负整数预算更新，并在 Web 与移动端详情编辑；清空表示“未定”。服务端验证与数据库 `INT` 范围对齐，不更新用户未改的其他字段。详细计划见
+`harness/build/phase-24-wish-budget-editing.md`。
+
+### Phase 25 — Wish location-name editing
+
+为心愿 PATCH 增加受长度校验的地点名称字段，Web 与移动端均可编辑或清空名称；保持现有经纬度不变，不引入地图/地理编码能力。详细计划见
+`harness/build/phase-25-wish-location-name-editing.md`。
+
+### Phase 26 — Album object-key write contract
+
+对齐相册创建接口的 `objectKey` 契约：Web/App 必须先经认证上传获得对象键，再登记为相册媒体或故事媒体；不将本地临时 URI 或公开 URL 当作媒体对象标识。本阶段仅修复写入注册链路，签名读取 URL 接入以及 Wish/Chat 上传消费者另行分阶段处理。详细计划见
+`harness/build/phase-26-album-object-key-write-contract.md`。
+
+### Phase 27 — Private album reads with short-lived signed URLs
+
+在既有关系 scope 查询后为 object-key 媒体生成短时签名读取 URL，让 Web 图库和 App 故事列表/详情使用同一受控读取契约；读取响应禁止缓存签名地址，不将本地临时缩略图 URI 回传为可跨设备媒体。保留 legacy URL 兼容，不扩到 Wish/Chat 或对象生命周期。详细计划见
+`harness/build/phase-27-private-album-signed-reads.md`。
+
+### Phase 28 — Wish private cover create/read
+
+修复 Web/App 新建心愿封面对不存在 `upload.url` 的依赖：改为上传后提交对象键，在 `wishes` 增加兼容旧数据的 nullable 私有对象键列，并在心愿授权读取后签发 300 秒 URL。旧 `cover` URL 保留读取兼容。本阶段不做封面编辑/清除、Wish 过程记录媒体或 Chat 媒体迁移。详细计划见
+`harness/build/phase-28-wish-private-cover-create-read.md`。
+
+### Phase 29 — Wish private cover update/clear
+
+在已有心愿编辑入口增加私有封面替换与清除：替换时先上传后提交当前用户所属对象键，清除时显式提交 null 并同时清空新旧封面列。保留现有关系写入授权，不删除已上传/旧对象。详细计划见
+`harness/build/phase-29-wish-cover-edit-clear.md`。
+
+### Phase 30 — Wish record private media
+
+将 Wish 过程记录从失效的上传 `url` 假设迁移到私有对象键：上传后以 key 登记媒体，在已授权 Wish/record scope 内读取时签发短时 URL；视频缩略图也保存对象键。兼容旧 URL 记录和旧客户端写入。本阶段不删除存储对象。详细计划见
+`harness/build/phase-30-wish-record-private-media.md`。
+
+### Phase 31 — Private voice messages in partner chat
+
+修复 Web/App 聊天语音仍依赖上传接口不再提供的 `url`：新消息持久化私有对象键，播放时通过要求当前绑定关系成员资格的 REST endpoint 获取 300 秒签名地址；旧 URL 兼容并禁止缓存签名响应。阶段不改变聊天历史同步、WebSocket 重连/去重或对象清理。详细计划见
+`harness/build/phase-31-chat-private-audio.md`。
+
+### Phase 32 — Revoke partner chat sockets after unbind
+
+解绑事务提交后关闭本进程中该关系的 WebSocket；所有后续消息和已读事件重新验证当前 bound 关系，心跳为其他进程中的连接提供兜底；Web/App 收到关系撤销关闭码后停止自动重连。保留历史聊天数据，不引入分布式基础设施。详细计划见
+`harness/build/phase-32-chat-unbind-socket-revocation.md`。
+
+### Phase 33 — Server-backed partner chat history
+
+为当前绑定关系成员提供按关系 ID 和消息 ID 游标分页的持久化聊天历史；两端 WebSocket ready 后载入最新页，可按需加载更早消息，并与本地缓存及实时消息按服务端消息 ID 合并。解绑或关系切换后旧关系历史不能经新请求读取。详细计划见
+`harness/build/phase-33-chat-server-history.md`。
+
+### Phase 34 — Accurate partner chat delivery states
+
+仅在消息已交给当前关系下开放的接收方 WebSocket 时标记送达；没有可用连接时回报 `partner_offline`，离线重放也只确认实际提交到开放 socket 的消息；两端展示已送达状态。`sent` 表示服务端交给开放连接，不代表客户端界面已渲染；`read` 仍由已读事件单独确认。详细计划见
+`harness/build/phase-34-chat-delivery-state.md`。
+
+### Phase 35 — Reject conflicting partner chat idempotency keys
+
+保留现有 `(sender_id, client_message_id)` 唯一约束；同 ID、同内容的重试返回原消息，若同 ID 被用于不同文本/语音内容或另一关系，则返回明确冲突，不向接收方广播旧内容。详细计划见
+`harness/build/phase-35-chat-idempotency-conflict.md`。
+
+### Phase 36 — Isolate client chat state by relationship
+
+把关系 ID 作为每条客户端消息的会话归属；加载新的 relationship 时，只合并该关系的缓存和实时消息，保留但不删除旧关系本地副本。详细计划见
+`harness/build/phase-36-chat-relationship-isolation.md`。
+
+### Phase 37 — Retry uncertain partner text messages
+
+为发送状态不确定的失败文字消息提供显式重试，复用原文字和 `clientMessageId`，并仅在当前关系及 WebSocket ready 时开放操作；服务端明确拒绝（含幂等冲突）不重试。语音失败重试需要保留/重新上传私有对象键，另行处理。详细计划见
+`harness/build/phase-37-chat-text-retry.md`。
+
+### Phase 38 — Clear invalid App auth sessions
+
+对所有统一的 App 鉴权 API 请求，在收到 401 时清理仍与失败 token 匹配的本地会话，并通知 AuthProvider 清除内存认证态；采用串行化存储修改保护并发登录，403、网络错误与服务端错误不触发退出。详细计划见
+`harness/build/phase-38-app-auth-invalidation.md`。
+
+### Phase 39 — Strengthen couple invite code entropy
+
+新生成的邀请码改为从当前用户友好字符表中选取 12 位，并使用 Node.js 密码学随机整数；现有 6–12 位
+邀请码校验和 30 分钟有效期不变，旧的 6 位待绑定码继续兼容。新增无数据库依赖的服务端测试，验证
+字符长度、字符集与每位随机选择的上界。详细计划见
+`harness/build/phase-39-couple-invite-entropy.md`。
+
+### Phase 40 — Acknowledge partner chat delivery
+
+修正 Phase 34 中“服务端 WebSocket 接受写入即代表已送达”的语义。Web/App 接收到关系内的消息后
+发送单条送达确认；服务端仅在确认通过当前接收者、关系成员和绑定状态校验后写入 `delivered_at`，
+确认前的消息在重连时仍可补投。以增量 nullable 时间戳区分“等待确认”和“未连接/离线”，不更改
+已读语义、解绑策略或跨实例推送架构。详细计划见
+`harness/build/phase-40-chat-delivery-ack.md`。
+
+### Phase 41 — Retry uncertain uploaded partner audio
+
+为 Web/App 中“对象已上传、WebSocket 发送结果不确定”的语音消息增加显式重试。重试复用原
+`clientMessageId`、对象键和时长，由现有服务端幂等校验防止重复记录。对象键仅在运行时内存保留，
+不写入浏览器缓存或 AsyncStorage；上传本身失败仍要求用户重新录制/发送。详细计划见
+`harness/build/phase-41-chat-audio-retry.md`。
+
+### Phase 42 — Serialize concurrent couple bindings
+
+针对 PRD-COUPLE-001 中“同时进入冲突关系”的 P0 边界，为邀请码读取加事务行锁，并对邀请双方的
+用户行按 ID 升序串行加锁后再检查当前绑定状态、创建关系与消费邀请码；条件消费使用数据库当前时间，
+等待期间过期则回滚整个事务。仅调整现有 MySQL 事务，
+不新增表/列、不改变解绑后历史处置或邀请过期策略；无 MySQL 集成环境时只记录可运行单元测试和
+静态 SQL/锁顺序审查，不宣称并发实测完成。详细计划见
+`harness/build/phase-42-couple-binding-concurrency.md`。
+
+### Phase 43 — Web wish recycle and restore
+
+补齐 Web 心愿从详情移入回收站、打开回收站查看服务端删除/清理时间并恢复的可观察闭环，复用现有
+`/wishes`、`/wishes/recycle`、`/wishes/:id/restore` 契约并保持情侣授权不变。暂不暴露 Web 永久删除：
+当前服务端永久删除只删除心愿主记录，过程记录和媒体对象的共同处置策略尚不明确。详细计划见
+`harness/build/phase-43-web-wish-recycle-restore.md`。
+
+### Phase 44 — Web wish status progression
+
+补齐 Web 对服务端既有 `todo`、`doing`、`done` 三态的用户操作：待办心愿可开始计划，进行中心愿可
+确认完成，已完成心愿不再展示重复的完成操作。复用原有关系授权 PATCH，不改状态模型、App 行为或
+服务端契约。详细计划见 `harness/build/phase-44-web-wish-status-progression.md`。
+
+### Phase 45 — Enforce media upload policy
+
+补齐 PRD-MEMORY-001 / PRD 安全要求中的服务端上传限制：仅允许 `album` 图片/视频与 `interact` 音频，
+按声明 MIME 白名单生成安全对象扩展名，拒绝空文件，并将 100 MiB 超限映射为 413。保留当前客户端
+私有对象键契约与大小上限；不新增内容嗅探、大小策略或外部 R2 集成。详细计划见
+`harness/build/phase-45-media-upload-policy.md`。
+
+### Phase 46 — Keep Web Today profile failures distinct
+
+修正 Web 首页将账户资料查询失败或仍在加载时当作“未绑定”的呈现。首页只在资料状态为 `ready` 时
+判断情侣关系；加载/初始状态明确显示加载中，失败状态提供重试并隐藏未绑定引导及共同生活卡片。
+复用现有 `refreshProfile`，不改变认证、API 或绑定流程。详细计划见
+`harness/build/phase-46-web-today-profile-failure.md`。
+
+### Phase 47 — Enforce exact album media ownership keys
+
+加固 PRD-MEMORY-001 的对象所有权边界：相册和故事写入只接受当前用户的
+`album/<userId>/<object>` 键，不接受仅在别的路径片段出现用户 ID、其他媒体目录、相邻用户 ID
+或 `.` / `..` 路径段的对象键。复用并加固现有共享检查，保留情侣关系授权及读取行为不变。详细计划见
+`harness/build/phase-47-album-object-key-ownership.md`。
+
+### Phase 48 — Remove hidden Web daily-interaction routes
+
+移除 Web 中已不再上线的 `/status` 与 `/sentence` 占位路由，避免直接访问旧地址后看到带有“完成/留下”
+按钮的伪入口；依赖现有应用通配路由回到首页。保留仍服务于其他模块的通用占位组件，不实现 P1 状态/一句话功能。
+详细计划见 `harness/build/phase-48-hide-web-daily-interaction-routes.md`。
+
+### Phase 49 — Make App wish memories failure-safe
+
+为 App 心愿回忆页补齐真实加载、失败和重试状态：未成功取得心愿及过程记录前，不展示默认封面、零计数
+或“暂无记录”；请求失败时显示明确错误和重试入口。复用现有 `/wishes/:id/records` 读取，不改变媒体、
+记录或服务端契约。详细计划见 `harness/build/phase-49-app-wish-memory-states.md`。
+
+### Phase 50 — Make App album story reads failure-safe
+
+为 App 故事列表与详情区分加载、请求失败和成功空数据：失败时展示可重试错误，不再落入“没有故事/没有媒体”
+的空状态。复用既有故事查询和收藏 API，不改故事数据、权限或收藏语义。详细计划见
+`harness/build/phase-50-app-story-read-states.md`。
+
+### Phase 51 — Make App wish doing page failure-safe
+
+为 App 进行中心愿过程页补齐加载、失败、重试和成功状态。只有成功读取心愿与过程记录后才显示真实内容、
+“暂无记录”空状态以及结束/添加记录操作；失败不再落入硬编码标题与空记录假象。复用现有记录查询和心愿更新
+API，不改变心愿状态、记录或媒体契约。详细计划见
+`harness/build/phase-51-app-wish-doing-states.md`。
+
+### Phase 52 — Make App album photo/video tabs failure-safe
+
+为 App 相册照片和视频标签补齐加载、失败与成功状态。请求失败时显示可重试错误，只有成功读取后才能展示
+“还没有照片/视频”。复用既有相册媒体查询，保留上传成功后的刷新、媒体分组及查看器行为；“全部”与“收藏”
+读取视图留作独立阶段。详细计划见 `harness/build/phase-52-app-album-media-tabs-states.md`。
+
+### Phase 53 — Make App All Media overview failure-safe
+
+为 App 相册“全部”页的心愿、媒体和故事并行读取补齐加载、失败、重试及成功状态。三项请求全部成功前不渲染
+空相册视图；任一失败时显示统一错误与重试。复用现有 GET API、关系授权和内容布局，不更改单项视图或媒体行为。
+详细计划见 `harness/build/phase-53-app-all-media-overview-states.md`。
+
+### Phase 54 — Make App Favorites grids failure-safe
+
+为 App 收藏故事、照片和视频三个条件挂载的列表补齐成功空数据与失败状态区分。加载失败时显示可重试错误；只有
+对应收藏 GET 成功且过滤结果为空时才展示原空状态文案。保留现有收藏 API、分类、导航和媒体查看行为，并在子标签
+卸载或重试后忽略旧请求。详细计划见 `harness/build/phase-54-app-favorites-states.md`。
+
+### Phase 55 — Make App wish record creation failure-safe
+
+为 App 新增心愿过程记录页面补齐目标心愿加载、失败和重试状态。目标心愿确认成功前不展示可编辑记录表单、
+默认心愿卡片或保存操作；复用现有 `getWishById` 与记录草稿行为，不改变创建 API、媒体上传或服务端授权。
+详细计划见 `harness/build/phase-55-app-wish-record-create-states.md`。
+
+### Phase 56 — Make App wish recycle reads failure-safe
+
+为 App 心愿回收站补齐加载、失败/重试和成功状态，避免读取失败后把初始空列表误报为回收站为空。
+保留现有删除、恢复、永久删除 API 与确认行为；详细范围和验收见
+`harness/build/phase-56-app-wish-recycle-read-states.md`。
+
+### Phase 57 — Make App wish-list reads failure-safe
+
+为 App 主心愿列表补齐加载、失败/重试和分类空状态，失败时不保留仍可选择/删除的旧卡片。
+现有批量删除 API、确认和导航语义不变；详细范围和验收见
+`harness/build/phase-57-app-wish-list-read-states.md`。
+
+### Phase 58 — Verify uploaded media signatures
+
+扩展 Phase 45 的服务端上传策略，在写入对象存储之前拒绝与声明 MIME 明显不匹配或缺少有效头部的文件；
+不变更格式白名单和大小限制，并记录通用媒体容器尚未进行完整解码/轨道校验。详细范围见
+`harness/build/phase-58-media-upload-signature-checks.md`。
+
+### Phase 59 — Unify anniversary reminder plan inputs
+
+服务端纪念日只保存单个 `reminderDaysBefore` 数值；将 App 与 Web 创建/编辑界面改成互斥单选计划，且 Web 编辑保留服务端现有的任意 0–30 天值。不增加“无计划”语义、不发送通知、不改 API 或日期计算；详细范围见
+`harness/build/phase-59-anniversary-reminder-plan-inputs.md`。阶段已完成；实测结果见
+`harness/build-log.md`。
+
+### Phase 60 — Preserve full password bytes in bcrypt auth
+
+bcrypt 仅使用 UTF-8 密码的前 72 字节；新凭证先做版本化 SHA-256 预哈希再 bcrypt，保留旧哈希登录兼容，并只在旧凭证输入短于 72 字节时条件升级，避免猜测旧长密码的原始后缀。详细范围见
+`harness/build/phase-60-password-hash-compatibility.md`。
+
+### Phase 61 — Map concurrent duplicate registrations to conflict
+
+保留注册前的用户名查重与数据库唯一索引；当并发注册在 `INSERT` 处碰撞时，将 MySQL `ER_DUP_ENTRY` 映射到与查重一致的 HTTP 409，其他数据库错误仍走原有内部错误路径。详细范围见
+`harness/build/phase-61-duplicate-registration-conflict.md`。阶段已完成；服务端 22 项测试、lint、build 和差异检查通过。实际 MySQL 并发集成仍未运行。
+
+### Phase 62 — Invalidate App sessions on raw media-upload 401
+
+让 App 的 `uploadAlbumFile` 和 `uploadWishFile` 复用统一的原始响应鉴权请求函数，使上传接口返回 401 时按被拒绝的 token 清除对应持久会话并通知认证上下文；不得清除期间建立的新会话。详细范围见
+`harness/build/phase-62-app-media-upload-auth-invalidation.md`。阶段已完成；App lint、TypeScript 检查和差异检查通过，远端上传调用静态核对均走统一鉴权 helper。
+
+### Phase 63 — Preserve App sessions on transient restore failures
+
+启动恢复时仅对结构损坏/缺少 token 的会话或服务端明确拒绝的 401 执行清理；暂时性网络、存储或服务端错误不得删除凭据，有结构有效的缓存身份时继续恢复本地登录态，所有业务数据仍以服务端授权为准。详细范围见
+`harness/build/phase-63-app-session-restore-failures.md`。阶段已完成；App lint、TypeScript 检查和差异检查通过。无已配置 App 测试运行器或网络故障注入环境。
+
+### Phase 64 — Cover server bearer/JWT identity validation
+
+将 Bearer 头解析、JWT 签名/过期/subject 校验和正整数用户 ID 校验抽到不读取配置的纯函数中，由原认证入口复用，并以仅使用合成密钥的服务端单测覆盖拒绝路径。详细范围见
+`harness/build/phase-64-server-auth-validation-tests.md`。阶段已完成；server tests 28/28、lint、build 和差异检查通过。无 HTTP/DB/WS 集成验证。
+
+### Phase 65 — Isolate explicitly assigned album relationships
+
+修复 album scope 中创建者 OR 条件覆盖已指定关系 ID 的问题：将创建者兜底限于 `relationship_id IS NULL` 的旧记录；在 SQL 执行时重新检查关系绑定/成员状态，收藏 UPDATE 复用相同条件。用本地内存 SQL 夹具验证跨关系拒绝，不定义历史数据归属、清理或迁移策略。详细范围见
+`harness/build/phase-65-album-relationship-isolation.md`。阶段已完成；合成内存 SQL 回归及 server tests 35/35、lint、build 通过，实际 MySQL/R2/HTTP 集成仍未验证。
+
+### Phase 66 — Store shared couple timezone and derive calendar counts
+
+新增关系级 `time_zone`（默认 `Asia/Shanghai`），通过受授权的局部 PATCH 更新，并让 couple-space、
+userinfo 和纪念日使用同一日历算法与共同时间规则。同步客户端类型及 OpenAPI，记录增量 schema 的
+兼容/恢复路径。详细范围见 `harness/build/phase-66-shared-couple-calendar.md`。阶段已完成：
+server tests 45/45、lint/build、两进程时区聚焦测试、Web API/lint/build 和 App lint/typecheck 通过。
+实际 MySQL 迁移/HTTP/设备路径尚未验证；客户端界面与跨日刷新继续由 Phase 67 完成。
+
+### Phase 67 — Apply shared calendar rules in App and Web
+
+在 Phase 66 的存储/计算契约上接入两端共同时间的展示和设置，以及 Web 纪念日预览和“今天”日期。
+保留 date-only 输入；跨午夜更新/聚焦刷新需遵守共同时间规则。该项已获 Goal 和用户时区选择授权，
+不能在服务端小点完成时把整个纪念日模块宣称完成。
+
 ## 后续阶段的准入条件
 
 新增实现阶段前必须：
@@ -208,9 +509,61 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 7. **Verify**：运行阶段规定的聚焦检查、更广验证和必要的人工/集成检查。
 8. **Review**：按风险检查回归、安全、数据、契约、运行和恢复问题。
 9. **Evidence**：把实质性决定写入 phase context，把真实命令和结果写入 build log。
-10. **Handoff**：逐项核对验收标准，报告限制并停止；下一阶段需要新的授权。
+10. **Handoff**：逐项核对验收标准，记录结果和限制；当前有效 Goal 已覆盖下一阶段时继续推进，
+    否则等待新的授权。一个大模块完成后进入下述 PR 交付循环。
 
 一个阶段可以跨多个会话，但不得因为会话切换而扩大范围、丢失失败证据或跳过审批边界。
+
+## 大模块交付与 PR 合并循环
+
+### 持续授权
+
+用户于 2026-09-30 明确要求：每完成一个大模块，并且测试没有问题，就提交 PR、帮助其通过检查和
+评审，并合并进主分支。此要求授权本项目模块交付所需的本地提交、推送模块分支、创建/更新 PR、
+修复 CI 和评审发现、解决合并冲突以及在合并门槛满足后合并到 `origin/main`。每个已满足条件的
+模块无需再次请求确认；该授权不包含部署、生产数据/凭据访问或业务策略未决的数据处置。
+
+已核对本地 Git：`origin` 指向 `https://github.com/RyanhoTan/love-u-2.git`，本地主分支为 `main`。
+实际创建 PR 前再次核对远端目标、最新 main 和 GitHub 仓库合并规则，防止沿用过时状态。
+
+### 大模块与完成门槛
+
+大模块是一组可以独立交付和验收的用户能力，通常对应 PRD 的账户/会话、情侣关系、今日首页、
+心愿、纪念日、相册/故事/私有媒体或伴侣聊天领域。一个模块可以包含多个小阶段和多个独立 commit；
+单个小点完成并不自动代表整个模块完成。模块启动时在其计划中列明需求 ID、包含的阶段、依赖、
+验收边界和验证方式，按原定范围验收，不根据已有测试覆盖缩小完成条件。
+
+进入 PR 交付循环前必须满足：
+
+1. 模块中约定的需求和验收路径均有可核对的完成证据，未完成的必需项已解决。
+2. 受影响包已有的测试、lint、类型检查/build 通过；修复有意义的失败后再重跑相应检查。
+3. 涉及认证、关系隔离、媒体、数据库和聊天时，覆盖对应未授权、跨关系、失败/恢复和兼容路径。
+   明确要求的集成/端到端验收尚未执行时，模块仍为待验收，不能用构建或单元测试替代。
+4. 修改范围、API/客户端契约、迁移与恢复说明及必要评审已核对；没有未解决的合并阻塞问题。
+5. 阶段 context 和 build log 已记录真实结果、可接受的剩余限制及模块完成状态。
+
+当前 `refactor/codex-workflow-harness` 包含多个领域的累积工作，不能直接把它当作某一个已经验收的
+大模块。交付前按模块及共享依赖整理可评审的分支/PR；保留原提交和用户改动，必要时建立独立工作树，
+先交付共享依赖，再交付依赖模块。不要重写已有历史或把未验收模块混入已完成模块的 PR。
+
+### 执行循环
+
+1. **准备模块 PR**：以最新主分支核对 diff、范围和依赖；按仓库历史保留每个小点的提交，完成
+   模块复核及本地验证。PR 说明写清用户行为变化、关联 PRD、验证结果和实质性限制。
+2. **推送并创建 PR**：推送模块分支，创建目标为 `main` 的 PR，并把实际 PR 链接附到当前任务。
+   在 build log 中记录 URL、提交 SHA、所含阶段和已运行的命令。
+3. **帮助通过**：检查当前 PR 提交的 required checks、评审意见和合并状态。修复本模块范围内的
+   CI 失败、有效评审问题和冲突，新增独立提交，重跑受影响检查，持续推进到门槛满足。
+4. **核验合并门槛**：必须确认检查对应当前 PR HEAD，必需检查已通过、仓库要求的审批已满足、
+   没有未解决的实质性评审问题且可以合并。没有配置 CI 时明确记录未配置及实际本地验证，不能
+   描述为 CI 已通过。需要其他账号审批或缺少外部验证条件时记录具体阻塞，并继续独立工作。
+5. **合并主分支**：门槛满足后按仓库允许的合并方式执行，优先保留用户要求的单点提交历史。
+   不绕过分支保护，不把自己的代码复核冒充其他人的审批，也不替换缺失的测试结果。
+6. **核对并继续**：读取权威 PR 状态和主分支提交，确认实际已合并；在 build log 中记录合并 SHA、
+   检查结果和模块结论。安全同步后续工作分支与主分支，再进入下一个已授权模块。
+
+PR 创建、CI 等待、修复和合并都属于长任务的执行范围。只有实际 merged 状态才可记录为已合并；
+普通进度回复不结束当前 Goal。外部审批/权限或产品决策仍然缺失时，按 Goal 的阻塞规则处理。
 
 ## 当前仓库基线事实
 
@@ -223,8 +576,8 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 - 当前源码包含认证、情侣空间、心愿、纪念日、相册/故事、媒体上传和伴侣聊天等领域。
 - 根 README 对后端仍存在 scaffold/501 的描述，但实时服务端已挂载多个业务路由；这属于需要在
   Phase 01 核实的文档偏差，不能在 Phase 00 顺手修改。
-- 当前三个 package manifest 没有自动化测试脚本。可用的基础验证主要是 lint、TypeScript 检查
-  和 build；端到端验证需要环境变量及外部依赖。
+- 服务端已有 `pnpm --dir server test` 和独立回归用例；App/Web 尚无已配置的自动化测试脚本。
+  三端均有 lint、TypeScript 检查或 build；真实端到端验证仍需要环境变量及外部依赖。
 - 服务端启动需要 MySQL、JWT 和对象存储配置；这类依赖不能在未确认目标时自动访问。
 - 本计划创建时，本地 `main` 比 `origin/main` 领先 5 个提交。本 workflow 分支从本地当前状态
   创建，保留这些提交，不把它们视为本阶段产生的变更。
@@ -292,6 +645,9 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 - **原因：** 这些操作的影响范围和可恢复性不同于本地文件编辑。
 - **影响：** 阶段完成不会自动触发 commit 或 push。
 - **复核条件：** 用户针对具体操作发出明确请求。
+- **当前授权更新（2026-09-30）：** 用户已批准按 PRD 小点提交，以及大模块验收通过后的分支推送、
+  PR 创建/修复/合并主分支。执行条件以本文件“大模块交付与 PR 合并循环”为准；不再重复请求
+  已覆盖操作的批准。部署和生产/第三方数据写入仍未获授权。
 
 ## 全局验收框架
 

@@ -337,9 +337,9 @@
         ]
       },
       "patch": {
-        "summary": "更新恋爱纪念日",
+        "summary": "更新情侣共同资料",
         "deprecated": false,
-        "description": "",
+        "description": "局部更新恋爱纪念日或共同时区；未提供的字段保持原值。双方使用关系保存的共同日历规则。",
         "operationId": "updateCoupleSpace",
         "tags": [
           "Couple"
@@ -1114,7 +1114,7 @@
       "patch": {
         "summary": "更新心愿",
         "deprecated": false,
-        "description": "可修改标题、描述、状态或目标日期；至少提供一个字段。",
+        "description": "可修改标题、描述、状态、目标日期、预算或地点名称；至少提供一个字段。",
         "operationId": "updateWish",
         "tags": [
           "Wish"
@@ -2005,7 +2005,7 @@
       "post": {
         "summary": "上传媒体文件",
         "deprecated": false,
-        "description": "请求体为原始二进制；成功响应为 `{ key, url }`，无 message。",
+        "description": "请求体为原始二进制。仅允许 `album` 图片/视频和 `interact` 音频，最大 100 MiB；服务端依据 Content-Type 白名单派生对象后缀，不信任文件名，并在写入前核对文件签名/容器标识。该检查用于头部识别，不等同于完整解码或编解码轨道校验。成功响应为 `{ key }`，无 message；对象读取 URL 由各自的授权资源接口签发。",
         "operationId": "uploadMedia",
         "tags": [
           "Upload"
@@ -2014,21 +2014,15 @@
           {
             "name": "folder",
             "in": "query",
-            "description": "Storage folder segment. Not Zod-validated; clients use values like `album`.\n",
+            "description": "Upload folder. `album` accepts supported image/video MIME types; `interact` accepts supported audio MIME types.",
             "required": true,
             "example": "",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-file-name",
-            "in": "header",
-            "description": "Original file name (used for extension)",
-            "required": true,
-            "example": "",
-            "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "album",
+                "interact"
+              ]
             }
           }
         ],
@@ -2051,7 +2045,7 @@
         },
         "responses": {
           "201": {
-            "description": "Uploaded — body is `{ key, url }` without message",
+            "description": "Uploaded — body is `{ key }` without message",
             "content": {
               "application/json": {
                 "schema": {
@@ -2063,6 +2057,220 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Unsupported folder or empty upload body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "413": {
+            "description": "Upload exceeds 100 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "415": {
+            "description": "Unsupported declared media type or mismatched media signature for folder",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/partner-chat/messages": {
+      "get": {
+        "summary": "获取伴侣聊天历史",
+        "description": "Requires the exact relationship to remain bound and the caller to be one of its two members. Pages are returned in chronological order; beforeId is an exclusive server-message-id cursor. Private audio object keys and signed URLs are never returned.",
+        "operationId": "getPartnerChatHistory",
+        "tags": [
+          "PartnerChat"
+        ],
+        "parameters": [
+          {
+            "name": "relationshipId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "beforeId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chronological page of authorized chat history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerChatHistoryPage"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid relationship id, cursor, or page size",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Relationship is not currently accessible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/partner-chat/messages/{id}/audio-url": {
+      "get": {
+        "summary": "获取伴侣聊天语音播放地址",
+        "deprecated": false,
+        "description": "Requires an authenticated sender/receiver who is still a member of this message's currently bound relationship. Key-backed audio returns a 300-second signed URL. Legacy URL-backed audio remains readable while the relationship is bound. Responses are private and not cacheable.",
+        "operationId": "getPartnerChatAudioUrl",
+        "tags": [
+          "PartnerChat"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ResourceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized playback URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerChatAudioUrlResponse"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "private, no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid message id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Audio message not found in a current authorized relationship",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "503": {
+            "description": "Signed URL service temporarily unavailable",
             "content": {
               "application/json": {
                 "schema": {
@@ -2084,7 +2292,7 @@
       "get": {
         "summary": "伴侣聊天 WebSocket",
         "deprecated": false,
-        "description": "Not a JSON REST endpoint. Clients open a WebSocket to\n`ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade).\n\nRequires an active bound couple relationship; otherwise upgrade is rejected\nwith HTTP 403.\n\nClient → server message schemas:\n- PartnerChatClientMessageText\n- PartnerChatClientMessageAudio\n- PartnerChatClientRead\n\nServer → client message schemas:\n- PartnerChatServerReady\n- PartnerChatServerMessage\n- PartnerChatServerDelivery\n- PartnerChatServerReadReceipt\n- PartnerChatServerError\n\nMessage `id` values are **strings** (unlike HTTP resource ids).\n",
+        "description": "Not a JSON REST endpoint. Clients open a WebSocket to\n`ws(s)://<host>/partner-chat?token=<jwt>` (or Bearer on upgrade). Set optional `deliveryAck=1` to negotiate client delivery acknowledgements; the server advertises `deliveryAckVersion: 1` in `ready`, and clients send ACKs only after that negotiation.\n\nRequires an active bound couple relationship; otherwise upgrade is rejected\nwith HTTP 403.\n\nClient → server message schemas:\n- PartnerChatClientMessageText\n- PartnerChatClientMessageAudio (exactly one of `audioObjectKey` or legacy `audioUrl`)\n- PartnerChatClientDeliveryAck\n- PartnerChatClientRead\n\nNew object keys must belong to the authenticated sender under `interact/<userId>/`. The server does not echo private keys or signed URLs over WebSocket; clients fetch playback URLs from `GET /partner-chat/messages/{id}/audio-url`.\n\nServer → client message schemas:\n- PartnerChatServerReady\n- PartnerChatServerMessage\n- PartnerChatServerDelivery\n- PartnerChatServerReadReceipt\n- PartnerChatServerError\n\nFor negotiated clients, `sending` means transport was attempted but the recipient runtime has not acknowledged it; `sent` follows the recipient acknowledgement. Legacy clients without negotiation retain transport-acceptance delivery behavior to avoid duplicate replay.\n\nMessage `id` values are **strings** (unlike HTTP resource ids).\n",
         "operationId": "partnerChatUpgrade",
         "tags": [
           "PartnerChat"
@@ -2098,6 +2306,18 @@
             "example": "",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "deliveryAck",
+            "in": "query",
+            "description": "Set to 1 to negotiate receiver acknowledgement support.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
             }
           }
         ],
@@ -2289,6 +2509,8 @@
           "isBound",
           "daysInLove",
           "anniversaryDate",
+          "timeZone",
+          "todayDate",
           "partner"
         ],
         "additionalProperties": false,
@@ -2301,10 +2523,18 @@
               "integer",
               "null"
             ],
-            "description": "Days since anniversaryDate; null if unbound or no date"
+            "description": "Inclusive calendar days in the shared timezone; same day is 1, future date is 0; null if unbound or no date"
           },
           "anniversaryDate": {
             "$ref": "#/components/schemas/DateOnlyNullable"
+          },
+          "timeZone": {
+            "type": ["string", "null"],
+            "description": "Stored shared timezone; null when unbound"
+          },
+          "todayDate": {
+            "$ref": "#/components/schemas/DateOnlyNullable",
+            "description": "Calendar today in the shared timezone; null when unbound"
           },
           "partner": {
             "allOf": [
@@ -2477,12 +2707,20 @@
           }
         }
       },
+      "CoupleTimeZone": {
+        "type": "string",
+        "maxLength": 64,
+        "pattern": "^(?:UTC|[A-Za-z_]+(?:/[A-Za-z0-9_+-]+)+)$",
+        "description": "Runtime-supported named timezone or UTC. New relationships initially use Asia/Shanghai; saved date-only values are unchanged.",
+        "example": "Asia/Shanghai"
+      },
       "CoupleRelationship": {
         "type": "object",
         "required": [
           "id",
           "status",
           "anniversaryDate",
+          "timeZone",
           "createdAt",
           "updatedAt",
           "unboundAt"
@@ -2497,6 +2735,9 @@
           },
           "anniversaryDate": {
             "$ref": "#/components/schemas/DateOnlyNullable"
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/CoupleTimeZone"
           },
           "createdAt": {
             "$ref": "#/components/schemas/IsoDateTimeNullable"
@@ -2516,6 +2757,7 @@
           "partner",
           "relationship",
           "daysInLove",
+          "todayDate",
           "activeInvite"
         ],
         "additionalProperties": false,
@@ -2543,7 +2785,12 @@
             "type": [
               "integer",
               "null"
-            ]
+            ],
+            "description": "Inclusive calendar days in relationship.timeZone; same day is 1, future date is 0"
+          },
+          "todayDate": {
+            "$ref": "#/components/schemas/DateOnlyNullable",
+            "description": "Calendar today in relationship.timeZone; null when unbound"
           },
           "activeInvite": {
             "allOf": [
@@ -2621,13 +2868,15 @@
       },
       "UpdateCoupleSpaceRequest": {
         "type": "object",
-        "required": [
-          "anniversaryDate"
-        ],
+        "minProperties": 1,
+        "description": "Partial update: at least one of anniversaryDate or timeZone is required. Omitted fields retain their stored value.",
         "additionalProperties": false,
         "properties": {
           "anniversaryDate": {
             "$ref": "#/components/schemas/DateOnlyNullable"
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/CoupleTimeZone"
           }
         }
       },
@@ -2764,7 +3013,9 @@
         "type": "object",
         "required": [
           "message",
-          "anniversaries"
+          "anniversaries",
+          "timeZone",
+          "todayDate"
         ],
         "additionalProperties": false,
         "properties": {
@@ -2776,6 +3027,14 @@
             "items": {
               "$ref": "#/components/schemas/Anniversary"
             }
+          },
+          "timeZone": {
+            "type": ["string", "null"],
+            "description": "Shared timezone used for this list; null when unbound"
+          },
+          "todayDate": {
+            "$ref": "#/components/schemas/DateOnlyNullable",
+            "description": "Shared calendar date used for every countdown in this response; null when unbound"
           }
         }
       },
@@ -2847,7 +3106,7 @@
           },
           "cover": {
             "type": "string",
-            "description": "DB null serialized as empty string"
+            "description": "Short-lived signed URL for a private object-key cover; legacy URL is returned unchanged"
           },
           "targetDate": {
             "$ref": "#/components/schemas/DateOnly"
@@ -2874,7 +3133,8 @@
               "null"
             ],
             "minimum": 0,
-            "description": "Integer amount; unit not specified in code (open question)"
+            "maximum": 2147483647,
+            "description": "Integer budget in yuan; null means not set"
           },
           "status": {
             "$ref": "#/components/schemas/WishStatus"
@@ -2952,8 +3212,12 @@
           },
           "cover": {
             "type": "string",
-            "description": "Valid URL or empty string; default ''",
-            "default": ""
+            "description": "Legacy URL cover, retained for backward compatibility; omitted for private object-key covers"
+          },
+          "coverObjectKey": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Private uploaded album media object key; must belong to the authenticated uploader"
           },
           "targetDate": {
             "$ref": "#/components/schemas/DateOnly",
@@ -2988,6 +3252,7 @@
               "null"
             ],
             "minimum": 0,
+            "maximum": 2147483647,
             "default": null
           }
         }
@@ -3014,9 +3279,31 @@
           "targetDate": {
             "$ref": "#/components/schemas/DateOnly",
             "description": "Updated target date; a real calendar date in YYYY-MM-DD format, year 1000–9999"
+          },
+          "budgetAmount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 2147483647,
+            "description": "Updated integer budget in yuan; null clears the budget"
+          },
+          "locationName": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Updated location name; an empty string clears the name without changing coordinates"
+          },
+          "coverObjectKey": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2048,
+            "description": "Private album object key to replace the cover; null clears the legacy URL and private key; omitted leaves the cover unchanged"
           }
         },
-        "description": "PATCH at least one supported field: title, status, description, or targetDate"
+        "description": "PATCH at least one supported field: title, status, description, targetDate, budgetAmount, locationName, or coverObjectKey"
       },
       "WishRecordMedia": {
         "type": "object",
@@ -3141,15 +3428,34 @@
       },
       "CreateWishRecordMediaInput": {
         "type": "object",
-        "required": [
-          "url",
-          "mediaType"
-        ],
+        "required": ["mediaType"],
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["objectKey"],
+            "properties": {
+              "objectKey": { "type": "string" }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["url"],
+            "properties": {
+              "url": { "type": "string", "format": "uri" }
+            }
+          }
+        ],
         "properties": {
+          "objectKey": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Private uploaded album object key; new clients should use this field"
+          },
           "url": {
             "type": "string",
-            "format": "uri"
+            "format": "uri",
+            "description": "Legacy URL input retained for older clients"
           },
           "mediaType": {
             "type": "string",
@@ -3303,11 +3609,12 @@
             ]
           },
           "url": {
-            "type": "string"
+            "type": "string",
+            "description": "Short-lived signed URL for object-key media (300 seconds); legacy media may return its existing URL"
           },
           "thumbnailUrl": {
             "type": "string",
-            "description": "Empty string when absent"
+            "description": "Empty for object-key media without a stored cross-device thumbnail"
           },
           "takenAt": {
             "type": "string",
@@ -3376,16 +3683,18 @@
         "type": "object",
         "required": [
           "mediaType",
-          "url"
+          "objectKey"
         ],
         "additionalProperties": false,
         "properties": {
           "mediaType": {
             "$ref": "#/components/schemas/AlbumMediaType"
           },
-          "url": {
+          "objectKey": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 2048,
+            "description": "Object storage key returned by the authenticated upload endpoint"
           },
           "thumbnailUrl": {
             "type": "string",
@@ -3424,6 +3733,7 @@
           "title",
           "description",
           "coverMediaId",
+          "coverMediaType",
           "coverUrl",
           "coverThumbnailUrl",
           "photos",
@@ -3458,11 +3768,24 @@
               "null"
             ]
           },
+          "coverMediaType": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AlbumMediaType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Media type of the selected cover, or null when unset"
+          },
           "coverUrl": {
-            "type": "string"
+            "type": "string",
+            "description": "Short-lived signed URL for an object-key cover (300 seconds); legacy stories may return their existing URL"
           },
           "coverThumbnailUrl": {
-            "type": "string"
+            "type": "string",
+            "description": "Empty for object-key covers without a stored cross-device thumbnail"
           },
           "photos": {
             "type": "integer",
@@ -3544,16 +3867,18 @@
         "type": "object",
         "required": [
           "mediaType",
-          "url"
+          "objectKey"
         ],
         "additionalProperties": false,
         "properties": {
           "mediaType": {
             "$ref": "#/components/schemas/AlbumMediaType"
           },
-          "url": {
+          "objectKey": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 2048,
+            "description": "Object storage key returned by the authenticated upload endpoint"
           },
           "thumbnailUrl": {
             "type": "string",
@@ -3625,21 +3950,16 @@
       "UploadMediaResponse": {
         "type": "object",
         "required": [
-          "key",
-          "url"
+          "key"
         ],
         "additionalProperties": false,
         "properties": {
           "key": {
             "type": "string",
             "description": "Object storage key"
-          },
-          "url": {
-            "type": "string",
-            "description": "Public URL"
           }
         },
-        "description": "Success body has NO `message` field — keep as implemented.\n"
+        "description": "Success body returns a private object key only; it has NO `url` or `message` field.\n"
       },
       "PartnerChatClientMessageText": {
         "type": "object",
@@ -3669,11 +3989,62 @@
           },
           "clientMessageId": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 100
           }
         }
       },
       "PartnerChatClientMessageAudio": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/PartnerChatClientMessageAudioObjectKey"
+          },
+          {
+            "$ref": "#/components/schemas/PartnerChatClientMessageAudioLegacyUrl"
+          }
+        ],
+        "description": "Exactly one form is accepted: new private object key or legacy URL."
+      },
+      "PartnerChatClientMessageAudioObjectKey": {
+        "type": "object",
+        "required": [
+          "type",
+          "messageType",
+          "audioObjectKey"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "message"
+            ]
+          },
+          "messageType": {
+            "type": "string",
+            "enum": [
+              "audio"
+            ]
+          },
+          "audioObjectKey": {
+            "type": "string",
+            "pattern": "^interact/[1-9][0-9]*/[A-Za-z0-9._-]+$",
+            "maxLength": 2048,
+            "description": "Must belong to the authenticated sender."
+          },
+          "audioDurationSeconds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 600
+          },
+          "clientMessageId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        }
+      },
+      "PartnerChatClientMessageAudioLegacyUrl": {
         "type": "object",
         "required": [
           "type",
@@ -3697,7 +4068,8 @@
           "audioUrl": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 2048
+            "maxLength": 2048,
+            "description": "Legacy URL form; mutually exclusive with audioObjectKey."
           },
           "audioDurationSeconds": {
             "type": "number",
@@ -3706,7 +4078,118 @@
           },
           "clientMessageId": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 100
+          }
+        }
+      },
+      "PartnerChatHistoryPage": {
+        "type": "object",
+        "required": [
+          "relationshipId",
+          "messages",
+          "hasMore",
+          "nextBeforeId"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "relationshipId": {
+            "type": "integer"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerChatHistoryMessage"
+            }
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextBeforeId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Oldest returned server message ID when older messages remain."
+          }
+        }
+      },
+      "PartnerChatHistoryMessage": {
+        "type": "object",
+        "required": [
+          "id",
+          "fromUserId",
+          "relationshipId",
+          "text",
+          "messageType",
+          "sentAt",
+          "deliveryStatus"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Server message ID as a string."
+          },
+          "fromUserId": {
+            "type": "integer"
+          },
+          "relationshipId": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "messageType": {
+            "type": "string",
+            "enum": [
+              "text",
+              "audio"
+            ]
+          },
+          "audioUrl": {
+            "type": "string",
+            "description": "Legacy URL only; omitted for private key-backed audio."
+          },
+          "audioDurationSeconds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 600
+          },
+          "clientMessageId": {
+            "type": "string"
+          },
+          "sentAt": {
+            "$ref": "#/components/schemas/IsoDateTime"
+          },
+          "deliveryStatus": {
+            "type": "string",
+            "enum": [
+              "sent",
+              "sending",
+              "partner_offline",
+              "read"
+            ],
+            "description": "Persisted status relative to the authenticated requester."
+          }
+        }
+      },
+      "PartnerChatAudioUrlResponse": {
+        "type": "object",
+        "required": [
+          "messageId",
+          "url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "messageId": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "300-second signed URL for private objects; legacy URL otherwise."
+          },
+          "expiresIn": {
+            "type": "integer",
+            "description": "Present only when the URL is a short-lived signed URL."
           }
         }
       },
@@ -3722,6 +4205,29 @@
             "enum": [
               "read"
             ]
+          }
+        }
+      },
+      "PartnerChatClientDeliveryAck": {
+        "type": "object",
+        "required": [
+          "type",
+          "messageId"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "delivered"
+            ]
+          },
+          "messageId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16,
+            "pattern": "^[1-9]\\d*$",
+            "description": "Positive safe-integer server message ID as a string."
           }
         }
       },
@@ -3749,6 +4255,13 @@
           },
           "relationshipId": {
             "type": "integer"
+          },
+          "deliveryAckVersion": {
+            "type": "integer",
+            "enum": [
+              1
+            ],
+            "description": "Present when receiver delivery acknowledgement is supported."
           }
         }
       },
@@ -3825,6 +4338,7 @@
             "type": "string",
             "enum": [
               "sent",
+              "sending",
               "partner_offline"
             ]
           },
@@ -3889,6 +4403,10 @@
           },
           "message": {
             "type": "string"
+          },
+          "clientMessageId": {
+            "type": "string",
+            "maxLength": 100
           }
         },
         "description": "WS errors include `code`; HTTP errors currently do not"

@@ -1,6 +1,5 @@
 import {
-  API_BASE_URL,
-  getAuthToken,
+  fetchWithAuth,
   requestWithAuth,
 } from "@/app/shared/api-client";
 
@@ -48,6 +47,13 @@ export interface WishRecordMediaItem {
   thumbnailUrl: string;
 }
 
+export interface WishRecordMediaInput {
+  objectKey?: string;
+  url?: string;
+  mediaType: "image" | "video";
+  thumbnailUrl?: string;
+}
+
 interface GetWishesResponse {
   message: string;
   wishes: WishItem[];
@@ -88,7 +94,8 @@ interface GetWishRecordsResponse {
 export interface CreateWishPayload {
   title: string;
   description: string;
-  cover: string;
+  cover?: string;
+  coverObjectKey?: string;
   targetDate: string;
   locationName: string;
   latitude: number | null;
@@ -98,7 +105,14 @@ export interface CreateWishPayload {
 
 export type UpdateWishPayload =
   | { status: WishStatus }
-  | { title?: string; description?: string; targetDate?: string };
+  | {
+      title?: string;
+      description?: string;
+      targetDate?: string;
+      budgetAmount?: number | null;
+      locationName?: string;
+      coverObjectKey?: string | null;
+    };
 
 export interface CreateWishRecordPayload {
   content: string;
@@ -108,7 +122,7 @@ export interface CreateWishRecordPayload {
   latitude: number | null;
   longitude: number | null;
   budgetAmount: number | null;
-  media: WishRecordMediaItem[];
+  media: WishRecordMediaInput[];
 }
 
 export async function getWishes() {
@@ -182,20 +196,13 @@ export async function uploadWishFile(
   fileName: string,
   contentType: string,
 ) {
-  const token = await getAuthToken();
-
-  if (!token) {
-    throw new Error("login required");
-  }
-
   const fileResponse = await fetch(uri);
   const fileBlob = await fileResponse.blob();
-  const response = await fetch(
-    `${API_BASE_URL}/upload/media?folder=album`,
+  const response = await fetchWithAuth(
+    "/upload/media?folder=album",
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": contentType,
         "x-file-name": fileName,
       },

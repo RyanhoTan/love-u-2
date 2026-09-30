@@ -20,6 +20,7 @@ export interface CoupleRelationship {
   id: number;
   status: string;
   anniversaryDate: string | null;
+  timeZone: string;
   createdAt: string | null;
   updatedAt: string | null;
   unboundAt: string | null;
@@ -30,6 +31,7 @@ export interface CoupleSpace {
   partner: CouplePartner | null;
   relationship: CoupleRelationship | null;
   daysInLove: number | null;
+  todayDate: string | null;
   activeInvite: CoupleInvite | null;
 }
 
@@ -48,7 +50,8 @@ export interface BindCouplePayload {
 }
 
 export interface UpdateCoupleSpacePayload {
-  anniversaryDate: string | null;
+  anniversaryDate?: string | null;
+  timeZone?: string;
 }
 
 export async function getCoupleSpace() {

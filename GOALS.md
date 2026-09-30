@@ -51,7 +51,8 @@
 - 包管理器为 `pnpm@10.11.0`；三个运行单元分别维护依赖和 lockfile。
 - 移动端基于 Expo 55 / React Native 0.83；Web 端基于 Vite；服务端使用 Node.js ESM。
 - 服务端启动依赖 MySQL、JWT 和 R2 兼容对象存储环境变量。
-- 当前没有仓库级自动化测试脚本，主要可用验证面是 lint、TypeScript 构建和有条件的人工/集成验证。
+- 服务端已有独立回归测试入口 `pnpm --dir server test`；App/Web 尚无已配置的自动化测试脚本。
+  其他验证面是 lint、TypeScript 构建和有条件的人工/集成验证，不能以静态检查代替端到端验收。
 - `README.md` 中部分后端状态可能落后于当前实现，不能未经核对直接作为现状证据。
 
 ## 安全、可靠性与恢复预期

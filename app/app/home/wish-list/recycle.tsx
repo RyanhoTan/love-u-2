@@ -1,5 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -32,26 +33,46 @@ function formatDateLabel(value: string | null) {
 
 export default function WishRecycleBin() {
   const [wishes, setWishes] = useState<WishItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
   const [pendingWishId, setPendingWishId] = useState<number | null>(null);
+  const requestId = useRef(0);
 
   const refreshWishes = useCallback(async () => {
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setWishes([]);
+    setLoadError("");
+    setLoadState("loading");
+
     try {
-      setLoading(true);
       const response = await getDeletedWishes();
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       setWishes(response.wishes);
+      setLoadState("ready");
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "加载回收站失败";
-      toast.error(message);
-    } finally {
-      setLoading(false);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(
+        error instanceof Error ? error.message : "加载回收站失败",
+      );
+      setLoadState("error");
     }
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       void refreshWishes();
+      return () => {
+        requestId.current += 1;
+      };
     }, [refreshWishes]),
   );
 
@@ -145,14 +166,36 @@ export default function WishRecycleBin() {
           </Text>
         </Column>
 
-        {!loading && wishes.length === 0 ? (
+        {loadState === "loading" ? (
+          <View style={styles.stateContainer}>
+            <ActivityIndicator color={colors.theme.primary} />
+            <Text style={styles.stateText}>正在加载回收站…</Text>
+          </View>
+        ) : null}
+
+        {loadState === "error" ? (
+          <View style={styles.stateContainer}>
+            <Text accessibilityRole="alert" style={styles.errorText}>
+              {loadError || "加载回收站失败，请重试"}
+            </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => void refreshWishes()}
+              style={styles.retryButton}
+            >
+              <Text style={styles.retryText}>重新加载</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {loadState === "ready" && wishes.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyTitle}>回收站还是空的</Text>
             <Text style={styles.emptyText}>删除的愿望会先来到这里。</Text>
           </View>
         ) : null}
 
-        {wishes.map((wish) => {
+        {loadState === "ready" && wishes.map((wish) => {
           const isPending = pendingWishId === wish.id;
 
           return (
@@ -249,6 +292,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.semantic.border,
     gap: 8,
+  },
+  stateContainer: {
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 32,
+  },
+  stateText: {
+    color: colors.semantic.textSecondary,
+  },
+  errorText: {
+    color: colors.semantic.textSecondary,
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  retryButton: {
+    borderRadius: 18,
+    backgroundColor: colors.theme.primarySoftBg,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+  retryText: {
+    color: colors.theme.primary,
+    fontWeight: "600",
   },
   emptyTitle: {
     fontSize: 16,

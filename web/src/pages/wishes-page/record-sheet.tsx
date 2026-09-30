@@ -1,5 +1,5 @@
 import { Calendar, ImagePlus, MapPin, Smile, Wallet, X } from "lucide-react";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { uploadWishMedia } from "@/api/wish";
 import {
   errorMessage,
@@ -16,9 +16,9 @@ import {
 } from "./types";
 
 type DraftMedia = {
-  url: string;
+  objectKey: string;
+  previewUrl: string;
   mediaType: "image";
-  thumbnailUrl: string;
 };
 
 type Picker = "date" | "mood" | "location" | "budget" | null;
@@ -32,6 +32,7 @@ export function RecordSheet({
 }) {
   const createMutation = useCreateWishRecordMutation(wishId);
   const fileRef = useRef<HTMLInputElement>(null);
+  const previewUrls = useRef(new Set<string>());
 
   const [content, setContent] = useState("");
   const [recordDate, setRecordDate] = useState(todayIso());
@@ -45,6 +46,16 @@ export function RecordSheet({
 
   const pending = createMutation.isPending || uploading;
 
+  useEffect(
+    () => () => {
+      for (const url of previewUrls.current) {
+        URL.revokeObjectURL(url);
+      }
+      previewUrls.current.clear();
+    },
+    [],
+  );
+
   async function addPhotos(files: FileList | null) {
     if (!files?.length) {
       return;
@@ -52,16 +63,22 @@ export function RecordSheet({
     setLocalError("");
     setUploading(true);
     try {
-      const uploaded: DraftMedia[] = [];
+      const uploaded: { objectKey: string; file: File }[] = [];
       for (const file of Array.from(files)) {
         const result = await uploadWishMedia(file);
         uploaded.push({
-          url: result.url,
-          mediaType: "image",
-          thumbnailUrl: result.url,
+          objectKey: result.key,
+          file,
         });
       }
-      setMedia((current) => [...current, ...uploaded]);
+      setMedia((current) => [
+        ...current,
+        ...uploaded.map(({ objectKey, file }) => {
+          const previewUrl = URL.createObjectURL(file);
+          previewUrls.current.add(previewUrl);
+          return { objectKey, previewUrl, mediaType: "image" as const };
+        }),
+      ]);
     } catch (caught) {
       setLocalError(errorMessage(caught, "照片上传失败"));
     } finally {
@@ -93,7 +110,11 @@ export function RecordSheet({
           budgetAmount != null && Number.isFinite(budgetAmount)
             ? budgetAmount
             : null,
-        media,
+        media: media.map(({ objectKey, mediaType }) => ({
+          objectKey,
+          mediaType,
+          thumbnailUrl: "",
+        })),
       },
       {
         onSuccess: () => onClose(),
@@ -152,11 +173,11 @@ export function RecordSheet({
               <div className="flex flex-wrap gap-2">
                 {media.map((item) => (
                   <div
-                    key={item.url}
+                    key={item.objectKey}
                     className="relative size-[72px] overflow-hidden rounded-[10px]"
                   >
                     <img
-                      src={item.thumbnailUrl || item.url}
+                      src={item.previewUrl}
                       alt=""
                       className="size-full object-cover"
                     />
@@ -165,9 +186,15 @@ export function RecordSheet({
                       aria-label="移除照片"
                       disabled={pending}
                       onClick={() =>
-                        setMedia((current) =>
-                          current.filter((entry) => entry.url !== item.url),
-                        )
+                        {
+                          URL.revokeObjectURL(item.previewUrl);
+                          previewUrls.current.delete(item.previewUrl);
+                          setMedia((current) =>
+                            current.filter(
+                              (entry) => entry.objectKey !== item.objectKey,
+                            ),
+                          );
+                        }
                       }
                       className="absolute right-1 top-1 flex size-[18px] items-center justify-center rounded-full bg-[rgb(28_20_24_/_0.8)] text-inverse"
                     >

@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ScrollView } from "react-native-gesture-handler";
 import { ChevronRight, ChevronsUpDown, Grid2x2, Play } from "lucide-react-native";
@@ -11,7 +17,6 @@ import {
   type AlbumStory,
 } from "@/app/features/album/api";
 import { getWishes, type WishItem } from "@/app/features/wish-list/api";
-import { toast } from "@/components/common";
 import { useImageViewer } from "@/hooks/use-image-viewer";
 import { useVideoViewer } from "@/hooks/use-video-viewer";
 import { Column, Row } from "../layout";
@@ -64,6 +69,13 @@ export function AllMedias({ refreshKey = 0 }: AllMediasProps) {
   const [wishes, setWishes] = useState<WishItem[]>([]);
   const [media, setMedia] = useState<AlbumMediaItem[]>([]);
   const [stories, setStories] = useState<AlbumStory[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
+  const requestId = useRef(0);
+  const isFocused = useRef(false);
+  const lastRefreshKey = useRef(refreshKey);
   const { openViewer: openImageViewer, Viewer: ImageViewer } = useImageViewer();
   const { openViewer: openVideoViewer, Viewer: VideoViewer } = useVideoViewer();
 
@@ -81,33 +93,97 @@ export function AllMedias({ refreshKey = 0 }: AllMediasProps) {
   const mediaGroups = useMemo(() => groupMediaByMonth(media), [media]);
 
   const refreshAlbum = useCallback(async () => {
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setWishes([]);
+    setMedia([]);
+    setStories([]);
+    setLoadError("");
+    setLoadState("loading");
+
     try {
       const [wishResponse, mediaResponse, storyResponse] = await Promise.all([
         getWishes(),
         getAlbumMedia(),
         getAlbumStories(),
       ]);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
 
       setWishes(wishResponse.wishes);
       setMedia(mediaResponse.media);
       setStories(storyResponse.stories);
+      setLoadState("ready");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载相册失败";
-      toast.error(message);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(
+        error instanceof Error ? error.message : "加载相册失败，请重试",
+      );
+      setLoadState("error");
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      void refreshAlbum();
-    }, [refreshAlbum]),
-  );
-
   useEffect(() => {
-    if (refreshKey > 0) {
+    if (lastRefreshKey.current === refreshKey) {
+      return;
+    }
+
+    lastRefreshKey.current = refreshKey;
+    if (isFocused.current) {
       void refreshAlbum();
     }
   }, [refreshAlbum, refreshKey]);
+
+  useFocusEffect(
+    useCallback(() => {
+      isFocused.current = true;
+      void refreshAlbum();
+      return () => {
+        isFocused.current = false;
+        requestId.current += 1;
+      };
+    }, [refreshAlbum]),
+  );
+
+  if (loadState !== "ready") {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 12,
+          padding: 24,
+        }}
+      >
+        {loadState === "loading" ? (
+          <>
+            <ActivityIndicator color="#FF4F7A" />
+            <Text style={{ color: "#666" }}>正在加载相册…</Text>
+          </>
+        ) : (
+          <>
+            <Text accessibilityRole="alert" style={{ color: "#b42318" }}>
+              {loadError || "加载相册失败，请重试"}
+            </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => void refreshAlbum()}
+              style={{ minHeight: 44, justifyContent: "center", padding: 8 }}
+            >
+              <Text style={{ color: "#FF4F7A", fontWeight: "600" }}>
+                重新加载
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={{ gap: 20, paddingBottom: 24 }}>

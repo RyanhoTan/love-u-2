@@ -122,7 +122,7 @@ export function PhotosPage() {
   const viewerItems: MediaViewerItem[] = items.map((media) => ({
     id: media.id,
     src: media.url,
-    thumbnailSrc: mediaSrc(media),
+    thumbnailSrc: media.mediaType === "image" ? mediaSrc(media) : undefined,
     kind: media.mediaType,
     label: mediaCaption(media),
     alt: mediaCaption(media),

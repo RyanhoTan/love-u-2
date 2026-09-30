@@ -1,14 +1,13 @@
 import type { Request, Response } from "express";
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { RowDataPacket } from "mysql2";
+import { hashPassword, verifyPassword } from "../auth/password.js";
+import { isMySqlDuplicateEntryError } from "../auth/registration.js";
 import { config } from "../config.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
 import { authSchema } from "../schema/user.js";
 import { parseRequestBody } from "../validation.js";
-
-const SALT_ROUNDS = 10;
 
 export async function register(req: Request, res: Response) {
   const { username, password } = parseRequestBody(authSchema, req.body);
@@ -22,12 +21,19 @@ export async function register(req: Request, res: Response) {
     throw new HttpError(409, "username already exists");
   }
 
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+  const passwordHash = await hashPassword(password);
 
-  await db.query("INSERT INTO users (username, password_hash) VALUES (?, ?)", [
-    username,
-    passwordHash
-  ]);
+  try {
+    await db.query("INSERT INTO users (username, password_hash) VALUES (?, ?)", [
+      username,
+      passwordHash
+    ]);
+  } catch (error) {
+    if (isMySqlDuplicateEntryError(error)) {
+      throw new HttpError(409, "username already exists");
+    }
+    throw error;
+  }
 
   res.status(201).json({ message: "register success" });
 }
@@ -56,9 +62,23 @@ export async function login(req: Request, res: Response) {
     throw new HttpError(401, "username or password is incorrect");
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-  if (!isPasswordValid) {
+  const verification = await verifyPassword(password, user.password_hash);
+  if (!verification.valid) {
     throw new HttpError(401, "username or password is incorrect");
+  }
+
+  if (verification.needsRehash) {
+    const passwordHash = await hashPassword(password);
+    await db.query(
+      `
+        UPDATE users
+        SET password_hash = ?
+        WHERE id = ?
+          AND BINARY password_hash = BINARY ?
+        LIMIT 1
+      `,
+      [passwordHash, user.id, user.password_hash],
+    );
   }
 
   const token = jwt.sign(
@@ -79,5 +99,3 @@ export async function login(req: Request, res: Response) {
     }
   });
 }
-
-

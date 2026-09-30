@@ -29,6 +29,51 @@
 | 20 — Honest anniversary reminder copy | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/浏览器检查 | None |
 | 21 — Mobile anniversary list honest states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/后端联调 | None |
 | 22 — Mobile anniversary editing and deletion | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录；无真机/后端联调 | None |
+| 23 — Wish target-date editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/设备验证 |
+| 24 — Wish budget editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/设备验证 |
+| 25 — Wish location-name editing | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/设备验证 |
+| 26 — Album object-key write contract | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无 DB/R2/设备集成 |
+| 27 — Private album reads with short-lived signed URLs | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无 DB/R2/浏览器/设备集成 |
+| 28 — Wish private cover create/read | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/浏览器/设备集成 |
+| 29 — Wish private cover update/clear | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/浏览器/设备集成 |
+| 30 — Wish record private media | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/FFmpeg/浏览器/设备集成 |
+| 31 — Private voice messages in partner chat | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/R2/WebSocket/浏览器/设备集成 |
+| 32 — Revoke partner chat sockets after unbind | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/WS/跨进程/设备集成 |
+| 33 — Server-backed partner chat history | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-29 | 下方阶段记录 | 无真实 DB/浏览器/移动设备集成 |
+| 34 — Accurate partner chat delivery states | Complete | `refactor/codex-workflow-harness` | 2026-09-29 | 2026-09-30 | 下方阶段记录 | 无真实 DB/WS/双端设备集成 |
+| 35 — Reject conflicting partner chat idempotency keys | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 MySQL/WS 集成 |
+| 36 — Isolate client chat state by relationship | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实浏览器/移动设备关系切换集成 |
+| 37 — Retry uncertain partner text messages | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 语音恢复与真实 WS/设备验证不在本阶段 |
+| 38 — Clear invalid App auth sessions | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 API/设备会话验证 |
+| 39 — Strengthen couple invite code entropy | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实绑定/并发碰撞验证 |
+| 40 — Acknowledge partner chat delivery | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 DB/WS/双端设备验证 |
+| 41 — Retry uncertain uploaded partner audio | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无 durable outbox/R2/WS/设备集成；孤儿清理策略未定 |
+| 42 — Serialize concurrent couple bindings | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；服务端单测/lint/build 通过 | 无真实 MySQL 并发集成 |
+| 43 — Web wish recycle and restore | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | Web 永久删除语义未含在本阶段 |
+| 44 — Web wish status progression | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | 无浏览器/API 集成 |
+| 45 — Enforce media upload policy | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build 通过 | 无真实 R2/HTTP 集成 |
+| 46 — Keep Web Today profile failures distinct | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | 无真实浏览器/API 集成 |
+| 47 — Enforce exact album media ownership keys | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build 通过 | 无 DB/R2 集成 |
+| 48 — Remove hidden Web daily-interaction routes | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；Web lint/build 通过 | 无真实浏览器导航检查 |
+| 49 — Make App wish memories failure-safe | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 50 — Make App album story reads failure-safe | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 51 — App wish doing-page failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 52 — App album photo/video failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 53 — App All Media overview failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 54 — App favorites failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 55 — App wish record creation failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 56 — App wish recycle read failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 57 — App wish-list read failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 58 — Verify uploaded media signatures | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build、Web lint/build 通过 | 无真实 R2/HTTP/设备集成 |
+| 59 — Unify anniversary reminder plan inputs | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck、Web lint/build 通过 | 无 UI/设备/API 集成；时区策略未定 |
+| 60 — Preserve full password bytes in bcrypt auth | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build 通过 | 无 MySQL 登录迁移集成；遗留长密码策略未定 |
+| 61 — Map concurrent duplicate registrations to conflict | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 22/22、lint/build 通过 | 无 MySQL 并发集成 |
+| 62 — Invalidate App sessions on raw media-upload 401 | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | App 无已配置测试运行器；无设备/API 集成 |
+| 63 — Preserve App sessions on transient restore failures | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | App 无已配置测试运行器；无网络故障注入验证 |
+| 64 — Cover server bearer/JWT identity validation | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 28/28、lint/build 通过 | 无 HTTP/DB/WS 集成；JWT 使用合成密钥 |
+| 65 — Isolate explicitly assigned album relationships | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 35/35、lint/build 通过 | 无 MySQL/R2/HTTP 集成；历史数据策略仍未定 |
+| 66 — Store shared couple timezone and derive calendar counts | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server 45/45、lint/build 与两端静态检查通过 | 无真实 MySQL 迁移/API 集成；客户端界面为 Phase 67 |
+| 67 — Apply shared calendar rules in App and Web | Not started | — | — | — | Phase 66 后继续，已获 Goal 授权 | 依赖 Phase 66 |
 
 ## Activity
 
@@ -611,3 +656,985 @@
 - **Limitations:** 未做真实 DATE 往返或多账号/并发写入验证；原生选择器需真机验证。Web 构建仍报告依赖 Zod 注释位置和 >500 kB chunk 的既有警告。
 - **Next action:** 独立提交后继续 PRD-WISH-001 的其他字段编辑和过程记录能力缺口。
 - **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、两端心愿详情编辑组件、schema 矩阵与各 workspace 检查输出。
+
+## 2026-09-29T15:13:41+08:00 — Phase 24: wish budget editing completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 心愿预算更新；空值可清除，人民币整数范围与现有 MySQL `INT NULL` 一致。
+- **Red:** 创建时可设预算，详情两端仅展示且 PATCH 不支持修改；schema 未约束超出数据库 signed INT 上限的请求。
+- **Green:** 创建/更新复用 nullable 非负整数 schema，限制到 `2,147,483,647`；服务端仅在提交时绑定 `budget_amount`；OpenAPI 类型同步；Web 预算 dialog 与移动端编辑表单支持更新/清空。
+- **Verification:** create/update 15 项 budget 与兼容矩阵通过；Web API 生成、server lint/build、Web lint/build、app lint/typecheck、`git diff --check` 均通过。
+- **Review:** `0` 与 null 保持不同语义，null 清除显示为“未定”；负数、小数、非数字及超范围拒绝；只提交真实变更字段，既有写入关系授权仍在。
+- **Operational evidence:** 未连接 MySQL、真实账号、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 未验证真实 SQL NULL 往返或键盘/设备交互；Web build 保留依赖 Zod 注释位置与 >500 kB chunk 警告。
+- **Next action:** 独立提交后继续 PRD-WISH-001 的剩余编辑与过程记录能力缺口。
+- **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、Web/App 心愿编辑 UI、schema 矩阵与各 workspace 检查输出。
+
+## 2026-09-29T15:20:07+08:00 — Phase 25: wish location-name editing completed
+
+- **Status:** `Not started` → `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 心愿地点名称文本更新；不修改或推断经纬度。
+- **Red:** 创建表单可写地点名称但详情页仅展示；心愿 PATCH 不接受 `locationName`。
+- **Green:** 新增 trim/max 100 的可选 PATCH 字段；空文本写 SQL NULL；Web/App 详情编辑和清除名称，明确保留坐标；OpenAPI 类型同步。
+- **Verification:** 12 项 schema trim/长度/类型/兼容矩阵通过；Web API 生成、server lint/build、Web lint/build、app lint/typecheck、`git diff --check` 均通过。
+- **Review:** handler 只为显式 `locationName` 增加 `location_name = ?`，没有纬经度 assignment；最终写入时仍受现有情侣/个人心愿授权。无变化不会提交，编辑错误保留草稿。
+- **Operational evidence:** 未连接数据库、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 未验证数据库 NULL 往返、原生键盘布局或并发关系变化；Web 生成类型与构建并行造成的一次旧声明错误已按序重跑通过，仍有既有 bundle/Zod 警告。
+- **Next action:** 独立提交后继续处理 P0 心愿封面和过程记录能力。
+- **Evidence references:** `server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、Web/App 心愿编辑 UI、`web/openapi.json`、schema 矩阵与 build 输出。
+
+## 2026-09-29T15:45:38+08:00 — Phase 26: album object-key write contract completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 相册与故事媒体登记契约；不包含 signed read UI、Wish/Chat 消费者迁移或媒体回收。
+- **Red:** Web 旧请求使用不存在的 `uploaded.url`，App 相册把设备本地 asset URI 当成服务端媒体地址，故事媒体也登记旧 `url` 字段。
+- **Green:** Web OpenAPI/生成类型改为 `objectKey`；Web 与 App 相册先上传资产再以服务端返回 key 登记；App 故事上传也提交 key。
+- **Verification:** `pnpm --dir web api`、`pnpm --dir web lint`、`pnpm --dir web build`、`pnpm --dir app lint`、`pnpm --dir app exec tsc --noEmit` 和 `git diff --check` 均通过；相册媒体/故事 schema 6 项矩阵通过。
+- **Review:** 静态检查确认 handler 检查对象键当前用户归属，并按活动情侣关系 scope 保存；客户端不再把本地 URI/public URL 作为媒体对象键。
+- **Operational evidence:** 未连接数据库、R2、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** Web build 保留 Zod 注释位置和 >500 kB bundle 警告；未做真实存储集成。媒体 GET 仍返回空旧 `url`，新上传暂不能通过 signed URL 预览；Wish/Chat 上传契约暂未迁移。
+- **Blockers:** None。
+- **Next action:** Phase 27 实现关系授权后的短时签名读取 URL 与相册/故事 UI 接入。
+- **Evidence references:** `server/src/schema/album.ts`、`server/src/router_handler/album.ts`、App/Web 相册上传、故事创建、`web/openapi.json`、schema 矩阵和 workspace 检查输出。
+
+## 2026-09-29T15:53:18+08:00 — Phase 27: authorized signed reads started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 相册/故事读取 object-key 媒体的短期签名 URL；不扩 Wish/Chat 和存储生命周期。
+- **Red:** Phase 26 已创建私有对象键记录，但相册与故事 serializer 仍返回旧 `url` 列，新记录该列为空；现有 `/media/:id/url` 有关系 scope 与 300 秒签名，但 UI 未接入。
+- **Decision:** 在完成关系 scope 的相册/故事读取后签名 object-key 媒体并置 `Cache-Control: private, no-store`；旧 URL 兼容保留。对私有对象 suppress 本地 `file://` 缩略图，视频封面以安全占位符表示。
+- **Verification:** Pending。
+- **Operational evidence:** 开始时工作树干净，当前分支为 `refactor/codex-workflow-harness`；未连接数据库、R2 或真实客户端。
+- **Limitations:** Pending。
+- **Blockers:** None。
+- **Next action:** 完成服务端授权读取、响应类型与 Web/App 渲染后验证并单独提交。
+- **Evidence references:** `server/src/router_handler/media.ts`、`server/src/router_handler/album.ts`、Web PhotosPage、App 故事列表/详情、Phase 26。
+
+## 2026-09-29T16:03:43+08:00 — Phase 27: private album signed reads completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 相册媒体、故事封面与故事详情的短期受控读取；不扩 Wish/Chat 或生命周期。
+- **Red:** 已写入的 `object_key` 媒体读取时仍返回空旧 `url`；故事封面没有媒体类型，故事详情媒体 SQL 只按 `source_id` 选取。
+- **Green:** Web/App album serializers 对 key-backed media/cover 生成 300 秒签名 URL；响应禁止缓存；故事封面/媒体查询受当前关系 scope 限制；两端页面显示签名链接，App 返回屏幕时刷新，视频缩略位使用占位图。
+- **Verification:** server lint/build、Web API 生成/lint/build、App lint/typecheck、`git diff --check` 均通过；OpenAPI 生成类型包含新 cover media 类型和签名 URL 说明。
+- **Review:** 七条包含签名媒体 URL 的 album read/create/favorite 响应均设置 `private, no-store`；不序列化对象键，不写回 signed URL；私有媒体的本地 thumbnail URI suppressed；视频点击仍走播放器。
+- **Operational evidence:** 未连接数据库/R2、未打开浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 没有真实 R2/设备验证、跨用户访问或真实 300 秒过期测试；服务端无自动测试脚本；未分页的 album/story 列表会给所有返回的私有对象签名；Web build 保留 Zod 注释与 >500 kB bundle 警告。
+- **Blockers:** None。
+- **Next action:** 继续评估并迁移 Wish/Chat 媒体消费，以及对象生命周期和上传失败补偿。
+- **Evidence references:** `server/src/router_handler/album.ts`、`server/src/router_handler/media.ts`、Web PhotosPage/query、App 故事 API/页面、`web/openapi.json`、workspace 检查输出。
+
+## 2026-09-29T16:11:33+08:00 — Phase 28: private wish cover create/read started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 新建心愿封面上传与读取；不包含封面编辑/清除、心愿记录媒体、Chat 或对象回收。
+- **Red:** `/upload/media` 只返回对象 `key`，但 Web/App 心愿创建把 `url` 当作上传结果并保存到旧 `cover` 字段；新封面因此无法稳定写入，且旧 URL 列无法直接存私有对象引用。
+- **Decision:** 保留并继续读取历史 `cover` URL；新增 nullable `cover_object_key` 做向前兼容，写入时验证对象键归属当前上传者，读取授权后签发 300 秒 URL；不回填或删除旧值。
+- **Verification:** Pending。
+- **Operational evidence:** 工作树干净，当前分支为 `refactor/codex-workflow-harness`；未访问数据库、R2 或客户端。
+- **Limitations:** 新上传成功但 DB 持久化失败可能留下孤儿对象；本阶段不执行对象回收。真实 R2/DB/设备行为待集成验证。
+- **Blockers:** None。
+- **Next action:** 完成 additive schema、服务端契约与读取、Web/App 创建表单接入后验证并独立提交。
+- **Evidence references:** `server/src/router_handler/upload.ts`、`server/src/router_handler/wish.ts`、`server/src/schema/wish.ts`、`server/src/db/schema.ts`、Web/App 心愿创建表单、Phase 27 signed URL 机制。
+
+## 2026-09-29T16:21:10+08:00 — Phase 28: private wish cover create/read completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 新建心愿封面上传与读取；不包含封面编辑/清除、心愿记录媒体、Chat 或对象回收。
+- **Green:** wishes 添加 nullable `cover_object_key`；创建 schema 接受 album key 并校验结构，handler 限制当前上传者；serializer 在现有 Wish 访问授权后生成 300 秒 URL，原 `cover` URL 兼容；Wish 响应禁缓存。Web/App 创建表单改用上传 `key`，Web blob 预览只用于本地且会释放；Web 查询窗口聚焦刷新，App 现有屏幕聚焦刷新继续获取新链接。
+- **Verification:** `pnpm --dir web api`、server lint/build、Web lint/build、App lint/typecheck、`git diff --check` 均通过；7 项 schema 矩阵覆盖无封面、legacy URL、有效对象键、错误目录、路径穿越、query delimiter 和非法 URL。
+- **Review:** 所有序列化 Wish 的调用点均已 await，Wish 列表/详情/records/recycle 与创建、更新、记录创建、软删、恢复返回都设置 `Cache-Control: private, no-store`；永久删除不返回 Wish。DB 只存 object key，API `cover` 返回短期签名 URL，不返回原 key。
+- **Operational evidence:** 未连接数据库、R2、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 未验证 additive ALTER、真实上传/签名 URL/过期行为、跨用户服务端拒绝或设备预览；前台页面停留超过 300 秒时无定时续签，需重新聚焦/读取；上传成功而 DB 写入失败仍可能留下孤儿对象；Web build 保留既有 Zod 注释位置与 >500 kB chunk 警告。
+- **Blockers:** None。
+- **Next action:** 独立提交后继续 PRD R1/P0 的下一个可执行缺口。
+- **Evidence references:** `server/src/db/schema.ts`、`server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、`web/src/pages/wishes-page/new-page.tsx`、`app/app/home/wish-list/create.tsx`、schema 矩阵与 workspace 检查输出。
+
+## 2026-09-29T16:23:00+08:00 — Phase 29: private wish cover update/clear started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 已有心愿封面的替换与清除；继续使用 Phase 28 私有 key/签名读取契约，不包含媒体删除回收、Wish record attachments、Chat 或其他字段重构。
+- **Red:** Wish PATCH schema 与两端编辑表单不包含封面；现存 legacy 和 private cover 均不能更换或清除。
+- **Decision:** `coverObjectKey` 以 `string` 表示替换、`null` 表示清除、未提供表示不改；替换时同时清空 legacy URL 列，清除时两列均置空。保持现有当前关系写授权；新上传对象仅在提交 key 后关联，不删除旧/孤儿对象。
+- **Verification:** Pending。
+- **Operational evidence:** 分支为 `refactor/codex-workflow-harness`，Phase 28 已提交且工作树干净；未连接数据库、R2 或客户端。
+- **Limitations:** 替换上传后 PATCH 失败可留下孤儿对象；成功替换或清除不会删除旧对象，等待独立生命周期阶段设计。
+- **Blockers:** None。
+- **Next action:** 为 schema、授权 PATCH 与 Web/App 编辑入口实现替换/清除，然后执行各 workspace 检查并单独提交。
+- **Evidence references:** `PRD.md` PRD-WISH-001、Phase 28 私有封面读写契约、Wish detail/edit API 与 UI。
+
+## 2026-09-29T16:33:57+08:00 — Phase 29: private wish cover update/clear completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 已有心愿封面的替换与清除；不包含对象回收、Wish record attachments 或 Chat。
+- **Green:** PATCH schema 支持 `coverObjectKey` 缺省/字符串/null 三态；替换会写私有 key 并清空旧 URL，清除会同时清空两列；owner helper 用于创建和更新。原关系授权条件仍在 conditional UPDATE。Web 详情可上传替换或确认清除；App 编辑页可预览替换、二次确认清除，保存失败保留草稿和错误。
+- **Verification:** `pnpm --dir web api`、server lint/build、Web lint/build、App lint/typecheck、`git diff --check` 均通过；11 项 schema/owner 矩阵覆盖 create legacy URL、PATCH 不改/替换/清除、非法字段/键、路径穿越、空更新及匹配/不匹配所有者。
+- **Review:** 未提供 `coverObjectKey` 时 handler 不添加 cover assignments；字符串 key 先校验当前用户，再在既有 Wish scope 条件下写入；null 会将 `cover_object_key` 与旧 `cover` 都更新为 SQL NULL；读取仍返回短期签名 URL/空串且不暴露 key。
+- **Operational evidence:** 未连接 MySQL、R2、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** 未验证真实 SQL NULL 往返、R2 上传/签名或 UI 设备交互；PATCH 失败时已上传对象可能成为孤儿，覆盖/清除不删除旧对象；前台等候超过 URL TTL 无定时续签；Web build 保留既有 Zod 注释位置和 >500 kB bundle 警告。
+- **Blockers:** None。
+- **Next action:** 独立提交后继续 PRD R1/P0 的下一个可执行缺口。
+- **Evidence references:** `server/src/media/objectKey.ts`、`server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、Web/App Wish 编辑页、schema 矩阵与 workspace 检查输出。
+
+## 2026-09-29T16:40:11+08:00 — Phase 30: private wish record media started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 过程记录媒体上传、登记和授权读取；不包含媒体删除/孤儿回收策略、Chat、故事媒体重构或编辑已保存记录。
+- **Red:** App/Web 从 `/upload/media` 读取 `url`，但服务端仅返回 `key`；Wish record API 仍只接受 URL 并将 `album_media.object_key` 留空，记录媒体既不能可靠保存也不能受控读取。
+- **Decision:** 新写入使用 `objectKey`，兼容旧客户端 `url`（恰好二选一）；媒体 key 校验当前上传者并存 `album_media.object_key`；私有 video thumbnail 另存 nullable key 列；在已授权 wish + record scope 读取后签发 300 秒 URL；保留旧 URL 读取/写入兼容。
+- **Verification:** Pending。
+- **Operational evidence:** Phase 29 已提交，分支为 `refactor/codex-workflow-harness`；未访问数据库、R2、真实账号或客户端。
+- **Limitations:** 媒体上传后记录 INSERT 失败可能留下孤儿对象；真实 DB/R2/视频转码/设备流程待集成验证。
+- **Blockers:** None。
+- **Next action:** 实现私有媒体 key 读写、Web/App 上传 payload 与本地预览，再执行 schema 矩阵和各 workspace 检查。
+- **Evidence references:** `server/src/router_handler/upload.ts`、`server/src/router_handler/wish.ts`、`server/src/schema/wish.ts`、`server/src/db/schema.ts`、Wish record App/Web forms、Phase 27 signed URL flow。
+
+## 2026-09-29T16:49:57+08:00 — Phase 30: private wish record media completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 过程记录媒体上传、登记和授权读取；不包含对象回收、Chat 或已有记录编辑/删除。
+- **Green:** App/Web record form 使用认证上传返回的 key；App 保留本地 asset 预览，Web blob URL 仅作草稿预览并及时释放。服务端将 key 存入既有 `album_media.object_key`，新增 nullable `thumbnail_object_key`；视频缩略图从短期签名源 URL 生成并持久化 key；响应只签出 media/thumbnail URL，不回传 object key。旧 URL 输入/存储仍兼容。
+- **Verification:** `pnpm --dir web api`、server lint/build、Web lint/build、App lint/typecheck、`git diff --check` 均通过；11 项 schema/owner 矩阵覆盖 private key、legacy URL、两者同传/缺省、错误目录、路径穿越、非法 URL/字段及 owner 匹配/越权/前缀碰撞。
+- **Review:** key 写入在 `findWishById` 授权后校验上传者；读取通过 exact `wish_records.wish_id`、media `relationship_id` 与当前授权模式筛选；active couple 可看当前关系媒体，解绑后 creator-scope 读取限于创建者上传媒体。Wish records GET 和创建响应均为 `private, no-store`。
+- **Operational evidence:** 未连接 MySQL、R2、浏览器或设备；未读取凭据、未推送或部署。
+- **Limitations:** additive ALTER、对象上传/签名过期、FFmpeg 拉取签名源 URL、真机/浏览器展示未验证；写记录失败可能遗留原图/缩略图孤儿；媒体列表无分页并需为返回项分别签名；300 秒后需重新聚焦/读取，无定时续签；Web build 保留既有 Zod 注释位置和 >500 kB chunk 警告。
+- **Blockers:** None。
+- **Next action:** 独立提交后继续 PRD R1/P0 的下一个可执行缺口。
+- **Evidence references:** `server/src/db/schema.ts`、`server/src/schema/wish.ts`、`server/src/router_handler/wish.ts`、`web/openapi.json`、`web/src/pages/wishes-page/record-sheet.tsx`、`app/app/home/wish-list/[id]/records/create.tsx`、schema 矩阵与 workspace 检查输出。
+
+## 2026-09-29 — Phase 31: private voice messages in partner chat started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 / PRD-MEMORY-001: private object-key writes for new chat voice messages and current-relationship-authorized playback URL refresh; preserve legacy audio URLs.
+- **Red:** `/upload/media` returns `{ key }`, but Web/App chat still read `url`; WS and DB only persist `audio_url`, which cannot provide fresh private playback URLs.
+- **Decision:** Add nullable `audio_object_key`; enforce exactly-one key/legacy URL input and sender ownership under `interact/<userId>/`; expose no key or signed URL in private WS events. Fetch a 300-second URL on playback through a current bound relationship and message-participant check. Keep legacy rows/clients readable.
+- **Operational evidence:** Phase 30 was committed, branch `refactor/codex-workflow-harness`; worktree was clean at start. No DB, R2, browser, or device was accessed.
+- **Evidence references:** `harness/build/phase-31-chat-private-audio.md`, `harness/context/phase-31-chat-private-audio-context.md`, `server/src/ws/partnerChat.ts`, `web/src/features/partner-chat/use-partner-chat.ts`, `app/app/home/(tabs)/interact.tsx`.
+
+## 2026-09-29 — Phase 31: private voice messages in partner chat completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Added nullable `partner_chat_messages.audio_object_key`; audio WS requests accept exactly one private `audioObjectKey` or legacy `audioUrl` and validate key structure/uploader ownership. New key-backed DB/WS messages never expose the key or a signed URL. Added authenticated `GET /partner-chat/messages/{id}/audio-url`, which requires the requester to be a message participant in that same currently bound relationship and returns a 300-second signed URL with `Cache-Control: private, no-store`; legacy URLs remain available under the same relationship query. Web/App upload `key` and refresh the URL on each playback. Upload/save failures report failed status or an App alert. OpenAPI/upload types now match `{ key }`.
+- **Verification:** `pnpm --dir web api`, `pnpm --dir server lint`, `pnpm --dir server build`, `pnpm --dir web lint`, `pnpm --dir web build`, `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check` all passed. Ten compiled schema/owner cases passed: private key, legacy URL, both/neither, path traversal, unknown field, matching owner, wrong owner, numeric-prefix collision, and extra path segment.
+- **Review:** Endpoint query ties the audio row to an active bound relationship, validates both message participants against the relationship pair, and requires the caller to be a sender/receiver. Signed URLs are generated only after authorization and never sent through WS for key-backed rows. Server save/validation errors carry `clientMessageId` so clients mark the optimistic message failed. No other App/Web callsite still reads the upload response's removed `url`.
+- **Operational evidence:** No MySQL, R2, browser, WebSocket integration environment, or real device was accessed; no credentials were read; no push or deployment occurred.
+- **Limitations:** Additive startup ALTER and URL authorization were not exercised against real MySQL; no R2 expiry or native/browser playback test. Upload-success/message-save-failure may orphan an object. An already-issued signed URL remains valid until its 300-second expiry after unbind. Existing open WebSocket sessions are not revoked on unbind and remain a separate PRD-CHAT-001 P0 gap. Web build emitted existing Zod Rollup comment-position and >500 kB chunk warnings.
+- **Blockers:** None.
+- **Next action:** Continue with current-relationship enforcement for already-open chat WebSocket connections.
+- **Evidence references:** `server/src/db/schema.ts`, `server/src/schema/partnerChat.ts`, `server/src/router_handler/partnerChat.ts`, `server/src/ws/partnerChat.ts`, `web/openapi.json`, `web/src/features/partner-chat/api.ts`, `web/src/pages/messages-page/voice-bubble.tsx`, `app/app/features/partner-chat/api.ts`, schema/owner matrix output.
+
+## 2026-09-29 — Phase 32: revoke partner chat sockets after unbind started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 active-relationship boundary for established WebSocket connections; no history deletion or ownership changes.
+- **Red:** Handshake checks current bound membership, but an established socket keeps the captured relationship id after the unbind transaction commits and can continue processing inbound payloads.
+- **Decision:** Close local sockets only after successful unbind commit; revalidate relationship status and exact member pair before handling every inbound payload; periodically check existing connections at the current heartbeat interval as a cross-process fallback; clients stop retrying on the revoked close code.
+- **Operational evidence:** Phase 31 committed as `68afb4b`; worktree was clean before this phase. No DB or live WS was accessed.
+- **Verification:** Completed; see Phase 32 completion entry below.
+- **Limitations:** Real DB/WS/cross-process/device integration was unavailable; remote process revocation relies on the existing 30-second heartbeat DB check.
+- **Blockers:** None.
+- **Next action:** Continue PRD-CHAT-001 P0 review for server-backed history, offline delivery, ordering, and duplicate client-message behavior.
+- **Evidence references:** `server/src/router_handler/couple.ts`, `server/src/ws/partnerChat.ts`, App/Web `use-partner-chat.ts`, Phase 31.
+
+## 2026-09-29 — Phase 32: revoke partner chat sockets after unbind completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Successful unbind now closes local sockets only after commit. Each inbound message/read event revalidates the current bound relationship and exact member pair; message insertion locks the relationship row in the same transaction as insert. Pending-message and read-receipt queries require the active bound relationship. Existing connections are periodically revalidated on the 30-second heartbeat for cross-process fallback. Web/App stop reconnecting on close code `4003`; App surfaces revocation and permits one attempt on screen re-entry without looping if still unbound.
+- **Verification:** `pnpm --dir server lint`, `pnpm --dir server build`, `pnpm --dir web lint`, `pnpm --dir web build`, `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check` all passed. Web build emitted the existing Zod Rollup comment-position and large-chunk warnings.
+- **Review:** Rollback does not invoke socket closure because closure follows successful commit. Inbound payload validation checks relationship id, status, and both member ids; the persistence path re-checks under `FOR UPDATE` to serialize against unbind. The close-code branch suppresses retry loops on both clients.
+- **Operational evidence:** No real MySQL, live WebSocket server, second process, browser, or device was accessed; no credentials were read, no push/deploy occurred.
+- **Limitations:** Locking/rollback race semantics and close delivery need real integration tests. Same-process closure is post-commit; other processes rely on a successful heartbeat query within the existing 30-second interval. An in-flight event can race at the boundary. Chat history ownership, offline delivery, idempotency, ordering, and end-to-end reliability remain outside this phase.
+- **Blockers:** None for this scoped implementation.
+- **Next action:** Continue PRD-CHAT-001 P0 review for server-backed history, offline delivery, ordering, and duplicate client-message behavior.
+- **Evidence references:** `server/src/router_handler/couple.ts`, `server/src/ws/partnerChat.ts`, `app/app/features/partner-chat/use-partner-chat.ts`, `web/src/features/partner-chat/use-partner-chat.ts`, Phase 32 build/context docs.
+
+## 2026-09-29 — Phase 33: server-backed partner chat history started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 retrieval of persisted messages for the exact currently bound relationship; Web/App latest-page load and older-page retrieval, merged with local cache/live socket messages.
+- **Red:** Messages persist in MySQL and unacknowledged messages are replayed on socket connection, but there is no history endpoint. Web/App only load device-local history, so a new/cleared device cannot recover already-delivered messages.
+- **Decision:** Add an authenticated page endpoint requiring exact active `relationshipId`; use descending `beforeId` cursor with bounded page size, then return each page in ascending database order. Return private object-key audio rows without their key or a newly signed URL; retain legacy audio URLs. Reject history reads after unbind and avoid importing ownership/retention policy decisions.
+- **Operational evidence:** Phase 32 committed as `3b4ec79`; workspace was clean at start. No DB or client device was accessed.
+- **Verification:** Completed; see Phase 33 completion entry below.
+- **Limitations:** No live MySQL paging/query-plan or browser/native scroll-anchor tests; first page defaults to 50 and older messages are explicit-paged.
+- **Blockers:** None.
+- **Next action:** Continue PRD-CHAT-001 P0 review for delivery acknowledgements, idempotency, and real-time/offline ordering gaps.
+- **Evidence references:** `PRD.md` PRD-CHAT-001, `server/src/router_handler/partnerChat.ts`, `server/src/ws/partnerChat.ts`, Web/App partner-chat hooks.
+
+## 2026-09-29 — Phase 33: server-backed partner chat history completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Added authenticated `GET /partner-chat/messages` scoped to an exact currently-bound relationship. It supports exclusive `beforeId` pagination (default 50, max 100), returns chronological pages and persisted status, and sends `private, no-store`. Private audio keys are omitted; legacy audio URLs remain compatible. Web/App load the latest page after WS ready, merge it with local/realtime messages while preserving optimistic identity, and expose earlier-page loading plus first-page retry.
+- **Verification:** `pnpm --dir server lint`, server build, Web API generation/lint/build, App lint/typecheck, and `git diff --check` all passed. A compiled 15-case query-integer/serialization matrix passed. Web build emitted existing Zod Rollup annotation and >500 kB chunk warnings.
+- **Review:** Query ties authenticated user, relationship ID, bound state, exact two-member pair, and message participants. Cursor is exclusive and based on server message ID; `limit + 1` determines `hasMore`; selected rows reverse to chronological ID order. History serialization never returns `audio_object_key`; status is derived from persisted `delivered_at`/`read_at`. Client merge de-duplicates by client/server identity and uses stable server-ID ordering for persisted messages.
+- **Operational evidence:** No real MySQL, WebSocket integration server, browser, or mobile device was accessed; no credentials were read, no push/deploy occurred.
+- **Limitations:** SQL execution/query plan and scroll anchoring need live integration tests. The initial load fetches the latest 50 messages; older messages require explicit paging. History requests started after unbind return not found; post-unbind ownership/retention remains a product decision. Offline push/retry and end-to-end delivery semantics are not changed.
+- **Blockers:** None for this scoped feature.
+- **Next action:** Continue PRD-CHAT-001 P0 review for delivery acknowledgements, idempotency, and real-time/offline ordering gaps.
+- **Evidence references:** `server/src/router_handler/partnerChat.ts`, `server/src/router/partnerChat.ts`, `server/src/schema/partnerChat.ts`, `web/openapi.json`, generated `web/src/api/schemas.d.ts`, Web/App partner-chat APIs/hooks/pages, phase 33 build/context docs.
+
+## 2026-09-29 — Phase 34: accurate partner chat delivery states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 alignment of sender delivery state, online recipient WebSocket availability, persisted `delivered_at`, offline pending replay, and Web/App status labels.
+- **Red:** Message persistence and delivery columns exist, but send handler always emits `sent`; it marks rows delivered based on a non-empty connection set even if every socket is closing; pending replay marks all selected messages delivered regardless of whether `sendJson` actually wrote to an open socket. Both clients hide `sent` status.
+- **Decision:** Define `sent`/`delivered_at` as the server handing the message to an open socket for the exact active relationship (not proof the client rendered it); use `partner_offline` when no recipient socket accepts the send; preserve the distinct `read` receipt. Replay only marks successfully submitted messages delivered.
+- **Operational evidence:** Phase 33 committed as `4c20267`; workspace was clean at start. No DB or client device was accessed.
+- **Verification:** Completed; see Phase 34 completion entry below.
+- **Limitations:** No real DB/WebSocket/paired-device test; `sent` means handed to an open socket, not rendered by recipient UI; replay sender notifications are same-process only.
+- **Blockers:** None.
+- **Next action:** Continue PRD-CHAT-001 review for client-message idempotency, delivery acknowledgement boundaries, and offline/reconnect ordering.
+- **Evidence references:** `PRD.md` PRD-CHAT-001, `server/src/ws/partnerChat.ts`, Web/App `use-partner-chat.ts`, message status renderers.
+
+## 2026-09-30 — Phase 34: accurate partner chat delivery states completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** `sendJson` reports whether an open socket accepted a payload. Direct send returns `partner_offline` when no recipient socket accepts the event, unless an idempotently loaded row was already delivered. `delivered_at` updates are scoped to a currently bound exact member pair. Pending replay only marks accepted messages and sends delivery updates to connected same-process sender sockets. Web/App now render `sent` as “已送达”; `partner_offline`, `read`, and `failed` remain distinct.
+- **Verification:** Server lint/build, Web lint/build, App lint/typecheck, and `git diff --check` passed. A compiled four-case delivery-state matrix passed. Web build emitted existing Zod Rollup annotation and >500 kB chunk warnings.
+- **Review:** Direct send and replay both check actual `OPEN` state at send call. Duplicate IDs preserve `delivered_at` status after the saved row is loaded; active relationship status/member pair is required for delivery timestamp updates.
+- **Operational evidence:** No real MySQL, WebSocket server, multiple processes, browser, or mobile device was accessed; no credentials were read, no push/deploy occurred.
+- **Limitations:** `sent` means `ws.send` accepted data for an open socket, not that the recipient app rendered it. A direct delivery-state DB failure is logged after socket acceptance, so a later history read can show stale state. Pending-replay sender notifications are local-process only; there is no cross-process presence/pub-sub. Dropped frames/background delivery require a future receiver acknowledgement protocol.
+- **Blockers:** None for this scoped behavior.
+- **Next action:** Continue PRD-CHAT-001 review for client-message idempotency, delivery acknowledgement boundaries, and offline/reconnect ordering.
+- **Evidence references:** `server/src/ws/partnerChat.ts`, App `interact.tsx`, Web `messages-page/index.tsx`, Phase 34 build/context docs.
+
+## 2026-09-30 — Phase 35: reject conflicting partner chat idempotency keys started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 duplicate client-message ID behavior for current text/audio writes; preserve existing unique constraint and accepted identical retries.
+- **Red:** The database prevents a duplicate row for `(sender_id, client_message_id)` and the saved row is checked against the active relationship, but a repeated ID with different content silently returns/broadcasts the old saved content while the sender keeps its new optimistic draft.
+- **Decision:** Treat client ID as an idempotency key: same sender/relationship/content returns the original persisted message; any reuse for a different payload or a conflicting historical relationship returns a specific non-content-revealing conflict and is not relayed. No new schema or client ID policy.
+- **Operational evidence:** Phase 34 committed as `6bba380`; workspace was clean at start. No DB or live WS was accessed.
+- **Verification:** Completed; see Phase 35 completion entry below.
+- **Limitations:** No MySQL unique-index/concurrent-transaction or live WebSocket test; identical retry relies on the existing unique key.
+- **Blockers:** None.
+- **Next action:** Continue PRD-CHAT-001 review for receiver acknowledgement, cross-process delivery, and app restart retry behavior.
+- **Evidence references:** `server/src/db/schema.ts` unique key, `server/src/ws/partnerChat.ts` `saveMessage`, Web/App WS error handling.
+
+## 2026-09-30 — Phase 35: reject conflicting partner chat idempotency keys completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Before commit/fanout, the server compares the loaded row's persisted type/content against the normalized retry. Identical text or audio payloads reuse the existing row. Reusing a key for different text/type/object key/legacy URL/duration or another relationship returns `client_message_id_conflict` without relaying old content. Web/App show “消息标识冲突，请重新发送” and mark the optimistic item failed.
+- **Verification:** Server lint/build, Web API generation/lint/build, App lint/typecheck, and `git diff --check` passed. A compiled 14-case payload/schema matrix passed. Web build emitted existing Zod Rollup annotation and >500 kB chunk warnings.
+- **Review:** Text compares exact trimmed payload plus null audio fields. Audio compares exactly one normalized key/legacy URL and nullable duration. Conflict is thrown before the DB transaction commits; handler returns conflict before recipient fanout. Error body contains no saved content or key. Supplied empty/whitespace client IDs are rejected while an omitted optional ID remains compatible.
+- **Operational evidence:** No MySQL, WebSocket server, browser, or device was accessed; no credentials were read, no push/deploy occurred.
+- **Limitations:** The no-extra-row identical retry guarantee depends on the existing MySQL unique index, which was not exercised against a real instance; transaction locking and WebSocket conflict presentation also need integration coverage. Payloads without `clientMessageId` remain non-idempotent for legacy compatibility.
+- **Blockers:** None for this scoped fix.
+- **Next action:** Continue PRD-CHAT-001 review for receiver acknowledgement, cross-process delivery, and app restart retry behavior.
+- **Evidence references:** `server/src/db/schema.ts`, `server/src/ws/partnerChat.ts`, Web/App `use-partner-chat.ts`, Phase 35 build/context docs.
+
+## 2026-09-30 — Phase 36: isolate client chat state by relationship started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Web/App in-memory message isolation when the active `relationshipId` changes; retain old relationship-scoped local history without deleting or exporting it.
+- **Red:** Local storage keys include relationship ID, but on WS ready both clients merge cached new-relationship history with the entire current in-memory list. The current list can still contain the just-unbound prior relationship's messages, so those may render in a newly bound room.
+- **Decision:** Tag messages with their owning relationship ID. When loading a different key, merge its cached rows only with currently in-memory rows tagged to that exact relationship; history and realtime payloads carry the server's relation ID. On confirmed unbind, clear visible in-memory state but retain the old cache untouched; no post-unbind retention policy change.
+- **Operational evidence:** Phase 35 committed as `298b4b8`; workspace was clean at start. No real user data or device was accessed.
+- **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`. Static review covered cache switching, same-key merge, stale REST/socket events, and voice-upload relationship changes.
+- **Limitations:** No browser/native device integration. Old relationship caches are retained; post-unbind access/retention remains a product decision. App has no `typecheck` script, so TypeScript was checked directly with `tsc --noEmit`.
+- **Blockers:** None.
+- **Next action:** Resume PRD-CHAT-001 sender retry reliability work.
+- **Evidence references:** Web/App `use-partner-chat.ts`, `app/app/home/(tabs)/interact.tsx`, PRD-CHAT-001, Phase 32 unbind boundary, and `harness/build/phase-36-chat-relationship-isolation.md`.
+
+## 2026-09-30 — Phase 36: isolate client chat state by relationship completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Completed:** Tagged client history rows by relationship, isolated ready/cache/REST/WS merges, guarded stale socket/request results, and prevented audio upload races from crossing relationship changes.
+- **Verification:** Web lint/build; App lint/direct TypeScript check; `git diff --check` all passed. Build emitted existing Rollup dependency-annotation and large-chunk warnings only.
+- **Limitations:** No live browser/native relationship-switch test; old relationship caches remain by design pending product policy.
+- **Next action:** Continue PRD-CHAT-001 retry reliability as a separate small phase.
+- **Evidence references:** `harness/build/phase-36-chat-relationship-isolation.md`, Web/App partner-chat hooks, App interact screen.
+
+## 2026-09-30 — Phase 37: retry uncertain partner text messages started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 explicit retry of uncertain failed text messages in Web and App; reuse the original canonical text and `clientMessageId`.
+- **Red:** The server now safely accepts identical retries, but clients generate a fresh ID for every new send and expose no retry action on failed text rows. A sender that retries manually can create a duplicate.
+- **Decision:** Only failures whose outcome is uncertain because the local socket was unavailable/closed are retryable. Explicit server errors, including `client_message_id_conflict`, remain non-retryable. Retry reuses the same message ID and exact normalized text. Audio retry/re-upload policy is deferred because its object-key lifecycle differs by client.
+- **Operational evidence:** Phase 36 committed as `8641e69`; workspace was clean at start. No database, live WS, browser, or device was accessed.
+- **Verification:** Pending.
+- **Limitations:** Pending.
+- **Blockers:** None for text retry.
+- **Next action:** Persist retryability for uncertain text rows, add same-ID retry actions to Web/App, then run affected static checks.
+- **Evidence references:** PRD-CHAT-001; Phase 35 idempotent persistence; Web/App partner-chat hooks and message renderers.
+
+## 2026-09-30 — Phase 37: retry uncertain partner text messages completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Both clients now expose retry for uncertain failed outgoing text rows. Retrying reuses the row's original text and ID, requires the active relationship and ready socket, and does not add a second optimistic row. Explicit server errors/conflicts and audio are not offered for retry.
+- **Verification:** Passed Web lint/build, App lint/direct TypeScript check, and `git diff --check`. Static review covered retry eligibility, same-ID payload, conflict suppression, persisted `sending` recovery, and audio exclusion. Web build emitted existing Rollup annotation and large-chunk warnings.
+- **Operational evidence:** No DB, live WS server, browser, or mobile device was accessed; no credentials were read, no push/deploy occurred.
+- **Limitations:** Local cache persistence is asynchronous and not a durable outbox. Audio retry policy and real integration/UI tests remain open.
+- **Next action:** Continue PRD-CHAT-001 review for receiver acknowledgements, cross-process delivery, and audio recovery.
+- **Evidence references:** `harness/build/phase-37-chat-text-retry.md`, Web/App partner-chat hooks and message renderers, Phase 35 idempotency.
+
+## 2026-09-30 — Phase 38: clear invalid App auth sessions started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-AUTH-001 App behavior when a protected REST request returns HTTP 401; clear only the exact invalid persisted/in-memory session.
+- **Red:** Web `requestWithAuth` invalidates a matching stale session on 401, but App `requestWithAuth` wraps all non-2xx responses as plain `Error` and leaves `AsyncStorage` plus AuthProvider state authenticated.
+- **Decision:** Add status-aware App API errors. Serialize session storage mutations; on 401 conditionally remove storage only if its current token still equals the rejected request token, then notify AuthProvider, which independently checks its active token before clearing in-memory auth. Do not clear on 403, network errors, or 5xx.
+- **Operational evidence:** Phase 37 committed as `a6d5998`; workspace was clean at start. No API server, credentials, or user session was accessed.
+- **Verification:** Passed App lint, `pnpm --dir app exec tsc --noEmit`, `git diff --check`, and a four-case token-match guard matrix. Static review covered mutation serialization and Provider token matching.
+- **Limitations:** No live API/device auth flow. WebSocket 401 upgrade status is unavailable through the current React Native WebSocket abstraction and remains outside this REST phase.
+- **Blockers:** None for the scoped client behavior.
+- **Next action:** Continue the R1/P0 audit for account/session behavior not covered by REST 401 cleanup, while preserving other product domains' pending decisions.
+- **Evidence references:** `app/app/shared/api-client.ts`, `app/app/shared/auth-session.ts`, `app/app/features/auth/auth-context.tsx`, `PRD.md` PRD-AUTH-001.
+
+## 2026-09-30 — Phase 38: clear invalid App auth sessions completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** App protected REST requests now preserve status; a 401 conditionally removes the exact still-current stored session and notifies AuthProvider to clear matching in-memory auth. Session mutations are serialized so stale 401 responses do not erase a replacement login. 403/network/5xx do not trigger invalidation.
+- **Verification:** App lint and direct TypeScript check passed; a four-case token-match matrix and `git diff --check` passed.
+- **Limitations:** No live API/device test; no WebSocket-upgrade status detection.
+- **Next action:** Continue the PRD R1/P0 completion audit.
+- **Evidence references:** `harness/build/phase-38-app-auth-invalidation.md`, `app/app/shared/auth-session.ts`, `app/app/shared/api-client.ts`, `app/app/features/auth/auth-context.tsx`.
+
+## 2026-09-30 — Phase 39: strengthen couple invite code entropy started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-COUPLE-001 invitation security hardening; generate stronger codes without changing the bind lifecycle.
+- **Red:** The server generated 6-character invite codes with `Math.random()`. The database and request schema already permit 12 characters, and current clients handle codes as strings.
+- **Decision:** Use 12 characters from the existing 32-symbol human-friendly alphabet and Node.js `crypto.randomInt`; retain compatibility with existing 6-character invite records. Add the built-in Node test runner and deterministic pure-function tests without dependencies or DB access.
+- **Operational evidence:** Phase 38 was committed as `8ed754b`; no database, external API, credentials, or user account was accessed.
+- **Limitations:** A source search found no binding-attempt rate limiter. This phase raises entropy but does not add throttling; MySQL race behavior remains untested.
+
+## 2026-09-30 — Phase 39: strengthen couple invite code entropy completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** New invite codes are 12 characters generated with `crypto.randomInt`; the existing alphabet, invite expiry/use behavior, 6–12 bind validation, and database schema remain unchanged. Added `pnpm --dir server test`, deterministic generator tests, test-file lint coverage, and corrected test guidance in `AGENTS.md`.
+- **Verification:** Passed `pnpm --dir server test` (2 tests), `pnpm --dir server lint` (source and test files), `pnpm --dir server build`, and `git diff --check`.
+- **Review:** Static compatibility inspection confirmed existing clients accept variable-length string codes and the schema supports 12 characters. No database-backed bind lifecycle or live client integration was run.
+- **Operational evidence:** No MySQL, API, credential, external service, or user account was accessed; no push or deployment occurred.
+- **Limitations:** Binding-attempt throttling and concurrent code collision behavior remain separate gaps. Existing 6-character active invites remain valid.
+- **Next action:** Continue the PRD R1/P0 completion audit, preserving unresolved unbind data policy decisions.
+- **Evidence references:** `harness/build/phase-39-couple-invite-entropy.md`, `server/src/couple/invite-code.ts`, `server/test/couple-invite-code.test.ts`, `PRD.md` PRD-COUPLE-001.
+
+## 2026-09-30 — Phase 40: acknowledge partner chat delivery started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 truthful delivery confirmation across the existing WebSocket server and Web/App clients.
+- **Red:** Phase 34 labels server `ws.send` acceptance as delivered and writes `delivered_at` before the recipient runtime acknowledges anything; pending replay has the same ambiguity.
+- **Decision:** Add a strict receiver ack keyed only by server message ID, scope DB writes to the active bound relationship recipient, and add nullable `delivery_attempted_at` so sender history can distinguish pending confirmation from offline. Keep read receipts separate and preserve replay until ack.
+- **Operational evidence:** Phase 39 committed as `2fbd8cb`; workspace was clean before this phase. No live DB/WebSocket/device is available or accessed.
+- **Limitations:** Cross-process live sender receipts remain unsupported; DB history remains authoritative. No exactly-once delivery claim.
+
+## 2026-09-30 — Phase 40: acknowledge partner chat delivery completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Negotiated version-1 clients acknowledge server message IDs after processing current-relationship message events. Only the exact active recipient/relationship can persist `delivered_at`; accepted but unconfirmed delivery is `sending` and remains replayable. Old clients retain transport-acceptance behavior; updated clients do not send ACKs to old servers.
+- **Verification:** Passed server test (4 tests), server lint/build, Web API generation/lint/build, App lint/direct TypeScript check, OpenAPI JSON parse, and `git diff --check`. Web build retained existing Zod comment-position and >500 kB bundle warnings.
+- **Review:** Static SQL review covered receiver, partner, relationship ID, bound status, and exact membership predicates. History distinguishes no attempt, attempt awaiting ACK, delivered, and read. Client event updates are relationship-scoped and monotonic for sent/read states.
+- **Operational evidence:** No MySQL, live WebSocket service, browser, native device, credentials, or user account was accessed; no push/deployment occurred.
+- **Limitations:** Live DB migration, dropped-frame recovery, paired-device behavior, and cross-process sender receipt delivery remain unverified/deferred. Legacy non-negotiated clients retain the old status guarantee during upgrades.
+- **Next action:** Continue the PRD R1/P0 audit for remaining core-flow and media lifecycle gaps; preserve unresolved unbind retention decisions.
+- **Evidence references:** `harness/build/phase-40-chat-delivery-ack.md`, `server/src/ws/partnerChat.ts`, `server/src/db/schema.ts`, `web/openapi.json`, Web/App `use-partner-chat.ts`.
+
+## 2026-09-30 — Phase 40 delivery status merge correction
+
+- **Finding:** Client merge ordering treated `partner_offline` and `sending` as permanently ranked states, so an offline server response could be hidden by a local optimistic `sending` state, and a later replay attempt could be hidden by stale history.
+- **Change:** Web/App history and live-event merges now accept the latest observed non-terminal state (`sending` or `partner_offline`) while preserving terminal `sent` and `read` states against regressions.
+- **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`. Web build retained existing Zod Rollup comment-position and >500 kB chunk warnings.
+- **Operational evidence:** No server, database, credentials, external service, or user data was accessed; no push or deployment occurred.
+- **Evidence references:** Web/App `use-partner-chat.ts`, Phase 40.
+
+## 2026-09-30 — Phase 41: retry uncertain uploaded partner audio started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-CHAT-001 same-message retry for audio whose private object upload succeeded but WebSocket persistence is uncertain.
+- **Red:** Phase 37 safely retries text with the original ID, but Web/App have no same-session retry for an uploaded audio object after socket close/send failure.
+- **Decision:** Retain the same private object key only in runtime memory and retry the existing audio payload with the original `clientMessageId`; never persist the key in local history or re-upload the media.
+- **Operational evidence:** Phase 40 delivery acknowledgement is committed; workspace was clean before this phase. No DB/R2/live WebSocket or device was accessed.
+- **Limitations:** No durable outbox, audio re-upload, or orphan cleanup; no integration environment.
+
+## 2026-09-30 — Phase 41: retry uncertain uploaded partner audio completed
+
+- **Status:** `In progress` → `Complete`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Green:** Web/App expose same-row audio retry after uncertain transport when the uploaded key remains in memory. Retry preserves client ID, object key, and optional duration; persisted server history/delivery clears the key. Local serializers never store it.
+- **Verification:** Passed server test (5 tests), server lint/build, Web lint/build, App lint/typecheck, and `git diff --check`. Added a unit test proving identical audio payloads are accepted for idempotent retry and changed key/duration are rejected.
+- **Review:** Existing server save path checks current relationship and sender-owned key before insert; its idempotency comparison includes object key and duration. Retry is only available for the current relationship and open ready socket.
+- **Operational evidence:** No MySQL, R2, live WebSocket, browser, device, credential, or user data was accessed; no push/deployment occurred.
+- **Limitations:** No durable outbox or post-restart retry when the server row was not saved; uploaded orphan cleanup and cross-process delivery remain unresolved. Web build retains existing dependency annotation and large-chunk warnings.
+- **Next action:** Continue auditing the remaining PRD R1/P0 acceptance criteria, including relationship/retention decisions that still require product input.
+- **Evidence references:** `harness/build/phase-41-chat-audio-retry.md`, `harness/context/phase-41-chat-audio-retry-context.md`, Web/App partner-chat hooks, `server/src/ws/partnerChat.ts`, `server/test/partner-chat-audio-retry.test.ts`.
+
+## 2026-09-30 — Phase 42: serialize concurrent couple bindings started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-COUPLE-001 bind transaction concurrency only; lock the selected invite row and both participant account rows before checking active relationships and inserting a bound relationship.
+- **Red:** `bindCoupleSpace` reads invite and active relationships without locking either participant account. Concurrent transactions using separate valid invite codes may both observe an unbound user before either relationship insert commits.
+- **Decision:** Lock the invite by primary key, then acquire per-user row locks sequentially by ascending numeric user ID. The final conditional consume checks pending status and `CURRENT_TIMESTAMP(3)` after account locks; failure rolls back the relationship insert. No schema migration or retention-policy change.
+- **Operational evidence:** Phase 41 committed as `92e4f9b`; worktree was clean before Phase 42. No MySQL, API, credentials, or user account was accessed.
+- **Verification plan:** Add a deterministic unit test for stable sequential lock acquisition; run server tests, lint, build, and `git diff --check`; statically review SQL predicates and transaction rollback on conflicts.
+- **Limitations:** Real InnoDB concurrency/isolation behavior, duplicate bind race, and migration/deployment topology cannot be exercised without a configured database.
+
+## 2026-09-30 — Phase 42: serialize concurrent couple bindings completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Bind now locks the invite row, acquires inviter/invitee account rows one at a time in ascending ID order, and uses locking/current reads for active relationships. The final invite update requires the same inviter, pending status, and `expires_at > CURRENT_TIMESTAMP(3)`; an affected-row mismatch throws inside the transaction and rolls back the relationship insert.
+- **Verification:** Passed `pnpm --dir server test` (6 tests), `pnpm --dir server lint`, `pnpm --dir server build`, and `git diff --check`. The new test verifies ascending, deduplicated, sequential lock acquisition; the initial Red run failed on the missing helper as expected.
+- **Review:** Static review confirmed invite-key locking precedes globally ordered participant locks, both active-relationship checks use `FOR UPDATE`, invite consumption and relationship insertion share one transaction, and all thrown errors follow the existing rollback path. No schema/API/client changes.
+- **Operational evidence:** No MySQL, API, credentials, account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** The helper unit test and SQL review do not prove deployed InnoDB race behavior. A real same-invite/shared-account concurrency test remains necessary when an isolated MySQL environment is available. Invite rate limiting remains a separate gap.
+- **Next action:** Continue auditing remaining PRD R1/P0 requirements and retain the MySQL integration gap as visible evidence debt.
+- **Evidence references:** `harness/build/phase-42-couple-binding-concurrency.md`, `harness/context/phase-42-couple-binding-concurrency-context.md`, `server/src/couple/bind-locks.ts`, `server/src/router_handler/couple.ts`, `server/test/couple-bind-locks.test.ts`.
+
+## 2026-09-30 — Phase 43: Web wish recycle and restore started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 Web soft-delete and restore path using existing authorized endpoints; show server-provided delete/cleanup timestamps.
+- **Red:** Web has no soft-delete action, recycle route, or restore flow even though the service and generated API contract expose the operations; App already has a recycle screen.
+- **Decision:** Add Web soft delete from wish detail, a recycle page, and restore. Do not add permanent deletion because the current server endpoint deletes only the parent Wish row while process records and media lifecycle are not resolved.
+- **Operational evidence:** Phase 42 implementation and plan-status correction are committed; worktree was clean before Phase 43. No API/DB/account or external service was accessed.
+- **Verification plan:** Web lint/build, static route/API review, and `git diff --check`. No live server/browser test is available.
+- **Limitations:** Permanent delete effect on wish records/private media remains an explicit product/data-lifecycle issue.
+
+## 2026-09-30 — Phase 43: Web wish recycle and restore completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Web can soft-delete a wish from detail after confirmation, enter a recycle page, view server `deletedAt`/`deleteExpiresAt` and approximate remaining time, and restore it. Successful writes refresh the active/recycle queries; failures stay visible and actionable.
+- **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`. Web build retains existing Zod Rollup annotation and >500 kB chunk warnings.
+- **Review:** Existing OpenAPI/server paths and response shapes match the typed client calls. Static review covered route matching, relationship-scoped server endpoints, delete confirmation/cancel, restore confirmation, mutation errors, query invalidation, and absence of a permanent-delete control.
+- **Operational evidence:** No live browser, API, database, credentials, account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** No browser/server integration. Permanent deletion remains absent from Web because server deletion currently removes only the parent Wish row; related records/media policy remains unresolved. App behavior is unchanged.
+- **Next action:** Continue the remaining PRD R1/P0 audit; treat permanent-delete and media cleanup semantics as unresolved data-lifecycle work.
+- **Evidence references:** `harness/build/phase-43-web-wish-recycle-restore.md`, `harness/context/phase-43-web-wish-recycle-restore-context.md`, `web/src/api/wish.ts`, `web/src/features/wish/queries.ts`, Web wish routes/pages, `server/src/router_handler/wish.ts`.
+
+## 2026-09-30 — Phase 44: Web wish status progression started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 Web controls for the existing Wish status progression using current `PATCH /wishes/:id`.
+- **Red:** Web exposes “标记完成” for both `todo` and `doing`, and still shows it for `done`; only App has a `todo` → `doing` start-plan action. Server accepts the existing three statuses.
+- **Decision:** For `todo`, save `doing` immediately as “开始计划”; for `doing`, open the existing explicit completion dialog; for `done`, show no further forward transition. Do not add state rollback or new business states.
+- **Operational evidence:** Phase 43 was committed as `ab7261f`; the branch was clean before this phase. No server/API/account was accessed.
+- **Verification plan:** Web lint/build and `git diff --check`; statically verify status-specific labels, PATCH payloads, errors, and cache refresh.
+- **Limitations:** No browser/API account integration. Status validation is currently build/static coverage only because Web has no configured unit test runner.
+
+## 2026-09-30 — Phase 44: Web wish status progression completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** `todo` now saves `doing` from a “开始计划” action and shows a visible error if PATCH fails. `doing` opens the existing confirmed completion flow to save `done`. `done` no longer offers a redundant completion action. Deep-linked completion confirmation is accepted only for a currently doing wish.
+- **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`. Web build retains existing Zod Rollup annotation and >500 kB chunk warnings.
+- **Review:** Static review confirmed all status writes use the existing PATCH/status schema and existing query invalidation; App/server state model and permissions were unchanged.
+- **Operational evidence:** No live browser, API, account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** No browser/API integration or dedicated Web unit-test runner; retry/error and UI behavior are covered by type/build review only.
+- **Next action:** Continue auditing remaining PRD R1/P0 requirements and preserve undecided relationship/media/date policies.
+- **Evidence references:** `harness/build/phase-44-web-wish-status-progression.md`, `harness/context/phase-44-web-wish-status-progression-context.md`, Web wish detail and update query hook, `server/src/schema/wish.ts`.
+
+## 2026-09-30 — Phase 45: enforce media upload policy started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 declared folder/type/size validation for the existing media upload endpoint.
+- **Red:** The upload handler trusted arbitrary folders, declared MIME types, and filename extensions. The raw parser had a 100 MiB cap but overflow returned generic 500. Added policy tests first; the initial run failed because the policy module did not yet exist.
+- **Decision:** Preserve the existing cap and media callers; allow album images/videos and interact audio; derive extensions from allowlisted Content-Type; explicitly defer file-signature sniffing.
+- **Operational evidence:** Phase 44 committed as `7276b92`; worktree was clean before Phase 45. No R2, API, credentials, or user account was accessed.
+
+## 2026-09-30 — Phase 45: enforce media upload policy completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Shared server policy now validates folders, declared MIME/category, and size. Express and helper use the same 100 MiB constant; parser overflow maps to 413. Filename extension is no longer trusted, internal JPEG thumbnail uploads remain supported, and OpenAPI/generated Web types describe the contract.
+- **Verification:** Passed server tests (11 tests including five upload-policy tests), server lint/build, `pnpm --dir web api`, Web lint/build, and `git diff --check`.
+- **Review:** All upload helper call sites use supported combinations; upload response remains private `{ key }`, key ownership namespace uses the authenticated/user ID, and parser errors are mapped without internal details.
+- **Operational evidence:** No R2, live API, credentials, user data, or external service was accessed; no push/deployment occurred.
+- **Limitations:** Declared MIME is not matched against bytes. Express middleware and object storage success/interruption are not integration-tested; orphan cleanup and deletion policy remain unresolved.
+- **Next action:** Continue the PRD R1/P0 loop; keep media byte-sniffing/integration and lifecycle gaps explicit.
+- **Evidence references:** `harness/build/phase-45-media-upload-policy.md`, `harness/context/phase-45-media-upload-policy-context.md`, `server/src/media/uploadPolicy.ts`, `server/src/router_handler/upload.ts`, `server/src/app.ts`, `server/test/upload-policy.test.ts`, `web/openapi.json`.
+
+## 2026-09-30 — Phase 46: Web Today profile failure state started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-TODAY-001 truthful Web home states for the existing profile request.
+- **Red:** `TodayPage` renders “去绑定” and the unbound hero for `profileStatus === "error"` and `"idle"` because only `"loading"` is handled specially; relationship queries are already gated by the derived partner presence.
+- **Decision:** Treat only `ready` profile data as authoritative; use the existing profile refresh and query-error retry path without changing auth/API semantics.
+- **Operational evidence:** Phase 45 committed as `c96d14f`; worktree was clean before Phase 46. No browser, API account, or external service was accessed.
+
+## 2026-09-30 — Phase 46: Web Today profile failure state completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** `idle`/`loading` now show a loading state; `error` shows the shared retryable error; only `ready` data renders bound/unbound views. Relationship-dependent anniversary and album queries remain hidden unless the ready profile confirms a bound partner.
+- **Verification:** Passed `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`. Web build retains existing Zod/Rollup comment-position and >500 kB chunk warnings.
+- **Review:** Static review covered all four profile states, refresh retry, no “去绑定” or unbound hero on error/initial status, and no relationship queries before a ready bound state.
+- **Operational evidence:** No browser, API, credentials, user account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** No dedicated Web UI test runner or authenticated browser/API integration. Failed retries remain on the visible error state; 401 session invalidation behavior is unchanged.
+- **Next action:** Continue the PRD R1/P0 audit for independent issues.
+- **Evidence references:** `harness/build/phase-46-web-today-profile-failure.md`, `harness/context/phase-46-web-today-profile-failure-context.md`, `web/src/pages/today-page/index.tsx`, `web/src/features/auth/context.tsx`.
+
+## 2026-09-30 — Phase 47: exact album media ownership keys started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 server validation that uploaded media keys belong to the authenticated uploader.
+- **Red:** Album/story writes accepted any key with the caller ID somewhere in its path, including the `interact` namespace; the existing shared predicate required only the `album/<userId>/` prefix.
+- **Decision:** Reuse a strict shared album namespace check and reject empty/dot path suffix segments; do not change relationship queries or media access.
+- **Operational evidence:** Phase 46 committed as `c4f8510`; worktree was clean before Phase 47. No DB, R2, credentials, or user account was accessed.
+
+## 2026-09-30 — Phase 47: exact album media ownership keys completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Album media and story creation now require the shared exact `album/<authenticatedUserId>/` namespace predicate. The predicate rejects empty, `.` and `..` suffix segments; Wish media continues using the same guard.
+- **Verification:** The new regression test failed before implementation on a dot-navigation path; afterwards `pnpm --dir server test` passed (14 tests), server lint/build passed, and `git diff --check` passed.
+- **Review:** Static review confirmed both album/story write handlers assert ownership before inserting rows. Read paths, relationship-scope SQL, schema, and object storage were unchanged.
+- **Operational evidence:** No DB, R2, credentials, user account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** No DB/R2 integration test; existing persisted keys are not audited or migrated.
+- **Next action:** Continue the PRD R1/P0 loop while keeping live integration and unresolved data-lifecycle decisions visible.
+- **Evidence references:** `harness/build/phase-47-album-object-key-ownership.md`, `harness/context/phase-47-album-object-key-ownership-context.md`, `server/src/media/objectKey.ts`, `server/src/router_handler/album.ts`, `server/src/router_handler/wish.ts`, `server/test/media-object-key.test.ts`.
+
+## 2026-09-30 — Phase 48: remove hidden Web daily-interaction routes started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-TODAY-001/PRD R1 rule that unfinished daily status and One Line features must not appear usable.
+- **Red:** Web `todayRoutes` still registered `/status` and `/sentence` as generic pages with “完成” and “留下” actions, despite both flows being unavailable and hidden from Today navigation.
+- **Decision:** Remove the two entries and rely on the existing authenticated unknown-route redirect; preserve placeholders used by other domains.
+- **Operational evidence:** Phase 47 committed as `22af49b`; worktree was clean before Phase 48. No browser, API, or external service was accessed.
+
+## 2026-09-30 — Phase 48: remove hidden Web daily-interaction routes completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Removed the `/status` and `/sentence` placeholders and their nonfunctional action buttons. Unknown routes now continue through the authenticated router's existing redirect to `/`; generic placeholders used elsewhere remain intact.
+- **Verification:** Targeted route search found no stale route/actions; static review confirmed the wildcard redirect. Passed `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`. Web build retains existing Zod/Rollup and >500 kB chunk warnings.
+- **Review:** Only `web/src/routes/today.tsx` route entries/imports changed; Today homepage, other domain routes, and status/One Line product scope are unchanged.
+- **Operational evidence:** No browser, API, account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** No live browser navigation test; the redirect behavior is verified through the route tree and build.
+- **Next action:** Continue the PRD R1/P0 loop; daily status and One Line remain deferred until their real R2 flows.
+- **Evidence references:** `harness/build/phase-48-hide-web-daily-interaction-routes.md`, `harness/context/phase-48-hide-web-daily-interaction-routes-context.md`, `web/src/routes/today.tsx`, `web/src/routes/index.tsx`.
+
+## 2026-09-30 — Phase 49: App wish memory honest states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 App memory timeline loading and request failure states.
+- **Red:** A rejected `getWishRecords` request only showed a toast while the page rendered zero counts and “暂无记录”, indistinguishable from a successful empty response.
+- **Decision:** Gate the gallery on successful data, add a retryable error state, and ignore stale results after focus changes/newer requests.
+- **Operational evidence:** Phase 48 committed as `52b0534`; worktree was clean before Phase 49. No device, API, DB, credentials, or R2 was accessed.
+
+## 2026-09-30 — Phase 49: App wish memory honest states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** App wish memories now show loading and retryable error states. Gallery, statistics, and empty-state text render only after successful response. The latest-record date is derived only from an actual record, not the Wish update timestamp.
+- **Reliability:** Monotonic request IDs and focus cleanup prevent older responses from overwriting a retry or a newer focused request.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review covered invalid wish ID, loading/error/ready branches, successful empty response, retry, stale result suppression, and unchanged image/video viewers/API calls.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI unit-test runner; interaction is not exercised on a physical/simulated device.
+- **Next action:** Continue the PRD R1/P0 loop while keeping live integration gaps visible.
+- **Evidence references:** `harness/build/phase-49-app-wish-memory-states.md`, `harness/context/phase-49-app-wish-memory-states-context.md`, `app/app/home/wish-list/[id]/memory.tsx`, `app/app/features/wish-list/api.ts`.
+
+## 2026-09-30 — Phase 50: App story read failure states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-MEMORY-001 App story list/detail read states.
+- **Red:** Story-list failure and story-detail failure each showed only a toast; after loading ended, empty arrays made the pages claim there were no stories/media.
+- **Decision:** Keep current successful empty states but gate them on successful reads; add retryable visible errors and ignore stale results after focus change/new request.
+- **Operational evidence:** Phase 49 committed as `d3bcb7a`; worktree was clean before Phase 50. No device, API, DB, credentials, or R2 was accessed.
+
+## 2026-09-30 — Phase 50: App story read failure states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Story list and detail now show loading, accessible error/retry, and successful-content states. Empty story/media messages only render after successful reads.
+- **Reliability:** Both read flows use request IDs and focus cleanup to ignore stale responses.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review covered successful empty results, failed list/detail requests, retry through existing APIs, favorite control remaining unchanged, and stale result guards.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 loop while preserving external integration gaps.
+- **Evidence references:** `harness/build/phase-50-app-story-read-states.md`, `harness/context/phase-50-app-story-read-states-context.md`, `app/app/home/album/stories/index.tsx`, `app/app/home/album/stories/[id]/index.tsx`, `app/app/features/album/api.ts`.
+
+## 2026-09-30 — Phase 51: App wish doing-page failure states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-WISH-001 App process-page loading and error handling.
+- **Red:** A rejected `getWishRecords` only showed a toast; the screen still rendered a fallback wish title, “暂无记录”, and finish/add actions.
+- **Decision:** Add explicit loading/error/ready states, gate wish-specific content and actions until a successful read, and suppress stale results after retry or blur.
+- **Operational evidence:** Phase 50 committed as `e78f34c`; worktree was clean before Phase 51. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 51: App wish doing-page failure states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** The doing page now displays loading, accessible retryable error, and successful-data states. The hard-coded fallback title and successful-empty copy no longer appear after failure.
+- **Action gating:** Finish-wish and add-record actions render only after a successful wish/records response; invalid IDs provide a back action.
+- **Reliability:** Request IDs and focus cleanup discard stale responses after retry or navigation.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review confirmed that the empty-record message is reachable only in the ready branch, failure cannot render wish actions, retry uses the existing read API, and successful record/media/completion behavior remains unchanged.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 loop while preserving external integration gaps.
+- **Evidence references:** `harness/build/phase-51-app-wish-doing-states.md`, `harness/context/phase-51-app-wish-doing-states-context.md`, `app/app/home/wish-list/[id]/doing.tsx`.
+
+## 2026-09-30 — Phase 52: App photo/video tab failure states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-MEMORY-001 App photo/video tab read behavior.
+- **Red:** Failed `getAlbumMedia` requests showed only a toast; empty initial arrays still rendered “还没有照片/视频”.
+- **Decision:** Add loading/error/ready branches, success-only empty copy, retry, focus-scoped upload refresh, and stale-request protection.
+- **Operational evidence:** Phase 51 committed as `f54bf6d`; worktree was clean before Phase 52. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 52: App photo/video tab failure states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Photos and Videos now show explicit loading and visible retryable errors; only successful empty filtered results display the existing empty copy.
+- **Reliability:** Focus cleanup and request IDs suppress results from older retries or blurred requests. Upload refresh keys reload only the focused scene; a newly focused scene loads current data.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review confirmed success-only empty messages, retry through the existing GET, focus-bound refresh, stale-response guards, and unchanged grouping/viewer behavior.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 loop; App All Media and Favorites read failures remain independent gaps.
+- **Evidence references:** `harness/build/phase-52-app-album-media-tabs-states.md`, `harness/context/phase-52-app-album-media-tabs-context.md`, `app/components/album/photos.tsx`, `app/components/album/videos.tsx`.
+
+## 2026-09-30 — Phase 52 evidence clarification
+
+- **Correction:** The focus ref in Phase 52 tracks Expo Router screen focus, not the selected nested `TabView` route. A mounted sibling scene can therefore receive the parent screen's focus signal and may also refresh when the upload key changes.
+- **Impact:** Failure/empty-state correctness and stale request protection are unchanged. The earlier wording “only for the focused scene” overstated tab-level isolation; the current behavior can perform redundant background reads while the album screen itself is focused.
+- **Follow-up:** Treat nested tab query isolation as a separate implementation refinement if needed; do not claim the inner `TabView` selection is tracked.
+
+## 2026-09-30 — Phase 53: App All Media overview failure states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-MEMORY-001 App All Media overview reads.
+- **Red:** `getWishes`, `getAlbumMedia`, and `getAlbumStories` run in `Promise.all`; a rejection only shows a toast while the overview renders empty arrays and “还没有照片或视频”.
+- **Decision:** Treat the three reads as one atomic view load; display the overview only after all succeed and offer a retry after any failure.
+- **Operational evidence:** Phase 52 committed as `b2cc8c0`; worktree was clean before Phase 53. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 53: App All Media overview failure states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** The page now displays loading, retryable error, and successful-data states for the parallel wishes/media/stories read. Any failed request hides all returned/empty arrays; only success reaches the existing empty-media text.
+- **Reliability:** A monotonic request ID suppresses late results after retry. Focus cleanup invalidates in-flight reads, and upload-key changes trigger a refresh only while the navigation screen is focused.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review confirmed all three requests must resolve before any data is committed to view state, the error branch offers a retry using existing APIs, the empty copy remains success-only, and navigation/grouping/viewer code is otherwise unchanged.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised. Nested TabView active-scene isolation remains separate from Expo Router screen focus.
+- **Next action:** Continue the PRD R1/P0 audit; Favorites read failures remain independent.
+- **Evidence references:** `harness/build/phase-53-app-all-media-overview-states.md`, `harness/context/phase-53-app-all-media-overview-context.md`, `app/components/album/all-medias.tsx`.
+
+## 2026-09-30 — Phase 54: App Favorites read states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-MEMORY-001 App favorites list reliability.
+- **Red:** Favorites Stories, Photos, and Videos each stop loading after a rejected GET and render an empty-list message based on the initial array.
+- **Decision:** Add explicit loading/error/ready states and retry to each list; successful-empty copy is reached only after its existing GET succeeds.
+- **Operational evidence:** Phase 53 committed as `c121b18`; worktree was clean before Phase 54. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 54: App Favorites read states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Favorites Stories, Photos, and Videos now show loading and accessible retryable error states. Empty messages render only after the respective GET succeeds.
+- **Reliability:** A request sequence suppresses stale retries; effect cleanup invalidates an in-flight read when its conditional subtab unmounts.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review confirmed separate error handling in all three grids, retry through existing APIs, success-only empty copy after filtering, and unchanged favorite/content navigation semantics.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 audit; album-tab read handling is now covered for All Media, Photos, Videos, Stories, and Favorites, while live integration gaps remain.
+- **Evidence references:** `harness/build/phase-54-app-favorites-states.md`, `harness/context/phase-54-app-favorites-context.md`, `app/components/album/favorites-stories.tsx`, `app/components/album/favorites-photos.tsx`, `app/components/album/favorites-videos.tsx`.
+
+## 2026-09-30 — Phase 55: App wish record creation read states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-WISH-001 App process-record creation target confirmation.
+- **Red:** `getWishById` failure only shows a toast and clears `loadingWish`; the form continues with fallback wish title/description and an enabled Save action.
+- **Decision:** Gate the entire editable form and save action on a successful target-wish read; show visible loading/error/retry, and invalidate stale requests.
+- **Operational evidence:** Phase 54 committed as `68782fe`; worktree was clean before Phase 55. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 55: App wish record creation read states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** The process-record screen now shows loading, accessible retryable error, and ready states for the selected wish. The form and Save action are absent until the wish read succeeds.
+- **Target integrity:** Successful wish data supplies the displayed title/status; the old fallback title/status do not appear after read failure. Invalid IDs offer back navigation.
+- **Reliability:** Request IDs and effect cleanup suppress stale wish responses after retry or route change. The save handler checks ready state in addition to the UI gate.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review confirmed retry uses the existing `getWishById`, draft restoration remains keyed to the route ID and is preserved, media upload/create payload is unchanged, and POST server authorization remains untouched.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 audit; preserve remaining device/live-service validation gaps.
+- **Evidence references:** `harness/build/phase-55-app-wish-record-create-states.md`, `harness/context/phase-55-app-wish-record-create-context.md`, `app/app/home/wish-list/[id]/records/create.tsx`.
+
+## 2026-09-30 — Phase 56: App wish recycle read states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-WISH-001 App recycle-bin read reliability.
+- **Red:** A rejected `getDeletedWishes` only emitted a toast; after loading ended, the initial empty list displayed “回收站还是空的”.
+- **Decision:** Add visible loading/error/retry/ready states, show empty copy only after a successful read, and suppress stale responses after retry or blur.
+- **Operational evidence:** Phase 55 committed as `72ccc6d`; worktree was clean before Phase 56. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 56: App wish recycle read states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** The recycle screen now distinguishes loading, failed reads, successful empty results, and successful rows. Error includes an accessible in-page retry; empty copy is success-only.
+- **Reliability:** Request IDs suppress older retry results, and focus cleanup invalidates in-flight reads after blur/unmount.
+- **Mutation preservation:** Restore and permanent-delete confirmations and API calls remain unchanged; successful mutations still refresh the list.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review covered loading/error/ready gating, retry, stale-request suppression, focus cleanup, and unchanged restore/permanent-delete handlers.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 audit while preserving device/live-service validation gaps.
+- **Evidence references:** `harness/build/phase-56-app-wish-recycle-read-states.md`, `harness/context/phase-56-app-wish-recycle-read-states-context.md`, `app/app/home/wish-list/recycle.tsx`.
+
+## 2026-09-30 — Phase 57: App wish-list read states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-WISH-001 App primary wish list reliability.
+- **Red:** `getWishes` failures only emitted a toast; after a failed focus refresh, previous wish rows remained actionable. Empty categories had no explicit success feedback.
+- **Decision:** Add loading/error/retry/ready states, clear rows and selection during refresh, render category empty copy only after success, and guard stale results and bulk deletion.
+- **Operational evidence:** Phase 56 committed as `a0f1ae8`; worktree was clean before Phase 57. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 57: App wish-list read states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** The main list now distinguishes loading, failed reads, and successful category data. Each successful empty category has explicit feedback; failure exposes an accessible retry and hides stale rows.
+- **Safety:** Refresh clears selected IDs and edit mode; map access and bulk delete require a successful list read. A pending confirmation from an older list request is rejected.
+- **Reliability:** Request IDs suppress results from older retries; focus cleanup invalidates in-flight reads after blur/unmount.
+- **Mutation preservation:** Bulk deletion still uses the existing confirmation and `deleteWish` calls; create/recycle/detail navigation and category filters remain unchanged.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review covered loading/error/ready gating, success-only empty feedback, retry, stale-row/selection/delete guards, request invalidation, and unchanged DELETE API usage.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 audit while preserving device/live-service validation gaps.
+- **Evidence references:** `harness/build/phase-57-app-wish-list-read-states.md`, `harness/context/phase-57-app-wish-list-read-states-context.md`, `app/app/home/wish-list/index.tsx`.
+
+## 2026-09-30 — Phase 58: Media signature checks started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-MEMORY-001; extend Phase 45's explicitly deferred signature verification.
+- **Red:** The upload helper checks declared MIME/folder/size but sends arbitrary bytes labeled with an allowed Content-Type to object storage.
+- **Decision:** Add dependency-free signature/container-header validation for the existing MIME allowlist before `PutObject`; preserve response, key, size, and authorization behavior.
+- **Operational evidence:** Phase 57 committed as `c4a6458`; worktree was clean before Phase 58. No R2, live API, credentials, database, or user data was accessed.
+
+## 2026-09-30 — Phase 58: Media signature checks completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** All 24 MIME aliases currently accepted by the server upload policy now have positive signature/container-header coverage. Mismatched, unknown, malformed, and truncated inputs are rejected with 415.
+- **Safety:** `uploadMediaBuffer` checks declared metadata and signature before building the object key or issuing `PutObjectCommand`; folder ownership namespace, size policy, authorization, and `{ key }` response remain unchanged.
+- **Resource bounds:** ISO-BMFF and EBML header limits (4 KiB) and WAV header chunk-count limit (4096) bound parser work on untrusted inputs.
+- **API docs:** Updated `web/openapi.json` and generated `web/src/api/schemas.d.ts`; updated the PRD summary and Phase 45 follow-up record.
+- **Verification:** Passed `pnpm --dir server test` (17/17), `pnpm --dir server lint`, `pnpm --dir server build`, `pnpm --dir web api`, `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`.
+- **Review:** Static review confirmed the 415 check is before object-store I/O and upload response/key/auth behavior is unchanged. No live API, R2, credentials, database, device, or user data was accessed.
+- **Limitations:** Header/container matching is not full decoding, codec/track verification, malware scanning, or polyglot defense. Web build passed with existing Zod annotation and >500 kB chunk warnings.
+- **Next action:** Continue the PRD R1/P0 audit; preserve real R2/integration and media cleanup gaps.
+- **Evidence references:** `harness/build/phase-58-media-upload-signature-checks.md`, `harness/context/phase-58-media-upload-signature-checks-context.md`, `server/src/media/mediaSignature.ts`, `server/test/media-signature.test.ts`.
+
+## 2026-09-30 — Phase 59: Anniversary reminder plan inputs started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal; resolve the Phase 20-deferred reminder-input mismatch under PRD-DAY-001.
+- **Evidence:** Server schema stores one `reminderDaysBefore` integer in 0–30. App create exposes three independent switches but serializes only one by priority. Web create/edit exposes two booleans; Web edit maps some existing values (including 1–6) to 0 on save, while preview can show multiple plans for one stored value.
+- **Decision:** Use single-select plan inputs with common 0/3/7 presets and preserve any existing non-preset scalar value in edit forms. Do not invent an unset value or notification behavior.
+- **Operational evidence:** Phase 58 commit is `9eff35b`; worktree was clean before Phase 59 documentation. No device, API, database, credentials, notification service, or user data was accessed.
+
+## 2026-09-30 — Phase 59: Anniversary reminder plan inputs completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** App creation now has one selected plan and submits its scalar directly. App edit offers a keep-current option for a stored non-preset value. Web forms use a validated integer field with 0/3/7 presets and a keep-current option for an existing non-preset value; edit/payload mapping preserves the exact scalar, and preview displays exactly one plan.
+- **Truthful behavior:** Both clients state that they save a plan only and do not send notifications. No unset state was invented; server zero remains the same-day plan.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`. Static search confirmed the old independent reminder booleans/priority mapping are gone from the App and Web anniversary forms.
+- **Build notes:** Web build passed with existing Zod annotation warnings and the existing >500 kB chunk-size warning.
+- **Review:** Confirmed server contract is a single integer 0–30, direct form-to-payload mapping is non-normalizing, and Web's current-value option remains available unless the user explicitly selects a preset. No notification/API/schema/database changes.
+- **Operational evidence:** No device, browser session, API, database, credentials, notification service, R2, or user data was accessed; no push/deployment occurred.
+- **Limitations:** No configured App/Web UI test runner; no manual device/browser verification. New records expose the existing common 0/3/7 choices, not arbitrary-day entry. Server “today” and browser preview timezone policy remains unresolved and was not changed; there is no product-approved canonical timezone to implement safely.
+- **Next action:** Continue the R1/P0 audit with the timezone mismatch logged as a product-rule question; keep progressing independent items that do not require that choice.
+- **Evidence references:** `harness/build/phase-59-anniversary-reminder-plan-inputs.md`, `harness/context/phase-59-anniversary-reminder-plans-context.md`, `app/app/home/anniversary/create.tsx`, `app/app/home/anniversary/[id]/edit.tsx`, `web/src/pages/days-page/types.ts`, `web/src/pages/days-page/form-fields.tsx`.
+
+## 2026-09-30 — Phase 60: Password hash compatibility started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-AUTH-001 password storage and login compatibility.
+- **Red:** Upstream bcrypt documentation specifies a 72-byte UTF-8 input limit. A local reproduction with the installed package confirmed that `bcrypt.compare(prefix72 + differentSuffix, hash(prefix72))` returns `true`.
+- **Decision:** Version new hashes as bcrypt(SHA-256(exact UTF-8 input)). Keep direct-bcrypt verification for existing users; upgrade only after a valid legacy login strictly shorter than 72 UTF-8 bytes, using a compare-and-set DB update. Preserve existing semantics for ambiguous 72+ byte legacy credentials.
+- **Operational evidence:** Phase 59 commit is `951e114`; worktree was clean at turn start. Only synthetic local bcrypt inputs were used; no credentials, user data, database, production service, or deployment was accessed.
+
+## 2026-09-30 — Phase 60: Password hash compatibility completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** New registrations store a version-tagged bcrypt hash of a domain-separated SHA-256 digest of the exact UTF-8 password. Login verifies that format without truncation. Legacy direct bcrypt hashes still verify; successful legacy logins strictly under 72 UTF-8 bytes trigger an awaited compare-and-set rehash before token issuance.
+- **Compatibility:** Legacy inputs at or above 72 bytes are not auto-upgraded because the stored hash cannot prove the original suffix. They retain existing login behavior; this known residual risk is not presented as fixed.
+- **Verification:** Passed `pnpm --dir server test` (20/20 across 9 suites), `pnpm --dir server lint`, `pnpm --dir server build`, and `git diff --check`. New tests cover differing suffixes beyond byte 72, invalid passwords, legacy compatibility, and a 71-byte Unicode case.
+- **Review:** Confirmed version marker, full-input digest, existing 255-character DB column compatibility, binary old-hash compare-and-set predicate, and JWT generation only after successful password verification and any eligible awaited upgrade. No password/hash/token logging was added.
+- **Operational evidence:** Only synthetic test passwords were used. No DB, live account, credentials, tokens, production service, push, or deployment was accessed.
+- **Limitations:** The password-hash re-encoding query was not exercised against MySQL. Legacy ≥72-byte accounts remain ambiguous and need a future safe password-change/recovery policy; no such flow was invented.
+- **Next action:** Continue the PRD R1/P0 audit; keep legacy account recovery, complete auth/security path testing, anniversary timezone policy, and media lifecycle policy visible as remaining gaps.
+- **Evidence references:** `harness/build/phase-60-password-hash-compatibility.md`, `harness/context/phase-60-password-hash-compatibility-context.md`, `server/src/auth/password.ts`, `server/test/auth-password.test.ts`, `server/src/router_handler/user.ts`.
+
+## 2026-09-30 — Phase 61: Concurrent duplicate registration conflict started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-AUTH-001 registration failure behavior.
+- **Evidence:** The users table has a username unique index. Registration performs a prior lookup, but concurrent requests can both pass it; the global handler maps unknown MySQL errors to 500.
+- **Decision:** Keep the current lookup and unique index; map only an `ER_DUP_ENTRY` from the users insert to the established HTTP 409 response and rethrow other failures.
+- **Operational evidence:** Phase 60 commit is `eb7c39b`. The only pre-existing working-tree change was the Phase 61 status update in `PLANS.md`; no business code had been modified yet. No live database, credentials, or user data was accessed.
+- **Evidence references:** `harness/build/phase-61-duplicate-registration-conflict.md`, `harness/context/phase-61-duplicate-registration-conflict-context.md`, `server/src/router_handler/user.ts`, `server/src/db/schema.ts`, `server/src/app.ts`.
+
+## 2026-09-30 — Phase 61: Concurrent duplicate registration conflict completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** A duplicate-key error from the users `INSERT` becomes the established HTTP 409 `username already exists` response; unrelated failures are rethrown unchanged. Sequential pre-check behavior is untouched.
+- **Verification:** Passed `pnpm --dir server test` (22/22 across 10 suites), `pnpm --dir server lint`, `pnpm --dir server build`, and `git diff --check`.
+- **Review:** Confirmed the `try/catch` wraps only the user insert and the current users table has one unique key, on username. No schema, client, or API contract change.
+- **Operational evidence:** Only synthetic error objects were used. No live MySQL database, credentials, user data, production service, push, or deployment was accessed.
+- **Limitations:** No configured MySQL integration environment; concurrent HTTP/DB behavior is established by route wiring and classifier unit tests, not a live database race.
+- **Next action:** Continue the active R1/P0 Goal with another independently verifiable item; keep auth recovery, timezone, and media lifecycle questions visible rather than guessing product policy.
+- **Evidence references:** `harness/build/phase-61-duplicate-registration-conflict.md`, `harness/context/phase-61-duplicate-registration-conflict-context.md`, `server/src/auth/registration.ts`, `server/test/auth-registration-error.test.ts`, `server/src/router_handler/user.ts`.
+
+## 2026-09-30 — Phase 62: App media-upload auth invalidation started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-AUTH-001 expired-token behavior and existing Phase 38 conditional session invalidation contract.
+- **Evidence:** App `requestWithAuth` clears only the rejected token's matching stored session and notifies the in-memory provider on 401. `uploadAlbumFile` and `uploadWishFile` used raw authenticated `fetch` calls and bypassed that behavior; the album uploader is also used for partner-chat audio.
+- **Decision:** Add one raw authenticated fetch helper sharing the same conditional invalidation behavior, and route both upload functions through it. Keep upload path, payload, response/error behavior, and server contract unchanged.
+- **Verification plan:** App lint, App TypeScript check, source review of every `fetch` in `app/app`, and `git diff --check`. App has no configured test runner; no API/DB/device interaction is authorized or required for this code-level change.
+- **Operational evidence:** Phase 61 commit is `c25e462`; branch was clean at start. No `.env`, credentials, API, database, storage service, or user data was read or accessed.
+- **Evidence references:** `app/app/shared/api-client.ts`, `app/app/features/album/api.ts`, `app/app/features/wish-list/api.ts`, `app/app/features/auth/auth-context.tsx`, `app/app/shared/auth-session.ts`.
+
+## 2026-09-30 — Phase 62: App media-upload auth invalidation completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Added `fetchWithAuth` for raw responses, sharing token-matched persistent cleanup and in-memory auth notification with JSON requests. Both App upload functions use it; path, body, content headers, response parsing, and existing upload failure message remain unchanged.
+- **Safety:** A 401 only invalidates the exact rejected token. A changed/new token is preserved by the existing serialized compare-and-clear guard and provider token check. Non-401 responses and network failures do not trigger invalidation.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`. Source search confirmed the only remaining direct App `fetch` calls are the two local file-URI reads and the shared API client's JSON/raw authenticated transports.
+- **Operational evidence:** No `.env`, credentials, live API, DB, object storage, device, or user data was accessed; no push/deployment occurred.
+- **Limitations:** No App test runner or device/API integration is configured, so the behavior was not exercised at runtime. Static review confirmed both upload consumers call the shared helper.
+- **Next action:** Continue the active PRD R1/P0 audit; preserve product decisions around media deletion/retention and anniversary timezone rather than inferring them.
+- **Evidence references:** `harness/build/phase-62-app-media-upload-auth-invalidation.md`, `harness/context/phase-62-app-media-upload-auth-invalidation-context.md`, `app/app/shared/api-client.ts`, `app/app/features/album/api.ts`, `app/app/features/wish-list/api.ts`.
+
+## 2026-09-30 — Phase 63: App session restore failure handling started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-AUTH-001 restoring valid sessions and clearing invalid tokens.
+- **Evidence:** `AuthProvider.restoreSession` wrapped storage parsing and `getUserInfo` verification in one catch that always removed both stored credentials. The shared API client already invalidates only on 401; transient network, storage, or server errors could nevertheless destroy a still-valid session.
+- **Decision:** Clear malformed session records; rely on the existing 401 token-matched invalidation for explicitly rejected credentials; preserve stored tokens on other failures and restore a structurally validated cached identity when available. Protected resources remain server-authorized.
+- **Verification plan:** App lint, TypeScript check, source review of restore/invalidation paths, and `git diff --check`. No App test runner is configured; no live API, credentials, or user data will be accessed.
+- **Operational evidence:** Phase 62 committed as `b334f75`; worktree was clean before Phase 63 changes. No `.env` or external service was accessed.
+- **Evidence references:** `app/app/features/auth/auth-context.tsx`, `app/app/features/auth/api.ts`, `app/app/shared/api-client.ts`, `app/app/shared/auth-session.ts`, Phase 38 and Phase 62.
+
+## 2026-09-30 — Phase 63: App session restore failure handling completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Malformed JSON and missing/empty credentials still clear unusable session data. `getUserInfo` HTTP 401 relies on `requestWithAuth` to clear only the rejected token; it does not fall back to cached identity. Other API/network errors preserve storage and restore the last-known local identity only if its ID and username have valid shapes.
+- **Authorization boundary:** Cached identity only allows the local authenticated shell to remain available; all protected data continues to be fetched through server-authorized APIs, which still invalidate a token if later rejected.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`. Static source review covered malformed input, explicit 401, non-401 failures, and server-authorized feature requests.
+- **Operational evidence:** No `.env`, credentials, live API, database, or user data was accessed; no push/deployment occurred.
+- **Limitations:** No App test runner, network-failure injector, or device runtime is configured; transient-failure behavior was not exercised dynamically.
+- **Next action:** Continue the PRD R1/P0 audit; database-backed auth/relationship validation and product decisions on media retention and date timezone remain unresolved.
+- **Evidence references:** `harness/build/phase-63-app-session-restore-failures.md`, `harness/context/phase-63-app-session-restore-failures-context.md`, `app/app/features/auth/auth-context.tsx`, `app/app/shared/api-client.ts`, `app/app/shared/auth-session.ts`.
+
+## 2026-09-30 — Phase 64: Server bearer/JWT validation tests started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-AUTH-001 server identity boundary and repeatable local evidence.
+- **Evidence:** `server/src/auth.ts` is called by protected REST handlers and WebSocket authentication but had no direct unit tests for bearer parsing, JWT expiry/signature, subject shape, or numeric user IDs. Importing the current module reads the configured secret, so tests cannot safely exercise it without an environment-coupled import.
+- **Decision:** Extract behavior-preserving pure validation functions that accept the secret explicitly; keep the existing production wrapper passing `config.jwtSecret`. Test only with a synthetic local key and no config, `.env`, database, or network.
+- **Verification plan:** Server test suite, lint, build, and `git diff --check`; inspect all existing call sites for wrapper compatibility.
+- **Operational evidence:** Phase 63 committed as `b647546`; branch was clean before Phase 64 changes. No `.env`, credentials, or external services accessed.
+- **Evidence references:** `server/src/auth.ts`, `server/src/errors.ts`, `server/src/ws/partnerChat.ts`, all `getAuthenticatedUserId` router-handler call sites.
+
+## 2026-09-30 — Phase 64: Server bearer/JWT validation tests completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Extracted pure Bearer parsing, JWT verification, and authenticated user-ID conversion. Existing config-bound `verifyAuthToken`, REST request parsing, and route-facing ID extraction delegate to the tested helpers without changing their signatures.
+- **Red:** Before implementation, the new test file failed with `ERR_MODULE_NOT_FOUND` for the planned `auth/token` helper; after extraction, the complete suite passed.
+- **Coverage:** Synthetic unit tests cover valid Bearer/JWT, missing/empty/wrong-scheme headers, empty token, invalid signature, expired token, missing/blank subject, and zero/negative/fractional/non-numeric subject IDs.
+- **Verification:** Passed `pnpm --dir server test` (28/28 across 13 suites), `pnpm --dir server lint`, `pnpm --dir server build`, and `git diff --check`.
+- **Operational evidence:** Test key is synthetic and in-memory. Tests do not import config, `.env`, DB pool, or network clients. No live credentials, DB, HTTP server, WebSocket server, user data, push, or deployment was accessed.
+- **Limitations:** Tests establish pure authentication rejection behavior but do not prove route middleware ordering, HTTP responses, database authorization, or WebSocket integration.
+- **Next action:** Continue the active PRD R1/P0 audit; retain real integration requirements and product decisions on media/data lifecycle and date timezone as open items.
+- **Evidence references:** `harness/build/phase-64-server-auth-validation-tests.md`, `harness/context/phase-64-server-auth-validation-context.md`, `server/src/auth.ts`, `server/src/auth/token.ts`, `server/test/auth-token-validation.test.ts`.
+
+## 2026-09-30 — Phase 65: Album relationship isolation started
+
+- **Status:** `Not started` → `In progress`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-MEMORY-001 and PRD-COUPLE-001 relationship authorization.
+- **Evidence:** Album scope accepts current relationship OR either partner's creator ID without distinguishing an explicitly different relationship. The shared predicate also gates media-ID signing. Favorite UPDATE uses only the ID after a scoped pre-read.
+- **Decision:** Restrict creator fallback to NULL relationship IDs, guard the executing SQL against changed relation/member status, and use the same predicate for favorite writes. Preserve unbound creator behavior and leave history ownership/retention undecided.
+- **Verification surface:** Exact production predicates in synthetic Node/SQLite in-memory tables; full server tests, lint/build, and diff check. Workspace Node 22.23.2 has `node:sqlite`; no new dependency, config import, `.env`, live DB/R2, credentials, or user data is needed.
+- **Operational evidence:** HEAD is `29847a3`, branch clean at start, Phase 02–64 records match the current roadmap. The previous question-only turn did not change implementation; this continuation found the next concrete privacy defect.
+
+## 2026-09-30 — Phase 65: Album relationship isolation completed
+
+- **Status:** `In progress` → `Complete`
+- **Red:** Executing the original predicate against synthetic SQLite tables failed five of six tests, including returning another explicitly assigned relationship's media to a current partner.
+- **Green:** Pure fixed-identifier predicates use live relationship membership and status. Creator fallback is limited to NULL records; a selected unbound scope requires no active binding at execution. Media lists, story/favorite/detail/creation responses, legacy Wish media and media-ID URL lookup use the new predicates. Favorite UPDATE includes its authorization predicate and a failed post-write scoped read returns 404.
+- **Verification:** Passed `pnpm --dir server test` (35/35 across 14 suites), `pnpm --dir server lint`, `pnpm --dir server build`, and `git diff --check`. Seven focused cases execute the exact generated SQL for both partners, old/foreign/missing relations, NULL compatibility, outsiders, unbind/membership changes, initially-unbound binding, and favorite writes.
+- **Review:** Authentication remains before scope construction; identifiers are internal constants and values are bound. Story cover/count joins retain their matching relationship/NULL creator conditions. Private DTOs, signing TTL and no-store headers remain unchanged; existing App/Web/OpenAPI fields need no change.
+- **Operational evidence:** Only synthetic Node/SQLite in-memory records were used. No `.env`, credentials, MySQL/R2, HTTP server, device, user data, push or deployment was accessed.
+- **Limitations:** The fixture requires built-in `node:sqlite` (available on workspace Node 22.23.2 and experimental). It does not prove MySQL/HTTP/R2 integration, transaction concurrency, or revocation of already issued URLs. Unbound-owner access and NULL-record sharing remain compatible; historical ownership/retention is not decided here. Upload inserts still need their own write-time relation audit.
+- **Next action:** Continue the active PRD R1/P0 Goal. The user answered the timezone question: store one shared timezone per couple, initially defaulting to Asia/Shanghai. Prepare the corresponding date-consistency stage; preserve history/media lifecycle and external integration gaps.
+- **Evidence references:** `harness/build/phase-65-album-relationship-isolation.md`, `harness/context/phase-65-album-relationship-isolation-context.md`, `server/src/media/albumScope.ts`, `server/src/router_handler/album.ts`, `server/src/router_handler/media.ts`, `server/test/album-relationship-scope.test.ts`.
+
+## 2026-09-30 — User decisions: shared timezone and module PR delivery
+
+- **Authorization:** User selected one stored shared timezone per couple, initially Asia/Shanghai. User then requested the long-term plan include PR creation, passing checks/review, and merging main after each completed and tested large module.
+- **Changes:** PRD-DAY-001 now owns the confirmed shared-timezone requirement (not yet implemented). PLANS defines module scope, full acceptance gates, module branches/dependencies, PR creation, check/review repair, current-HEAD merge gates, merged-state verification, and continuation. AGENTS references that sustained authorization and permits subsequent phases already covered by the active Goal.
+- **Target evidence:** Local read-only Git checks show `origin = https://github.com/RyanhoTan/love-u-2.git`, a local `main`, and a clean worktree after Phase 65 commit `6176dc2`. This branch is ahead of its tracking branch by 36 commits and spans multiple domains. No `.github` directory is currently present in the local checkout; remote checks/rules have not been queried.
+- **Scope:** This policy authorizes module-branch push, PR creation/update, in-scope check/review/conflict repair and merge once required gates are satisfied. Deployment, production/credential access, and undecided data lifecycle actions remain outside this authorization.
+- **Verification:** `git diff --check` passed for these documentation changes; static review confirms ordinary small commits do not imply a completed large module and mandatory missing integration/review results prevent merge. No product/runtime change or external write was performed in this documentation update.
+- **Next action:** Implement the shared-timezone milestone, then continue auditing P0 modules against their complete requirements and trigger the delivery loop when a module qualifies. No module is declared fully accepted merely because Phase 65 server tests pass.
+
+## 2026-09-30 — Phase 66: Shared couple calendar started
+
+- **Status:** `Not started` → `In progress`
+- **Evidence:** Couple-space and userinfo use UTC elapsed hours for day counts; anniversary uses server-local today. User explicitly selected a stored per-couple timezone, default Asia/Shanghai. Phase 65 and the workflow policy update are committed (`6176dc2`, `1df7324`); worktree clean before this stage.
+- **Scope:** Add the relation timezone, partial validated/authorized profile PATCH, shared pure calendar calculations and server/API/client DTO metadata. Follow with the already-authorized frontend Stage 67 rather than declaring the module complete now.
+- **Verification:** Synthetic calendar/schema/SQL regression, server test/lint/build, Web API/lint/build, App lint/typecheck, diff review. No credentials, env files, actual DB/R2 or deployment access.
+
+## 2026-09-30 — Phase 66: Shared couple calendar completed
+
+- **Status:** `In progress` → `Complete`
+- **Red:** The initial server-local date implementation failed the selected-zone regression: the same instant returned Sep 30 for UTC instead of Sep 29. Replaced local getters with explicit timezone Intl parts.
+- **Green:** Added additive non-null relationship time_zone default Asia/Shanghai, validated partial profile PATCH, exact selected relation/current member UPDATE, shared calendar-day/annual calculations, response-level timezone/today metadata, and App/Web/OpenAPI DTO compatibility. Database DATE fields are selected as YYYY-MM-DD strings; changing timezone never changes saved dates. Future first annual events retain their original future year and non-leap February 29 uses the existing February 28 rule.
+- **Verification:** `pnpm --dir server test` passed 45/45 across 16 suites (10 focused calendar/schema/SQL cases). `TZ=UTC` and `TZ=America/New_York` runs of `test/couple-calendar.test.ts` each passed 6/6. Server lint/build, Web API generation/lint/build, App lint/typecheck, and `git diff --check` passed. Web retained pre-existing Zod annotation and bundle-size warnings.
+- **Review:** Authenticated handlers keep existing private boundaries. Anniversary reads join live active membership; the profile UPDATE cannot redirect to a newly bound relation after its lookup. Both CREATE/missing-column SQL definitions contain the same default, and startup awaits the existing locked schema initializer before listening. GOALS/PLANS test-entry facts are reconciled with the current server scripts.
+- **Operational evidence:** Only pure functions, synthetic Node/SQLite memory tables, static source and local builds were used. The previous Web build observation handle was not retained; a targeted process check confirmed no build process remained before a new verified build was run. No env/credentials, real MySQL/R2/HTTP server, device, user data, push or deployment access.
+- **Limitations:** SQLite is experimental on workspace Node 22.23.2 and does not verify actual MySQL DDL/defaults, DATE_FORMAT execution, transactions or HTTP auth. Before real deployment, back up relation schema/rows and test additive migration on a disposable copy; rollback can keep the column. Client UI/preview/date rollover and mandatory module integration evidence are still open.
+- **Next action:** Continue Phase 67, already covered by the active Goal and user decision; do not create a whole-module PR merely from this server milestone. The module delivery policy is committed as `1df7324` and applies when its full gate is met.
+- **Evidence references:** `harness/build/phase-66-shared-couple-calendar.md`, `harness/context/phase-66-shared-couple-calendar-context.md`, `server/src/couple/calendar.ts`, `server/src/couple/profile-update.ts`, `server/test/couple-calendar.test.ts`, `server/test/couple-profile-update.test.ts`.

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ImageSourcePropType } from "react-native";
 import {
   Dimensions,
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -49,26 +50,48 @@ export default function Doing() {
   const [imageHeight, setImageHeight] = useState(150);
   const [wish, setWish] = useState<WishItem | null>(null);
   const [records, setRecords] = useState<WishRecordItem[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
+  const requestId = useRef(0);
   const [isEndingWish, setIsEndingWish] = useState(false);
   const { openViewer, Viewer } = useImageViewer();
   const { openViewer: openVideoViewer, Viewer: VideoViewer } = useVideoViewer();
 
   const loadData = useCallback(async () => {
     const parsedWishId = Number(id);
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setWish(null);
+    setRecords([]);
+    setLoadError("");
+    setLoadState("loading");
 
     if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
-      toast.error("愿望不存在");
+      setLoadError("愿望不存在，请返回后重试");
+      setLoadState("error");
       return;
     }
 
     try {
       const response = await getWishRecords(parsedWishId);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       setWish(response.wish);
       setRecords(response.records);
+      setLoadState("ready");
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "加载愿望记录失败";
-      toast.error(message);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(
+        error instanceof Error ? error.message : "加载愿望记录失败，请重试",
+      );
+      setLoadState("error");
     }
   }, [id]);
 
@@ -86,8 +109,44 @@ export default function Doing() {
   useFocusEffect(
     useCallback(() => {
       void loadData();
+      return () => {
+        requestId.current += 1;
+      };
     }, [loadData]),
   );
+
+  if (loadState !== "ready" || !wish) {
+    const isValidWishId = Number.isInteger(Number(id)) && Number(id) > 0;
+
+    return (
+      <SafeAreaView style={styles.page}>
+        <NavBar />
+        {loadState === "loading" ? (
+          <View style={styles.stateContainer}>
+            <ActivityIndicator color="#FF4F7A" />
+            <Text style={styles.stateText}>正在加载心愿记录…</Text>
+          </View>
+        ) : (
+          <View style={styles.stateContainer}>
+            <Text accessibilityRole="alert" style={styles.errorText}>
+              {loadError || "心愿记录加载失败，请重试"}
+            </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() =>
+                isValidWishId ? void loadData() : router.back()
+              }
+              style={styles.retryButton}
+            >
+              <Text style={styles.retryText}>
+                {isValidWishId ? "重新加载" : "返回"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </SafeAreaView>
+    );
+  }
 
   const coverSource: ImageSourcePropType | undefined = wish?.cover
     ? { uri: wish.cover }
@@ -96,8 +155,12 @@ export default function Doing() {
   const handleFinishWish = async () => {
     const parsedWishId = Number(id);
 
-    if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
-      toast.error("愿望不存在");
+    if (
+      loadState !== "ready" ||
+      !wish ||
+      !Number.isInteger(parsedWishId) ||
+      parsedWishId <= 0
+    ) {
       return;
     }
 
@@ -122,7 +185,11 @@ export default function Doing() {
     <SafeAreaView style={{ flex: 1 }}>
       <NavBar
         rightContent={
-          <TouchableOpacity onPress={() => void handleFinishWish()}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            disabled={isEndingWish}
+            onPress={() => void handleFinishWish()}
+          >
             <Text>结束愿望</Text>
           </TouchableOpacity>
         }
@@ -242,6 +309,34 @@ export default function Doing() {
 }
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+  },
+  stateContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    padding: 24,
+  },
+  stateText: {
+    color: "#666",
+    fontSize: 14,
+  },
+  errorText: {
+    color: "#b42318",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  retryButton: {
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  retryText: {
+    color: "#FF4F7A",
+    fontWeight: "600",
+  },
   container: {
     padding: 16,
   },
