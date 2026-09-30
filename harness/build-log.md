@@ -70,6 +70,7 @@
 | 61 — Map concurrent duplicate registrations to conflict | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 22/22、lint/build 通过 | 无 MySQL 并发集成 |
 | 62 — Invalidate App sessions on raw media-upload 401 | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | App 无已配置测试运行器；无设备/API 集成 |
 | 63 — Preserve App sessions on transient restore failures | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | App 无已配置测试运行器；无网络故障注入验证 |
+| 64 — Cover server bearer/JWT identity validation | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 28/28、lint/build 通过 | 无 HTTP/DB/WS 集成；JWT 使用合成密钥 |
 
 ## Activity
 
@@ -1562,3 +1563,26 @@
 - **Limitations:** No App test runner, network-failure injector, or device runtime is configured; transient-failure behavior was not exercised dynamically.
 - **Next action:** Continue the PRD R1/P0 audit; database-backed auth/relationship validation and product decisions on media retention and date timezone remain unresolved.
 - **Evidence references:** `harness/build/phase-63-app-session-restore-failures.md`, `harness/context/phase-63-app-session-restore-failures-context.md`, `app/app/features/auth/auth-context.tsx`, `app/app/shared/api-client.ts`, `app/app/shared/auth-session.ts`.
+
+## 2026-09-30 — Phase 64: Server bearer/JWT validation tests started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-AUTH-001 server identity boundary and repeatable local evidence.
+- **Evidence:** `server/src/auth.ts` is called by protected REST handlers and WebSocket authentication but had no direct unit tests for bearer parsing, JWT expiry/signature, subject shape, or numeric user IDs. Importing the current module reads the configured secret, so tests cannot safely exercise it without an environment-coupled import.
+- **Decision:** Extract behavior-preserving pure validation functions that accept the secret explicitly; keep the existing production wrapper passing `config.jwtSecret`. Test only with a synthetic local key and no config, `.env`, database, or network.
+- **Verification plan:** Server test suite, lint, build, and `git diff --check`; inspect all existing call sites for wrapper compatibility.
+- **Operational evidence:** Phase 63 committed as `b647546`; branch was clean before Phase 64 changes. No `.env`, credentials, or external services accessed.
+- **Evidence references:** `server/src/auth.ts`, `server/src/errors.ts`, `server/src/ws/partnerChat.ts`, all `getAuthenticatedUserId` router-handler call sites.
+
+## 2026-09-30 — Phase 64: Server bearer/JWT validation tests completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Extracted pure Bearer parsing, JWT verification, and authenticated user-ID conversion. Existing config-bound `verifyAuthToken`, REST request parsing, and route-facing ID extraction delegate to the tested helpers without changing their signatures.
+- **Red:** Before implementation, the new test file failed with `ERR_MODULE_NOT_FOUND` for the planned `auth/token` helper; after extraction, the complete suite passed.
+- **Coverage:** Synthetic unit tests cover valid Bearer/JWT, missing/empty/wrong-scheme headers, empty token, invalid signature, expired token, missing/blank subject, and zero/negative/fractional/non-numeric subject IDs.
+- **Verification:** Passed `pnpm --dir server test` (28/28 across 13 suites), `pnpm --dir server lint`, `pnpm --dir server build`, and `git diff --check`.
+- **Operational evidence:** Test key is synthetic and in-memory. Tests do not import config, `.env`, DB pool, or network clients. No live credentials, DB, HTTP server, WebSocket server, user data, push, or deployment was accessed.
+- **Limitations:** Tests establish pure authentication rejection behavior but do not prove route middleware ordering, HTTP responses, database authorization, or WebSocket integration.
+- **Next action:** Continue the active PRD R1/P0 audit; retain real integration requirements and product decisions on media/data lifecycle and date timezone as open items.
+- **Evidence references:** `harness/build/phase-64-server-auth-validation-tests.md`, `harness/context/phase-64-server-auth-validation-context.md`, `server/src/auth.ts`, `server/src/auth/token.ts`, `server/test/auth-token-validation.test.ts`.

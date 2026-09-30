@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–63 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–64 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -77,6 +77,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 61 | Map concurrent duplicate registrations to conflict | Complete | PRD-AUTH-001 | 并发注册触发用户名唯一约束时返回既有 409 冲突，而非通用 500 |
 | 62 | Invalidate App sessions on raw media-upload 401 | Complete | PRD-AUTH-001、Phase 38 | 相册/聊天和心愿媒体上传遇到失效 token 时清除匹配的持久与内存会话 |
 | 63 | Preserve App sessions on transient restore failures | Complete | PRD-AUTH-001、Phase 38/62 | 仅无效会话或明确 401 清除本地凭据；临时网络/API 错误保留有效恢复机会 |
+| 64 | Cover server bearer/JWT identity validation | Complete | PRD-AUTH-001 | 本地可重复验证缺失/错误 Bearer、签名与过期 token、无效 subject/user ID 均返回 401 |
 
 ## 阶段顺序
 
@@ -448,6 +449,11 @@ bcrypt 仅使用 UTF-8 密码的前 72 字节；新凭证先做版本化 SHA-256
 
 启动恢复时仅对结构损坏/缺少 token 的会话或服务端明确拒绝的 401 执行清理；暂时性网络、存储或服务端错误不得删除凭据，有结构有效的缓存身份时继续恢复本地登录态，所有业务数据仍以服务端授权为准。详细范围见
 `harness/build/phase-63-app-session-restore-failures.md`。阶段已完成；App lint、TypeScript 检查和差异检查通过。无已配置 App 测试运行器或网络故障注入环境。
+
+### Phase 64 — Cover server bearer/JWT identity validation
+
+将 Bearer 头解析、JWT 签名/过期/subject 校验和正整数用户 ID 校验抽到不读取配置的纯函数中，由原认证入口复用，并以仅使用合成密钥的服务端单测覆盖拒绝路径。详细范围见
+`harness/build/phase-64-server-auth-validation-tests.md`。阶段已完成；server tests 28/28、lint、build 和差异检查通过。无 HTTP/DB/WS 集成验证。
 
 ## 后续阶段的准入条件
 
