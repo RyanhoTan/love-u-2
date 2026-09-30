@@ -48,6 +48,7 @@
 | 39 — Strengthen couple invite code entropy | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实绑定/并发碰撞验证 |
 | 40 — Acknowledge partner chat delivery | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无真实 DB/WS/双端设备验证 |
 | 41 — Retry uncertain uploaded partner audio | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录 | 无 durable outbox/R2/WS/设备集成；孤儿清理策略未定 |
+| 42 — Serialize concurrent couple bindings | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；服务端单测/lint/build 通过 | 无真实 MySQL 并发集成 |
 
 ## Activity
 
@@ -1064,3 +1065,25 @@
 - **Limitations:** No durable outbox or post-restart retry when the server row was not saved; uploaded orphan cleanup and cross-process delivery remain unresolved. Web build retains existing dependency annotation and large-chunk warnings.
 - **Next action:** Continue auditing the remaining PRD R1/P0 acceptance criteria, including relationship/retention decisions that still require product input.
 - **Evidence references:** `harness/build/phase-41-chat-audio-retry.md`, `harness/context/phase-41-chat-audio-retry-context.md`, Web/App partner-chat hooks, `server/src/ws/partnerChat.ts`, `server/test/partner-chat-audio-retry.test.ts`.
+
+## 2026-09-30 — Phase 42: serialize concurrent couple bindings started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-COUPLE-001 bind transaction concurrency only; lock the selected invite row and both participant account rows before checking active relationships and inserting a bound relationship.
+- **Red:** `bindCoupleSpace` reads invite and active relationships without locking either participant account. Concurrent transactions using separate valid invite codes may both observe an unbound user before either relationship insert commits.
+- **Decision:** Lock the invite by primary key, then acquire per-user row locks sequentially by ascending numeric user ID. The final conditional consume checks pending status and `CURRENT_TIMESTAMP(3)` after account locks; failure rolls back the relationship insert. No schema migration or retention-policy change.
+- **Operational evidence:** Phase 41 committed as `92e4f9b`; worktree was clean before Phase 42. No MySQL, API, credentials, or user account was accessed.
+- **Verification plan:** Add a deterministic unit test for stable sequential lock acquisition; run server tests, lint, build, and `git diff --check`; statically review SQL predicates and transaction rollback on conflicts.
+- **Limitations:** Real InnoDB concurrency/isolation behavior, duplicate bind race, and migration/deployment topology cannot be exercised without a configured database.
+
+## 2026-09-30 — Phase 42: serialize concurrent couple bindings completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Bind now locks the invite row, acquires inviter/invitee account rows one at a time in ascending ID order, and uses locking/current reads for active relationships. The final invite update requires the same inviter, pending status, and `expires_at > CURRENT_TIMESTAMP(3)`; an affected-row mismatch throws inside the transaction and rolls back the relationship insert.
+- **Verification:** Passed `pnpm --dir server test` (6 tests), `pnpm --dir server lint`, `pnpm --dir server build`, and `git diff --check`. The new test verifies ascending, deduplicated, sequential lock acquisition; the initial Red run failed on the missing helper as expected.
+- **Review:** Static review confirmed invite-key locking precedes globally ordered participant locks, both active-relationship checks use `FOR UPDATE`, invite consumption and relationship insertion share one transaction, and all thrown errors follow the existing rollback path. No schema/API/client changes.
+- **Operational evidence:** No MySQL, API, credentials, account, or external service was accessed; no push/deployment occurred.
+- **Limitations:** The helper unit test and SQL review do not prove deployed InnoDB race behavior. A real same-invite/shared-account concurrency test remains necessary when an isolated MySQL environment is available. Invite rate limiting remains a separate gap.
+- **Next action:** Continue auditing remaining PRD R1/P0 requirements and retain the MySQL integration gap as visible evidence debt.
+- **Evidence references:** `harness/build/phase-42-couple-binding-concurrency.md`, `harness/context/phase-42-couple-binding-concurrency-context.md`, `server/src/couple/bind-locks.ts`, `server/src/router_handler/couple.ts`, `server/test/couple-bind-locks.test.ts`.

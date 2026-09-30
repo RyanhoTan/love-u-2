@@ -3,6 +3,7 @@ import type { PoolConnection, ResultSetHeader, RowDataPacket } from "mysql2/prom
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
+import { acquireCoupleBindingLocks } from "../couple/bind-locks.js";
 import { generateInviteCode } from "../couple/invite-code.js";
 import { bindCoupleSchema, updateCoupleProfileSchema } from "../schema/couple.js";
 import { parseRequestBody } from "../validation.js";
@@ -132,6 +133,7 @@ async function getUsersTableColumns() {
 async function findActiveRelationshipByUserId(
   executor: typeof db | PoolConnection,
   userId: number,
+  forUpdate = false,
 ) {
   const [rows] = await executor.query<CoupleRelationshipRow[]>(
     `
@@ -148,6 +150,7 @@ async function findActiveRelationshipByUserId(
       WHERE status = 'bound'
         AND (user_a_id = ? OR user_b_id = ?)
       LIMIT 1
+      ${forUpdate ? "FOR UPDATE" : ""}
     `,
     [userId, userId]
   );
@@ -233,6 +236,48 @@ async function findInviteByCode(
   );
 
   return rows[0] ?? null;
+}
+
+async function findInviteByCodeForUpdate(
+  executor: PoolConnection,
+  inviteCode: string,
+) {
+  const [rows] = await executor.query<CoupleInviteRow[]>(
+    `
+      SELECT
+        code,
+        inviter_user_id,
+        invitee_user_id,
+        status,
+        expires_at,
+        created_at,
+        updated_at,
+        used_at
+      FROM ${COUPLE_INVITES_TABLE}
+      WHERE code = ?
+      LIMIT 1
+      FOR UPDATE
+    `,
+    [inviteCode]
+  );
+
+  return rows[0] ?? null;
+}
+
+async function lockCoupleBindingAccounts(
+  connection: PoolConnection,
+  userIds: readonly number[],
+) {
+  await acquireCoupleBindingLocks(userIds, async (userId) => {
+    const [rows] = await connection.query<RowDataPacket[]>(
+      `SELECT id FROM users WHERE id = ? FOR UPDATE`,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      throw new HttpError(404, "invite code not found");
+    }
+  });
 }
 
 function serializePartner(partner: UserSummaryRow | null) {
@@ -424,12 +469,7 @@ export async function bindCoupleSpace(req: Request, res: Response) {
   try {
     await connection.beginTransaction();
 
-    const selfRelationship = await findActiveRelationshipByUserId(connection, userId);
-    if (selfRelationship) {
-      throw new HttpError(409, "you are already bound to a partner");
-    }
-
-    const invite = await findInviteByCode(connection, payload.inviteCode);
+    const invite = await findInviteByCodeForUpdate(connection, payload.inviteCode);
     if (!invite || invite.status !== "pending") {
       throw new HttpError(404, "invite code not found");
     }
@@ -443,9 +483,24 @@ export async function bindCoupleSpace(req: Request, res: Response) {
       throw new HttpError(400, "cannot bind with your own invite code");
     }
 
+    await lockCoupleBindingAccounts(connection, [
+      invite.inviter_user_id,
+      userId,
+    ]);
+
+    const selfRelationship = await findActiveRelationshipByUserId(
+      connection,
+      userId,
+      true,
+    );
+    if (selfRelationship) {
+      throw new HttpError(409, "you are already bound to a partner");
+    }
+
     const inviterRelationship = await findActiveRelationshipByUserId(
       connection,
-      invite.inviter_user_id
+      invite.inviter_user_id,
+      true,
     );
     if (inviterRelationship) {
       throw new HttpError(409, "the inviter is already bound to a partner");
@@ -463,7 +518,7 @@ export async function bindCoupleSpace(req: Request, res: Response) {
       [invite.inviter_user_id, userId]
     );
 
-    await connection.query<ResultSetHeader>(
+    const [inviteUpdate] = await connection.query<ResultSetHeader>(
       `
         UPDATE ${COUPLE_INVITES_TABLE}
         SET
@@ -472,9 +527,16 @@ export async function bindCoupleSpace(req: Request, res: Response) {
           used_at = CURRENT_TIMESTAMP,
           updated_at = CURRENT_TIMESTAMP
         WHERE code = ?
+          AND inviter_user_id = ?
+          AND status = 'pending'
+          AND expires_at > CURRENT_TIMESTAMP(3)
       `,
-      [userId, invite.code]
+      [userId, invite.code, invite.inviter_user_id]
     );
+
+    if (inviteUpdate.affectedRows !== 1) {
+      throw new HttpError(410, "invite code has expired");
+    }
 
     await connection.commit();
 
