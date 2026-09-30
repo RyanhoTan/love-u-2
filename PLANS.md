@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–59 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–60 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -73,6 +73,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 57 | App wish-list read failure-safe states | Complete | PRD-WISH-001、Phase 15/56 | 主列表区分加载、失败和分类空状态；失败时隐藏旧卡片并阻止旧选择参与删除 |
 | 58 | Verify uploaded media signatures | Complete | PRD-MEMORY-001、Phase 45 | 在对象写入前核对已允许 MIME 与文件头/容器标识，明显不匹配时返回 415 |
 | 59 | Unify anniversary reminder plan inputs | Complete | PRD-DAY-001、Phase 20/22 | App/Web 用单选表达服务端的单个提醒天数，并在 Web 编辑时无损保留已有 0–30 天值 |
+| 60 | Preserve full password bytes in bcrypt auth | Complete | PRD-AUTH-001 | 新密码用版本化 SHA-256 预哈希后 bcrypt；兼容旧哈希并安全渐进迁移可证明未被截断的旧密码 |
 
 ## 阶段顺序
 
@@ -424,6 +425,11 @@ API，不改变心愿状态、记录或媒体契约。详细计划见
 服务端纪念日只保存单个 `reminderDaysBefore` 数值；将 App 与 Web 创建/编辑界面改成互斥单选计划，且 Web 编辑保留服务端现有的任意 0–30 天值。不增加“无计划”语义、不发送通知、不改 API 或日期计算；详细范围见
 `harness/build/phase-59-anniversary-reminder-plan-inputs.md`。阶段已完成；实测结果见
 `harness/build-log.md`。
+
+### Phase 60 — Preserve full password bytes in bcrypt auth
+
+bcrypt 仅使用 UTF-8 密码的前 72 字节；新凭证先做版本化 SHA-256 预哈希再 bcrypt，保留旧哈希登录兼容，并只在旧凭证输入短于 72 字节时条件升级，避免猜测旧长密码的原始后缀。详细范围见
+`harness/build/phase-60-password-hash-compatibility.md`。
 
 ## 后续阶段的准入条件
 

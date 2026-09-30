@@ -62,6 +62,11 @@
 | 53 — App All Media overview failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 | 54 — App favorites failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 | 55 — App wish record creation failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 56 — App wish recycle read failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 57 — App wish-list read failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 58 — Verify uploaded media signatures | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build、Web lint/build 通过 | 无真实 R2/HTTP/设备集成 |
+| 59 — Unify anniversary reminder plan inputs | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck、Web lint/build 通过 | 无 UI/设备/API 集成；时区策略未定 |
+| 60 — Preserve full password bytes in bcrypt auth | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build 通过 | 无 MySQL 登录迁移集成；遗留长密码策略未定 |
 
 ## Activity
 
@@ -1468,3 +1473,24 @@
 - **Limitations:** No configured App/Web UI test runner; no manual device/browser verification. New records expose the existing common 0/3/7 choices, not arbitrary-day entry. Server “today” and browser preview timezone policy remains unresolved and was not changed; there is no product-approved canonical timezone to implement safely.
 - **Next action:** Continue the R1/P0 audit with the timezone mismatch logged as a product-rule question; keep progressing independent items that do not require that choice.
 - **Evidence references:** `harness/build/phase-59-anniversary-reminder-plan-inputs.md`, `harness/context/phase-59-anniversary-reminder-plans-context.md`, `app/app/home/anniversary/create.tsx`, `app/app/home/anniversary/[id]/edit.tsx`, `web/src/pages/days-page/types.ts`, `web/src/pages/days-page/form-fields.tsx`.
+
+## 2026-09-30 — Phase 60: Password hash compatibility started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-AUTH-001 password storage and login compatibility.
+- **Red:** Upstream bcrypt documentation specifies a 72-byte UTF-8 input limit. A local reproduction with the installed package confirmed that `bcrypt.compare(prefix72 + differentSuffix, hash(prefix72))` returns `true`.
+- **Decision:** Version new hashes as bcrypt(SHA-256(exact UTF-8 input)). Keep direct-bcrypt verification for existing users; upgrade only after a valid legacy login strictly shorter than 72 UTF-8 bytes, using a compare-and-set DB update. Preserve existing semantics for ambiguous 72+ byte legacy credentials.
+- **Operational evidence:** Phase 59 commit is `951e114`; worktree was clean at turn start. Only synthetic local bcrypt inputs were used; no credentials, user data, database, production service, or deployment was accessed.
+
+## 2026-09-30 — Phase 60: Password hash compatibility completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** New registrations store a version-tagged bcrypt hash of a domain-separated SHA-256 digest of the exact UTF-8 password. Login verifies that format without truncation. Legacy direct bcrypt hashes still verify; successful legacy logins strictly under 72 UTF-8 bytes trigger an awaited compare-and-set rehash before token issuance.
+- **Compatibility:** Legacy inputs at or above 72 bytes are not auto-upgraded because the stored hash cannot prove the original suffix. They retain existing login behavior; this known residual risk is not presented as fixed.
+- **Verification:** Passed `pnpm --dir server test` (20/20 across 9 suites), `pnpm --dir server lint`, `pnpm --dir server build`, and `git diff --check`. New tests cover differing suffixes beyond byte 72, invalid passwords, legacy compatibility, and a 71-byte Unicode case.
+- **Review:** Confirmed version marker, full-input digest, existing 255-character DB column compatibility, binary old-hash compare-and-set predicate, and JWT generation only after successful password verification and any eligible awaited upgrade. No password/hash/token logging was added.
+- **Operational evidence:** Only synthetic test passwords were used. No DB, live account, credentials, tokens, production service, push, or deployment was accessed.
+- **Limitations:** The password-hash re-encoding query was not exercised against MySQL. Legacy ≥72-byte accounts remain ambiguous and need a future safe password-change/recovery policy; no such flow was invented.
+- **Next action:** Continue the PRD R1/P0 audit; keep legacy account recovery, complete auth/security path testing, anniversary timezone policy, and media lifecycle policy visible as remaining gaps.
+- **Evidence references:** `harness/build/phase-60-password-hash-compatibility.md`, `harness/context/phase-60-password-hash-compatibility-context.md`, `server/src/auth/password.ts`, `server/test/auth-password.test.ts`, `server/src/router_handler/user.ts`.
