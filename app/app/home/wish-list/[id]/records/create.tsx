@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Image } from "expo-image";
 import {
   Camera,
@@ -17,6 +17,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import {
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -93,7 +94,11 @@ export default function CreateRecord() {
   const { showStyledActionSheet } = useStyledActionSheet();
   const { Viewer: videoViewer, openViewer: openVideoViewer } = useVideoViewer();
   const [wish, setWish] = useState<WishItem | null>(null);
-  const [loadingWish, setLoadingWish] = useState(true);
+  const [wishLoadState, setWishLoadState] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
+  const [wishLoadError, setWishLoadError] = useState("");
+  const wishRequestId = useRef(0);
   const [submitting, setSubmitting] = useState(false);
   const [text, setText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
@@ -112,30 +117,46 @@ export default function CreateRecord() {
     selectionLimit: MAX_MEDIA_COUNT,
   });
 
-  useEffect(() => {
+  const loadWish = useCallback(async () => {
     const parsedWishId = Number(id);
+    const currentRequestId = wishRequestId.current + 1;
+    wishRequestId.current = currentRequestId;
+    setWish(null);
+    setWishLoadError("");
+    setWishLoadState("loading");
 
     if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
-      toast.error("愿望不存在");
-      setLoadingWish(false);
+      setWishLoadError("愿望不存在，请返回后重试");
+      setWishLoadState("error");
       return;
     }
 
-    const loadWish = async () => {
-      try {
-        const response = await getWishById(parsedWishId);
-        setWish(response.wish);
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "加载愿望详情失败";
-        toast.error(message);
-      } finally {
-        setLoadingWish(false);
+    try {
+      const response = await getWishById(parsedWishId);
+      if (wishRequestId.current !== currentRequestId) {
+        return;
       }
-    };
 
-    void loadWish();
+      setWish(response.wish);
+      setWishLoadState("ready");
+    } catch (error) {
+      if (wishRequestId.current !== currentRequestId) {
+        return;
+      }
+
+      setWishLoadError(
+        error instanceof Error ? error.message : "加载愿望详情失败，请重试",
+      );
+      setWishLoadState("error");
+    }
   }, [id]);
+
+  useEffect(() => {
+    void loadWish();
+    return () => {
+      wishRequestId.current += 1;
+    };
+  }, [loadWish]);
 
   useEffect(() => {
     const parsedWishId = Number(id);
@@ -250,6 +271,11 @@ export default function CreateRecord() {
   const handleSave = async () => {
     const parsedWishId = Number(id);
 
+    if (wishLoadState !== "ready" || !wish) {
+      toast.error("请先加载心愿信息");
+      return;
+    }
+
     if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
       toast.error("愿望不存在");
       return;
@@ -294,6 +320,41 @@ export default function CreateRecord() {
     }, 120);
   };
 
+  if (wishLoadState !== "ready" || !wish) {
+    const isValidWishId = Number.isInteger(Number(id)) && Number(id) > 0;
+
+    return (
+      <SafeAreaView style={styles.page}>
+        <NavBar title="进行中" />
+        <View style={styles.stateContainer}>
+          {wishLoadState === "loading" ? (
+            <>
+              <ActivityIndicator color="#FF4F7A" />
+              <Text style={styles.stateText}>正在加载心愿信息…</Text>
+            </>
+          ) : (
+            <>
+              <Text accessibilityRole="alert" style={styles.errorText}>
+                {wishLoadError || "加载愿望详情失败，请重试"}
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() =>
+                  isValidWishId ? void loadWish() : router.back()
+                }
+                style={styles.retryButton}
+              >
+                <Text style={styles.retryText}>
+                  {isValidWishId ? "重新加载" : "返回"}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   const wishCoverSource = wish?.cover
     ? { uri: wish.cover }
     : ImagesWishDefaultWishCoverPng;
@@ -322,10 +383,8 @@ export default function CreateRecord() {
 
             <Column flex={1} style={styles.wishInfo} gap={12}>
               <Row items="center" gap={8}>
-                <Text style={styles.wishTitle}>
-                  {wish?.title || "愿望记录"}
-                </Text>
-                <Tag status={wish?.status || "planning"} />
+                <Text style={styles.wishTitle}>{wish.title}</Text>
+                <Tag status={wish.status} />
               </Row>
 
               <Text numberOfLines={1} style={styles.wishDescription}>
@@ -340,10 +399,6 @@ export default function CreateRecord() {
               </Row>
             </Column>
           </Row>
-
-          {loadingWish && (
-            <Text style={styles.loadingText}>正在加载愿望信息...</Text>
-          )}
 
           <TouchableOpacity
             onPress={() => setOpenDatePicker(true)}
@@ -580,8 +635,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
   },
-  loadingText: {
-    color: "#999",
+  stateContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    padding: 24,
+  },
+  stateText: {
+    color: "#666",
+    fontSize: 14,
+  },
+  errorText: {
+    color: "#b42318",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  retryButton: {
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  retryText: {
+    color: "#FF4F7A",
+    fontWeight: "600",
   },
   dateButton: {
     alignSelf: "flex-end",

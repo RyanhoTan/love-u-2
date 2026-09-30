@@ -61,6 +61,7 @@
 | 52 — App album photo/video failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 | 53 — App All Media overview failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 | 54 — App favorites failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 55 — App wish record creation failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 
 ## Activity
 
@@ -1356,3 +1357,25 @@
 - **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
 - **Next action:** Continue the PRD R1/P0 audit; album-tab read handling is now covered for All Media, Photos, Videos, Stories, and Favorites, while live integration gaps remain.
 - **Evidence references:** `harness/build/phase-54-app-favorites-states.md`, `harness/context/phase-54-app-favorites-context.md`, `app/components/album/favorites-stories.tsx`, `app/components/album/favorites-photos.tsx`, `app/components/album/favorites-videos.tsx`.
+
+## 2026-09-30 — Phase 55: App wish record creation read states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-WISH-001 App process-record creation target confirmation.
+- **Red:** `getWishById` failure only shows a toast and clears `loadingWish`; the form continues with fallback wish title/description and an enabled Save action.
+- **Decision:** Gate the entire editable form and save action on a successful target-wish read; show visible loading/error/retry, and invalidate stale requests.
+- **Operational evidence:** Phase 54 committed as `68782fe`; worktree was clean before Phase 55. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 55: App wish record creation read states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** The process-record screen now shows loading, accessible retryable error, and ready states for the selected wish. The form and Save action are absent until the wish read succeeds.
+- **Target integrity:** Successful wish data supplies the displayed title/status; the old fallback title/status do not appear after read failure. Invalid IDs offer back navigation.
+- **Reliability:** Request IDs and effect cleanup suppress stale wish responses after retry or route change. The save handler checks ready state in addition to the UI gate.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review confirmed retry uses the existing `getWishById`, draft restoration remains keyed to the route ID and is preserved, media upload/create payload is unchanged, and POST server authorization remains untouched.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 audit; preserve remaining device/live-service validation gaps.
+- **Evidence references:** `harness/build/phase-55-app-wish-record-create-states.md`, `harness/context/phase-55-app-wish-record-create-context.md`, `app/app/home/wish-list/[id]/records/create.tsx`.
