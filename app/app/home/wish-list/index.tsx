@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Text,
   StyleSheet,
   ScrollView,
@@ -78,70 +79,78 @@ function WishListScene({
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
     >
-      {category.wishList.map((wish) => {
-        const selected = selectedIds.includes(wish.id);
+      {category.wishList.length === 0 ? (
+        <View style={styles.categoryEmptyState}>
+          <Text style={styles.categoryEmptyText}>
+            还没有「{category.categoryName}」的心愿
+          </Text>
+        </View>
+      ) : (
+        category.wishList.map((wish) => {
+          const selected = selectedIds.includes(wish.id);
 
-        return (
-          <TouchableOpacity
-            key={wish.id}
-            activeOpacity={0.82}
-            style={[styles.wishItem, selected && styles.wishItemEditing]}
-            onPress={() => onWishPress(wish)}
-            onLongPress={() => onWishLongPress(wish)}
-          >
-            <Row content="space-between" items="center" gap={12}>
-              <Row gap={12} style={styles.wishInfo}>
-                <Image
-                  source={
-                    wish.cover
-                      ? { uri: wish.cover }
-                      : ImagesWishDefaultWishCoverPng
-                  }
-                  style={[
-                    styles.wishCover,
-                    editing && styles.wishCoverEditing,
-                  ]}
-                />
-                <Column content="space-between" style={styles.wishText}>
-                  <Text
-                    numberOfLines={1}
+          return (
+            <TouchableOpacity
+              key={wish.id}
+              activeOpacity={0.82}
+              style={[styles.wishItem, selected && styles.wishItemEditing]}
+              onPress={() => onWishPress(wish)}
+              onLongPress={() => onWishLongPress(wish)}
+            >
+              <Row content="space-between" items="center" gap={12}>
+                <Row gap={12} style={styles.wishInfo}>
+                  <Image
+                    source={
+                      wish.cover
+                        ? { uri: wish.cover }
+                        : ImagesWishDefaultWishCoverPng
+                    }
                     style={[
-                      styles.wishTitle,
-                      editing && styles.wishTitleEditing,
+                      styles.wishCover,
+                      editing && styles.wishCoverEditing,
+                    ]}
+                  />
+                  <Column content="space-between" style={styles.wishText}>
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.wishTitle,
+                        editing && styles.wishTitleEditing,
+                      ]}
+                    >
+                      {wish.title}
+                    </Text>
+
+                    <Tag status={category.type} />
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.wishTime,
+                        editing && styles.wishTimeEditing,
+                      ]}
+                    >
+                      {`预计时间：${wish.time}`}
+                    </Text>
+                  </Column>
+                </Row>
+
+                {editing ? (
+                  <View
+                    style={[
+                      styles.checkbox,
+                      selected && styles.checkboxSelected,
                     ]}
                   >
-                    {wish.title}
-                  </Text>
-
-                  <Tag status={category.type} />
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      styles.wishTime,
-                      editing && styles.wishTimeEditing,
-                    ]}
-                  >
-                    {`预计时间：${wish.time}`}
-                  </Text>
-                </Column>
+                    {selected ? (
+                      <Check color="#fff" height={14} width={14} />
+                    ) : null}
+                  </View>
+                ) : null}
               </Row>
-
-              {editing ? (
-                <View
-                  style={[
-                    styles.checkbox,
-                    selected && styles.checkboxSelected,
-                  ]}
-                >
-                  {selected ? (
-                    <Check color="#fff" height={14} width={14} />
-                  ) : null}
-                </View>
-              ) : null}
-            </Row>
-          </TouchableOpacity>
-        );
-      })}
+            </TouchableOpacity>
+          );
+        })
+      )}
     </ScrollView>
   );
 }
@@ -152,24 +161,51 @@ export default function WishList() {
   const [index, setIndex] = useState(params.tab === "done" ? 2 : 0);
   const [mapVisible, setMapVisible] = useState(false);
   const [wishes, setWishes] = useState<WishItem[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ready">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
   const [editing, setEditing] = useState(false);
   const [selectedWishIds, setSelectedWishIds] = useState<number[]>([]);
   const [deleting, setDeleting] = useState(false);
+  const requestId = useRef(0);
 
   const refreshWishes = useCallback(async () => {
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setWishes([]);
+    setLoadError("");
+    setLoadState("loading");
+    setEditing(false);
+    setSelectedWishIds([]);
+    setMapVisible(false);
+
     try {
       const response = await getWishes();
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       setWishes(response.wishes);
+      setLoadState("ready");
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "加载愿望清单失败";
-      toast.error(message);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(
+        error instanceof Error ? error.message : "加载愿望清单失败",
+      );
+      setLoadState("error");
     }
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       void refreshWishes();
+      return () => {
+        requestId.current += 1;
+      };
     }, [refreshWishes]),
   );
 
@@ -281,9 +317,11 @@ export default function WishList() {
   }, []);
 
   const handleDeleteSelected = useCallback(() => {
-    if (!selectedWishIds.length || deleting) {
+    if (loadState !== "ready" || !selectedWishIds.length || deleting) {
       return;
     }
+
+    const confirmedListRequestId = requestId.current;
 
     Alert.alert(
       "删除愿望",
@@ -297,6 +335,11 @@ export default function WishList() {
           text: "删除",
           style: "destructive",
           onPress: () => {
+            if (requestId.current !== confirmedListRequestId) {
+              toast.error("愿望清单已更新，请重新选择后再删除");
+              return;
+            }
+
             void (async () => {
               try {
                 setDeleting(true);
@@ -316,7 +359,13 @@ export default function WishList() {
         },
       ],
     );
-  }, [cancelEditing, deleting, refreshWishes, selectedWishIds]);
+  }, [
+    cancelEditing,
+    deleting,
+    loadState,
+    refreshWishes,
+    selectedWishIds,
+  ]);
 
   const renderScene = useCallback(
     ({ route }: { route: WishRoute }) => {
@@ -387,9 +436,16 @@ export default function WishList() {
                   <TouchableOpacity
                     style={[
                       styles.iconButton,
-                      (!selectedWishIds.length || deleting) && styles.iconButtonDisabled,
+                      (loadState !== "ready" ||
+                        !selectedWishIds.length ||
+                        deleting) &&
+                        styles.iconButtonDisabled,
                     ]}
-                    disabled={!selectedWishIds.length || deleting}
+                    disabled={
+                      loadState !== "ready" ||
+                      !selectedWishIds.length ||
+                      deleting
+                    }
                     onPress={handleDeleteSelected}
                   >
                     <Trash2
@@ -407,7 +463,11 @@ export default function WishList() {
                 <Undo2 color={colors.theme.primary} height={22} width={22} />
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.iconButton}
+                disabled={loadState !== "ready"}
+                style={[
+                  styles.iconButton,
+                  loadState !== "ready" && styles.iconButtonDisabled,
+                ]}
                 onPress={() => setMapVisible(true)}
               >
                 <MapPin color={colors.theme.primary} height={22} width={22} />
@@ -421,38 +481,58 @@ export default function WishList() {
             </Row>
           </Row>
 
-          <TabView
-            style={styles.tabView}
-            initialLayout={{ width: layout.width }}
-            navigationState={{ index, routes }}
-            renderScene={renderScene}
-            onIndexChange={setIndex}
-            lazy
-            renderTabBar={(props) => (
-              <TabBar
-                {...props}
-                scrollEnabled
-                gap={24}
-                indicatorStyle={styles.indicator}
-                style={styles.tabBar}
-                contentContainerStyle={styles.tabBarContent}
-                tabStyle={styles.tab}
-                activeColor={colors.theme.primary}
-                inactiveColor={colors.semantic.textSecondary}
-                options={Object.fromEntries(
-                  routes.map((route) => [
-                    route.key,
-                    {
-                      labelText: route.title,
-                      labelStyle: styles.tabLabel,
-                    },
-                  ]),
-                )}
-              />
-            )}
-          />
+          {loadState === "loading" ? (
+            <View style={styles.loadStateContainer}>
+              <ActivityIndicator color={colors.theme.primary} />
+              <Text style={styles.loadStateText}>正在加载愿望清单…</Text>
+            </View>
+          ) : loadState === "error" ? (
+            <View style={styles.loadStateContainer}>
+              <Text accessibilityRole="alert" style={styles.loadErrorText}>
+                {loadError || "加载愿望清单失败，请重试"}
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => void refreshWishes()}
+                style={styles.retryButton}
+              >
+                <Text style={styles.retryText}>重新加载</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TabView
+              style={styles.tabView}
+              initialLayout={{ width: layout.width }}
+              navigationState={{ index, routes }}
+              renderScene={renderScene}
+              onIndexChange={setIndex}
+              lazy
+              renderTabBar={(props) => (
+                <TabBar
+                  {...props}
+                  scrollEnabled
+                  gap={24}
+                  indicatorStyle={styles.indicator}
+                  style={styles.tabBar}
+                  contentContainerStyle={styles.tabBarContent}
+                  tabStyle={styles.tab}
+                  activeColor={colors.theme.primary}
+                  inactiveColor={colors.semantic.textSecondary}
+                  options={Object.fromEntries(
+                    routes.map((route) => [
+                      route.key,
+                      {
+                        labelText: route.title,
+                        labelStyle: styles.tabLabel,
+                      },
+                    ]),
+                  )}
+                />
+              )}
+            />
+          )}
           <MapOverviewModal
-            visible={mapVisible}
+            visible={mapVisible && loadState === "ready"}
             onClose={() => setMapVisible(false)}
             markers={markers}
           />
@@ -529,6 +609,39 @@ const styles = StyleSheet.create({
   listContent: {
     gap: 16,
     paddingBottom: 16,
+    flexGrow: 1,
+  },
+  categoryEmptyState: {
+    alignItems: "center",
+    paddingVertical: 32,
+  },
+  categoryEmptyText: {
+    color: colors.semantic.textSecondary,
+  },
+  loadStateContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    padding: 24,
+  },
+  loadStateText: {
+    color: colors.semantic.textSecondary,
+  },
+  loadErrorText: {
+    color: colors.semantic.textSecondary,
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  retryButton: {
+    borderRadius: 18,
+    backgroundColor: colors.theme.primarySoftBg,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+  retryText: {
+    color: colors.theme.primary,
+    fontWeight: "600",
   },
   wishItem: {
     backgroundColor: colors.semantic.page,

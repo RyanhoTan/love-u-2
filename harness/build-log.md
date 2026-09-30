@@ -1401,3 +1401,26 @@
 - **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
 - **Next action:** Continue the PRD R1/P0 audit while preserving device/live-service validation gaps.
 - **Evidence references:** `harness/build/phase-56-app-wish-recycle-read-states.md`, `harness/context/phase-56-app-wish-recycle-read-states-context.md`, `app/app/home/wish-list/recycle.tsx`.
+
+## 2026-09-30 — Phase 57: App wish-list read states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-WISH-001 App primary wish list reliability.
+- **Red:** `getWishes` failures only emitted a toast; after a failed focus refresh, previous wish rows remained actionable. Empty categories had no explicit success feedback.
+- **Decision:** Add loading/error/retry/ready states, clear rows and selection during refresh, render category empty copy only after success, and guard stale results and bulk deletion.
+- **Operational evidence:** Phase 56 committed as `a0f1ae8`; worktree was clean before Phase 57. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 57: App wish-list read states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** The main list now distinguishes loading, failed reads, and successful category data. Each successful empty category has explicit feedback; failure exposes an accessible retry and hides stale rows.
+- **Safety:** Refresh clears selected IDs and edit mode; map access and bulk delete require a successful list read. A pending confirmation from an older list request is rejected.
+- **Reliability:** Request IDs suppress results from older retries; focus cleanup invalidates in-flight reads after blur/unmount.
+- **Mutation preservation:** Bulk deletion still uses the existing confirmation and `deleteWish` calls; create/recycle/detail navigation and category filters remain unchanged.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review covered loading/error/ready gating, success-only empty feedback, retry, stale-row/selection/delete guards, request invalidation, and unchanged DELETE API usage.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 audit while preserving device/live-service validation gaps.
+- **Evidence references:** `harness/build/phase-57-app-wish-list-read-states.md`, `harness/context/phase-57-app-wish-list-read-states-context.md`, `app/app/home/wish-list/index.tsx`.
