@@ -343,6 +343,12 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 按钮的伪入口；依赖现有应用通配路由回到首页。保留仍服务于其他模块的通用占位组件，不实现 P1 状态/一句话功能。
 详细计划见 `harness/build/phase-48-hide-web-daily-interaction-routes.md`。
 
+### Phase 49 — Make App wish memories failure-safe
+
+为 App 心愿回忆页补齐真实加载、失败和重试状态：未成功取得心愿及过程记录前，不展示默认封面、零计数
+或“暂无记录”；请求失败时显示明确错误和重试入口。复用现有 `/wishes/:id/records` 读取，不改变媒体、
+记录或服务端契约。详细计划见 `harness/build/phase-49-app-wish-memory-states.md`。
+
 ## 后续阶段的准入条件
 
 新增实现阶段前必须：

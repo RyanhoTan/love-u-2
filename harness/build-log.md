@@ -1213,3 +1213,24 @@
 - **Limitations:** No live browser navigation test; the redirect behavior is verified through the route tree and build.
 - **Next action:** Continue the PRD R1/P0 loop; daily status and One Line remain deferred until their real R2 flows.
 - **Evidence references:** `harness/build/phase-48-hide-web-daily-interaction-routes.md`, `harness/context/phase-48-hide-web-daily-interaction-routes-context.md`, `web/src/routes/today.tsx`, `web/src/routes/index.tsx`.
+
+## 2026-09-30 — Phase 49: App wish memory honest states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** PRD-WISH-001 App memory timeline loading and request failure states.
+- **Red:** A rejected `getWishRecords` request only showed a toast while the page rendered zero counts and “暂无记录”, indistinguishable from a successful empty response.
+- **Decision:** Gate the gallery on successful data, add a retryable error state, and ignore stale results after focus changes/newer requests.
+- **Operational evidence:** Phase 48 committed as `52b0534`; worktree was clean before Phase 49. No device, API, DB, credentials, or R2 was accessed.
+
+## 2026-09-30 — Phase 49: App wish memory honest states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** App wish memories now show loading and retryable error states. Gallery, statistics, and empty-state text render only after successful response. The latest-record date is derived only from an actual record, not the Wish update timestamp.
+- **Reliability:** Monotonic request IDs and focus cleanup prevent older responses from overwriting a retry or a newer focused request.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review covered invalid wish ID, loading/error/ready branches, successful empty response, retry, stale result suppression, and unchanged image/video viewers/API calls.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI unit-test runner; interaction is not exercised on a physical/simulated device.
+- **Next action:** Continue the PRD R1/P0 loop while keeping live integration gaps visible.
+- **Evidence references:** `harness/build/phase-49-app-wish-memory-states.md`, `harness/context/phase-49-app-wish-memory-states-context.md`, `app/app/home/wish-list/[id]/memory.tsx`, `app/app/features/wish-list/api.ts`.

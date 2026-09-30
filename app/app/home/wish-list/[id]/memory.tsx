@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import type { ImageSourcePropType } from "react-native";
 import {
   Dimensions,
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -49,11 +50,22 @@ export default function Memory() {
   const [imageHeight, setImageHeight] = useState(150);
   const [wish, setWish] = useState<WishItem | null>(null);
   const [records, setRecords] = useState<WishRecordItem[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
+  const requestId = useRef(0);
   const { openViewer, Viewer } = useImageViewer();
   const { openViewer: openVideoViewer, Viewer: VideoViewer } = useVideoViewer();
 
   const loadData = useCallback(async () => {
     const parsedWishId = Number(id);
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setWish(null);
+    setRecords([]);
+    setLoadError("");
+    setLoadState("loading");
 
     if (!Number.isInteger(parsedWishId) || parsedWishId <= 0) {
       toast.error("愿望不存在");
@@ -63,11 +75,20 @@ export default function Memory() {
 
     try {
       const response = await getWishRecords(parsedWishId);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       setWish(response.wish);
       setRecords(response.records);
+      setLoadState("ready");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载回忆失败";
-      toast.error(message);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(error instanceof Error ? error.message : "加载回忆失败");
+      setLoadState("error");
     }
   }, [id]);
 
@@ -99,8 +120,38 @@ export default function Memory() {
   useFocusEffect(
     useCallback(() => {
       void loadData();
+      return () => {
+        requestId.current += 1;
+      };
     }, [loadData]),
   );
+
+  if (loadState !== "ready") {
+    return (
+      <SafeAreaView style={styles.page}>
+        <NavBar />
+        {loadState === "loading" ? (
+          <View style={styles.stateContainer}>
+            <ActivityIndicator color="#FF4F7A" />
+            <Text style={styles.stateText}>正在加载回忆…</Text>
+          </View>
+        ) : (
+          <View style={styles.stateContainer}>
+            <Text accessibilityRole="alert" style={styles.errorText}>
+              {loadError || "回忆加载失败，请重试"}
+            </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => void loadData()}
+              style={styles.retryButton}
+            >
+              <Text style={styles.retryText}>重新加载</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </SafeAreaView>
+    );
+  }
 
   const coverSource: ImageSourcePropType = wish?.cover
     ? { uri: wish.cover }
@@ -122,10 +173,7 @@ export default function Memory() {
     { label: "记录", value: String(records.length) },
   ];
 
-  const latestRecordDate =
-    records[records.length - 1]?.recordDate ||
-    wish?.updatedAt.slice(0, 10) ||
-    "";
+  const latestRecordDate = records[records.length - 1]?.recordDate || "";
 
   return (
     <SafeAreaView style={styles.page}>
@@ -277,6 +325,31 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 16,
+  },
+  stateContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  stateText: {
+    color: "#8F8F95",
+    fontSize: 14,
+  },
+  errorText: {
+    color: "#B42318",
+    textAlign: "center",
+  },
+  retryButton: {
+    borderRadius: 20,
+    backgroundColor: "#FF4F7A",
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+  },
+  retryText: {
+    color: "#fff",
+    fontWeight: "700",
   },
   coverImage: {
     width: screenWidth,
