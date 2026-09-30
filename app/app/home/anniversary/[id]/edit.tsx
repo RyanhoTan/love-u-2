@@ -32,6 +32,8 @@ const CATEGORIES: { id: AnniversaryType; label: string }[] = [
   { id: "custom", label: "自定义" },
 ];
 
+const REMINDER_PRESETS = [0, 3, 7];
+
 function parseLocalDate(dateText: string) {
   const [year, month, day] = dateText.split("-").map(Number);
   return new Date(year, month - 1, day);
@@ -149,23 +151,30 @@ export default function EditAnniversaryScreen() {
   };
 
   const openReminderPicker = () => {
+    const reminderOptions = REMINDER_PRESETS.includes(reminderDaysBefore)
+      ? REMINDER_PRESETS
+      : [...REMINDER_PRESETS, reminderDaysBefore];
+    const options = [
+      ...reminderOptions.map((days) =>
+        days === 0 ? "当天" : `提前 ${days} 天`,
+      ),
+      "取消",
+    ];
     showStyledActionSheet(
       {
         title: "选择提醒计划",
         message: "当前不会发送通知",
-        options: ["当天", "提前 3 天", "提前 7 天", "取消"],
-        cancelButtonIndex: 3,
+        options,
+        cancelButtonIndex: options.length - 1,
       },
       (selectedIndex) => {
-        if (selectedIndex === 0) {
-          setReminderDaysBefore(0);
-        } else if (selectedIndex === 1) {
-          setReminderDaysBefore(3);
-        } else if (selectedIndex === 2) {
-          setReminderDaysBefore(7);
-        } else {
+        if (
+          selectedIndex === undefined ||
+          selectedIndex >= reminderOptions.length
+        ) {
           return;
         }
+        setReminderDaysBefore(reminderOptions[selectedIndex]);
         setActionError("");
       },
     );

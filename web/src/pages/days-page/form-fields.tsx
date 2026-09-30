@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { cx } from "@/lib/cx";
 import { DatePickerSheet, RepeatPickerSheet } from "./pickers";
 import {
+  DAY_REMINDER_OPTIONS,
   DAY_TYPE_OPTIONS,
   repeatLabel,
   type DayFormValues,
@@ -27,6 +28,21 @@ export function DayFormFields({
   } = useFormContext<DayFormValues>();
   const values = useWatch({ control });
   const [picker, setPicker] = useState<Picker>("none");
+  const reminderOptions = [...DAY_REMINDER_OPTIONS];
+  const existingReminderDays = values.reminderDaysBefore;
+  if (
+    typeof existingReminderDays === "number" &&
+    Number.isInteger(existingReminderDays) &&
+    existingReminderDays >= 0 &&
+    existingReminderDays <= 30 &&
+    !reminderOptions.some((option) => option.value === existingReminderDays)
+  ) {
+    reminderOptions.push({
+      value: existingReminderDays,
+      label: `提前 ${existingReminderDays} 天（当前）`,
+      description: "保留当前已保存的计划时间",
+    });
+  }
 
   return (
     <>
@@ -100,34 +116,46 @@ export function DayFormFields({
         </div>
 
         <p className="text-xs leading-[1.5] text-fg-muted">
-          提醒时间仅保存为计划；通知功能尚未上线，当前不会发送通知。
+          每个纪念日只保存一个计划时间；通知功能尚未上线，当前不会发送通知。
         </p>
         <div className="overflow-hidden rounded-control bg-surface">
           <Controller
-            name="remind7"
+            name="reminderDaysBefore"
             control={control}
             render={({ field }) => (
-              <SwitchRow
-                title="提前 7 天提醒"
-                description="记录提前一周的计划时间"
-                checked={field.value}
-                disabled={disabled}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          <div className="h-px bg-border" />
-          <Controller
-            name="remindDay"
-            control={control}
-            render={({ field }) => (
-              <SwitchRow
-                title="当天提醒"
-                description="记录当天的计划时间"
-                checked={field.value}
-                disabled={disabled}
-                onChange={field.onChange}
-              />
+              <div role="radiogroup" aria-label="提醒时间计划">
+                {reminderOptions.map((option, index) => (
+                  <div key={option.value}>
+                    <label
+                      className={cx(
+                        "flex cursor-pointer items-center gap-3 px-4 py-3",
+                        disabled && "cursor-not-allowed opacity-60",
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name={field.name}
+                        value={option.value}
+                        checked={field.value === option.value}
+                        disabled={disabled}
+                        onChange={() => field.onChange(option.value)}
+                        className="size-4 shrink-0 accent-accent"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[15px] font-medium text-fg">
+                          {option.label}
+                        </span>
+                        <span className="block text-xs text-fg-muted">
+                          {option.description}
+                        </span>
+                      </span>
+                    </label>
+                    {index < reminderOptions.length - 1 ? (
+                      <div className="h-px bg-border" />
+                    ) : null}
+                  </div>
+                ))}
+              </div>
             )}
           />
         </div>
@@ -217,47 +245,5 @@ function FieldRow({
       </span>
       <ChevronRight className="size-4 text-fg-muted" strokeWidth={2} />
     </button>
-  );
-}
-
-function SwitchRow({
-  title,
-  description,
-  checked,
-  disabled,
-  onChange,
-}: {
-  title: string;
-  description: string;
-  checked: boolean;
-  disabled?: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <div className="flex items-center gap-4 px-4 py-2">
-      <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-medium text-fg">{title}</p>
-        <p className="text-xs text-fg-muted">{description}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={cx(
-          "relative h-[26px] w-11 shrink-0 rounded-full p-0.5 transition-colors duration-150 ease-out",
-          "disabled:opacity-60",
-          checked ? "bg-accent" : "bg-track",
-        )}
-      >
-        <span
-          className={cx(
-            "block size-[22px] rounded-full bg-inverse shadow-sm transition-transform duration-150 ease-out",
-            checked ? "translate-x-[18px]" : "translate-x-0",
-          )}
-        />
-      </button>
-    </div>
   );
 }

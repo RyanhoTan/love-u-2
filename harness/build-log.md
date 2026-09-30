@@ -1446,3 +1446,25 @@
 - **Limitations:** Header/container matching is not full decoding, codec/track verification, malware scanning, or polyglot defense. Web build passed with existing Zod annotation and >500 kB chunk warnings.
 - **Next action:** Continue the PRD R1/P0 audit; preserve real R2/integration and media cleanup gaps.
 - **Evidence references:** `harness/build/phase-58-media-upload-signature-checks.md`, `harness/context/phase-58-media-upload-signature-checks-context.md`, `server/src/media/mediaSignature.ts`, `server/test/media-signature.test.ts`.
+
+## 2026-09-30 — Phase 59: Anniversary reminder plan inputs started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal; resolve the Phase 20-deferred reminder-input mismatch under PRD-DAY-001.
+- **Evidence:** Server schema stores one `reminderDaysBefore` integer in 0–30. App create exposes three independent switches but serializes only one by priority. Web create/edit exposes two booleans; Web edit maps some existing values (including 1–6) to 0 on save, while preview can show multiple plans for one stored value.
+- **Decision:** Use single-select plan inputs with common 0/3/7 presets and preserve any existing non-preset scalar value in edit forms. Do not invent an unset value or notification behavior.
+- **Operational evidence:** Phase 58 commit is `9eff35b`; worktree was clean before Phase 59 documentation. No device, API, database, credentials, notification service, or user data was accessed.
+
+## 2026-09-30 — Phase 59: Anniversary reminder plan inputs completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** App creation now has one selected plan and submits its scalar directly. App edit offers a keep-current option for a stored non-preset value. Web forms use a validated integer field with 0/3/7 presets and a keep-current option for an existing non-preset value; edit/payload mapping preserves the exact scalar, and preview displays exactly one plan.
+- **Truthful behavior:** Both clients state that they save a plan only and do not send notifications. No unset state was invented; server zero remains the same-day plan.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, `pnpm --dir web lint`, `pnpm --dir web build`, and `git diff --check`. Static search confirmed the old independent reminder booleans/priority mapping are gone from the App and Web anniversary forms.
+- **Build notes:** Web build passed with existing Zod annotation warnings and the existing >500 kB chunk-size warning.
+- **Review:** Confirmed server contract is a single integer 0–30, direct form-to-payload mapping is non-normalizing, and Web's current-value option remains available unless the user explicitly selects a preset. No notification/API/schema/database changes.
+- **Operational evidence:** No device, browser session, API, database, credentials, notification service, R2, or user data was accessed; no push/deployment occurred.
+- **Limitations:** No configured App/Web UI test runner; no manual device/browser verification. New records expose the existing common 0/3/7 choices, not arbitrary-day entry. Server “today” and browser preview timezone policy remains unresolved and was not changed; there is no product-approved canonical timezone to implement safely.
+- **Next action:** Continue the R1/P0 audit with the timezone mismatch logged as a product-rule question; keep progressing independent items that do not require that choice.
+- **Evidence references:** `harness/build/phase-59-anniversary-reminder-plan-inputs.md`, `harness/context/phase-59-anniversary-reminder-plans-context.md`, `app/app/home/anniversary/create.tsx`, `app/app/home/anniversary/[id]/edit.tsx`, `web/src/pages/days-page/types.ts`, `web/src/pages/days-page/form-fields.tsx`.
