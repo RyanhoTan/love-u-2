@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–62 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–63 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -76,6 +76,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 60 | Preserve full password bytes in bcrypt auth | Complete | PRD-AUTH-001 | 新密码用版本化 SHA-256 预哈希后 bcrypt；兼容旧哈希并安全渐进迁移可证明未被截断的旧密码 |
 | 61 | Map concurrent duplicate registrations to conflict | Complete | PRD-AUTH-001 | 并发注册触发用户名唯一约束时返回既有 409 冲突，而非通用 500 |
 | 62 | Invalidate App sessions on raw media-upload 401 | Complete | PRD-AUTH-001、Phase 38 | 相册/聊天和心愿媒体上传遇到失效 token 时清除匹配的持久与内存会话 |
+| 63 | Preserve App sessions on transient restore failures | Complete | PRD-AUTH-001、Phase 38/62 | 仅无效会话或明确 401 清除本地凭据；临时网络/API 错误保留有效恢复机会 |
 
 ## 阶段顺序
 
@@ -442,6 +443,11 @@ bcrypt 仅使用 UTF-8 密码的前 72 字节；新凭证先做版本化 SHA-256
 
 让 App 的 `uploadAlbumFile` 和 `uploadWishFile` 复用统一的原始响应鉴权请求函数，使上传接口返回 401 时按被拒绝的 token 清除对应持久会话并通知认证上下文；不得清除期间建立的新会话。详细范围见
 `harness/build/phase-62-app-media-upload-auth-invalidation.md`。阶段已完成；App lint、TypeScript 检查和差异检查通过，远端上传调用静态核对均走统一鉴权 helper。
+
+### Phase 63 — Preserve App sessions on transient restore failures
+
+启动恢复时仅对结构损坏/缺少 token 的会话或服务端明确拒绝的 401 执行清理；暂时性网络、存储或服务端错误不得删除凭据，有结构有效的缓存身份时继续恢复本地登录态，所有业务数据仍以服务端授权为准。详细范围见
+`harness/build/phase-63-app-session-restore-failures.md`。阶段已完成；App lint、TypeScript 检查和差异检查通过。无已配置 App 测试运行器或网络故障注入环境。
 
 ## 后续阶段的准入条件
 

@@ -69,6 +69,7 @@
 | 60 — Preserve full password bytes in bcrypt auth | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests/lint/build 通过 | 无 MySQL 登录迁移集成；遗留长密码策略未定 |
 | 61 — Map concurrent duplicate registrations to conflict | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 22/22、lint/build 通过 | 无 MySQL 并发集成 |
 | 62 — Invalidate App sessions on raw media-upload 401 | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | App 无已配置测试运行器；无设备/API 集成 |
+| 63 — Preserve App sessions on transient restore failures | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | App 无已配置测试运行器；无网络故障注入验证 |
 
 ## Activity
 
@@ -1539,3 +1540,25 @@
 - **Limitations:** No App test runner or device/API integration is configured, so the behavior was not exercised at runtime. Static review confirmed both upload consumers call the shared helper.
 - **Next action:** Continue the active PRD R1/P0 audit; preserve product decisions around media deletion/retention and anniversary timezone rather than inferring them.
 - **Evidence references:** `harness/build/phase-62-app-media-upload-auth-invalidation.md`, `harness/context/phase-62-app-media-upload-auth-invalidation-context.md`, `app/app/shared/api-client.ts`, `app/app/features/album/api.ts`, `app/app/features/wish-list/api.ts`.
+
+## 2026-09-30 — Phase 63: App session restore failure handling started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-AUTH-001 restoring valid sessions and clearing invalid tokens.
+- **Evidence:** `AuthProvider.restoreSession` wrapped storage parsing and `getUserInfo` verification in one catch that always removed both stored credentials. The shared API client already invalidates only on 401; transient network, storage, or server errors could nevertheless destroy a still-valid session.
+- **Decision:** Clear malformed session records; rely on the existing 401 token-matched invalidation for explicitly rejected credentials; preserve stored tokens on other failures and restore a structurally validated cached identity when available. Protected resources remain server-authorized.
+- **Verification plan:** App lint, TypeScript check, source review of restore/invalidation paths, and `git diff --check`. No App test runner is configured; no live API, credentials, or user data will be accessed.
+- **Operational evidence:** Phase 62 committed as `b334f75`; worktree was clean before Phase 63 changes. No `.env` or external service was accessed.
+- **Evidence references:** `app/app/features/auth/auth-context.tsx`, `app/app/features/auth/api.ts`, `app/app/shared/api-client.ts`, `app/app/shared/auth-session.ts`, Phase 38 and Phase 62.
+
+## 2026-09-30 — Phase 63: App session restore failure handling completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Malformed JSON and missing/empty credentials still clear unusable session data. `getUserInfo` HTTP 401 relies on `requestWithAuth` to clear only the rejected token; it does not fall back to cached identity. Other API/network errors preserve storage and restore the last-known local identity only if its ID and username have valid shapes.
+- **Authorization boundary:** Cached identity only allows the local authenticated shell to remain available; all protected data continues to be fetched through server-authorized APIs, which still invalidate a token if later rejected.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`. Static source review covered malformed input, explicit 401, non-401 failures, and server-authorized feature requests.
+- **Operational evidence:** No `.env`, credentials, live API, database, or user data was accessed; no push/deployment occurred.
+- **Limitations:** No App test runner, network-failure injector, or device runtime is configured; transient-failure behavior was not exercised dynamically.
+- **Next action:** Continue the PRD R1/P0 audit; database-backed auth/relationship validation and product decisions on media retention and date timezone remain unresolved.
+- **Evidence references:** `harness/build/phase-63-app-session-restore-failures.md`, `harness/context/phase-63-app-session-restore-failures-context.md`, `app/app/features/auth/auth-context.tsx`, `app/app/shared/api-client.ts`, `app/app/shared/auth-session.ts`.

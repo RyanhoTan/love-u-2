@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ApiError } from "@/app/shared/api-client";
 import { getUserInfo, type AuthSessionUser, type AuthUser } from "./api";
 import {
   AUTH_STORAGE_KEY,
@@ -37,6 +38,39 @@ interface AuthContextValue {
 
 function isAuthUser(user: AuthSessionUser): user is AuthUser {
   return "nickname" in user;
+}
+
+function getCachedAuthUser(user: AuthSessionUser): AuthUser | null {
+  if (!user || typeof user !== "object") {
+    return null;
+  }
+
+  const cached = user as Partial<AuthUser>;
+  if (
+    typeof cached.id !== "number" ||
+    !Number.isSafeInteger(cached.id) ||
+    cached.id <= 0 ||
+    typeof cached.username !== "string" ||
+    !cached.username.trim()
+  ) {
+    return null;
+  }
+
+  const asNullableString = (value: unknown) =>
+    typeof value === "string" ? value : null;
+
+  return {
+    id: cached.id,
+    username: cached.username,
+    nickname: asNullableString(cached.nickname),
+    avatar: asNullableString(cached.avatar),
+    signature: asNullableString(cached.signature),
+    birthday: asNullableString(cached.birthday),
+    gender: asNullableString(cached.gender),
+    coupleStatus: asNullableString(cached.coupleStatus),
+    createdAt: asNullableString(cached.createdAt),
+    updatedAt: asNullableString(cached.updatedAt),
+  };
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -86,16 +120,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const session = JSON.parse(storedSession) as AuthSession;
-        if (!session?.token || !session?.user) {
+        let session: AuthSession;
+        try {
+          session = JSON.parse(storedSession) as AuthSession;
+        } catch {
           await removeStoredSession();
           return;
         }
 
-        const userInfo = await getUserInfo(session.token);
-        await persistSession(session.token, userInfo.user);
+        if (
+          typeof session?.token !== "string" ||
+          !session.token ||
+          !session.user
+        ) {
+          await removeStoredSession();
+          return;
+        }
+
+        try {
+          const userInfo = await getUserInfo(session.token);
+          await persistSession(session.token, userInfo.user);
+        } catch (error) {
+          if (error instanceof ApiError && error.status === 401) {
+            // requestWithAuth already removed this rejected token from storage.
+            return;
+          }
+
+          // A transient API failure does not prove this persisted token is invalid.
+          // Keep it and expose only the last-known local identity until requests recover.
+          const cachedUser = getCachedAuthUser(session.user);
+          if (cachedUser) {
+            tokenRef.current = session.token;
+            setToken(session.token);
+            setUser(cachedUser);
+          }
+        }
       } catch {
-        await removeStoredSession();
+        // Storage or network availability failures must not erase a recoverable session.
         tokenRef.current = null;
         setToken(null);
         setUser(null);
