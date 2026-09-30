@@ -58,6 +58,7 @@
 | 49 — Make App wish memories failure-safe | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 | 50 — Make App album story reads failure-safe | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 | 51 — App wish doing-page failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 52 — App album photo/video failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 
 ## Activity
 
@@ -1284,3 +1285,24 @@
 - **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
 - **Next action:** Continue the PRD R1/P0 loop while preserving external integration gaps.
 - **Evidence references:** `harness/build/phase-51-app-wish-doing-states.md`, `harness/context/phase-51-app-wish-doing-states-context.md`, `app/app/home/wish-list/[id]/doing.tsx`.
+
+## 2026-09-30 — Phase 52: App photo/video tab failure states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-MEMORY-001 App photo/video tab read behavior.
+- **Red:** Failed `getAlbumMedia` requests showed only a toast; empty initial arrays still rendered “还没有照片/视频”.
+- **Decision:** Add loading/error/ready branches, success-only empty copy, retry, focus-scoped upload refresh, and stale-request protection.
+- **Operational evidence:** Phase 51 committed as `f54bf6d`; worktree was clean before Phase 52. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 52: App photo/video tab failure states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** Photos and Videos now show explicit loading and visible retryable errors; only successful empty filtered results display the existing empty copy.
+- **Reliability:** Focus cleanup and request IDs suppress results from older retries or blurred requests. Upload refresh keys reload only the focused scene; a newly focused scene loads current data.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review confirmed success-only empty messages, retry through the existing GET, focus-bound refresh, stale-response guards, and unchanged grouping/viewer behavior.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
+- **Next action:** Continue the PRD R1/P0 loop; App All Media and Favorites read failures remain independent gaps.
+- **Evidence references:** `harness/build/phase-52-app-album-media-tabs-states.md`, `harness/context/phase-52-app-album-media-tabs-context.md`, `app/components/album/photos.tsx`, `app/components/album/videos.tsx`.

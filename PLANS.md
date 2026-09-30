@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–51 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–52 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -65,6 +65,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 49 | Make App wish memories failure-safe | Complete | PRD-WISH-001 | App 回忆页只在读取成功后展示空数据或统计 |
 | 50 | Make App album story reads failure-safe | Complete | PRD-MEMORY-001 | App 故事列表/详情区分加载失败和成功空数据 |
 | 51 | App wish doing-page failure-safe states | Complete | PRD-WISH-001、Phase 49 | App 过程页只在读取成功后呈现心愿、记录及结束/添加操作；失败可重试 |
+| 52 | App album photo/video failure-safe states | Complete | PRD-MEMORY-001、Phase 50 | App 照片/视频标签区分加载、失败和成功空数据，并允许重试 |
 
 ## 阶段顺序
 
@@ -368,6 +369,12 @@ Web 首页的模拟业务内容，不实现新的状态、通知或搜索能力�
 “暂无记录”空状态以及结束/添加记录操作；失败不再落入硬编码标题与空记录假象。复用现有记录查询和心愿更新
 API，不改变心愿状态、记录或媒体契约。详细计划见
 `harness/build/phase-51-app-wish-doing-states.md`。
+
+### Phase 52 — Make App album photo/video tabs failure-safe
+
+为 App 相册照片和视频标签补齐加载、失败与成功状态。请求失败时显示可重试错误，只有成功读取后才能展示
+“还没有照片/视频”。复用既有相册媒体查询，保留上传成功后的刷新、媒体分组及查看器行为；“全部”与“收藏”
+读取视图留作独立阶段。详细计划见 `harness/build/phase-52-app-album-media-tabs-states.md`。
 
 ## 后续阶段的准入条件
 

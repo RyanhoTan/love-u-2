@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   SectionList,
   StyleSheet,
@@ -11,7 +12,6 @@ import { useFocusEffect } from "expo-router";
 import { Play } from "lucide-react-native";
 import { getAlbumMedia, type AlbumMediaItem } from "@/app/features/album/api";
 import { ImagesImageErrorPng } from "@/assets";
-import { toast } from "@/components/common";
 import { useVideoViewer } from "@/hooks/use-video-viewer";
 import { Column, Row } from "../layout";
 
@@ -70,30 +70,64 @@ function groupVideosByMonth(media: AlbumMediaItem[]) {
 export function Videos({ refreshKey = 0 }: VideosProps) {
   const { openViewer, Viewer } = useVideoViewer();
   const [sections, setSections] = useState<Section[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState("");
+  const requestId = useRef(0);
+  const isFocused = useRef(false);
+  const lastRefreshKey = useRef(refreshKey);
 
   const refreshVideos = useCallback(async () => {
+    const currentRequestId = requestId.current + 1;
+    requestId.current = currentRequestId;
+    setSections([]);
+    setLoadError("");
+    setLoadState("loading");
+
     try {
       const response = await getAlbumMedia();
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
       const videoMedia = response.media.filter(
         (item) => item.mediaType === "video",
       );
 
       setSections(groupVideosByMonth(videoMedia));
+      setLoadState("ready");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载视频失败";
-      toast.error(message);
+      if (requestId.current !== currentRequestId) {
+        return;
+      }
+
+      setLoadError(
+        error instanceof Error ? error.message : "加载视频失败，请重试",
+      );
+      setLoadState("error");
     }
   }, []);
 
   useEffect(() => {
-    if (refreshKey > 0) {
+    if (lastRefreshKey.current === refreshKey) {
+      return;
+    }
+
+    lastRefreshKey.current = refreshKey;
+    if (isFocused.current) {
       void refreshVideos();
     }
   }, [refreshKey, refreshVideos]);
 
   useFocusEffect(
     useCallback(() => {
+      isFocused.current = true;
       void refreshVideos();
+      return () => {
+        isFocused.current = false;
+        requestId.current += 1;
+      };
     }, [refreshVideos]),
   );
 
@@ -148,6 +182,35 @@ export function Videos({ refreshKey = 0 }: VideosProps) {
   const itemSeparator = useCallback(() => <View style={{ height: 12 }} />, []);
   const sectionFooter = useCallback(() => <View style={{ height: 30 }} />, []);
 
+  if (loadState !== "ready") {
+    return (
+      <>
+        <View style={styles.centerState}>
+          {loadState === "loading" ? (
+            <>
+              <ActivityIndicator color="#FF4F7A" />
+              <Text style={styles.stateText}>正在加载视频…</Text>
+            </>
+          ) : (
+            <>
+              <Text accessibilityRole="alert" style={styles.errorText}>
+                {loadError || "加载视频失败，请重试"}
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => void refreshVideos()}
+                style={styles.retryButton}
+              >
+                <Text style={styles.retryText}>重新加载</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+        {Viewer}
+      </>
+    );
+  }
+
   return (
     <>
       <SectionList
@@ -173,6 +236,31 @@ export function Videos({ refreshKey = 0 }: VideosProps) {
 }
 
 const styles = StyleSheet.create({
+  centerState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    padding: 24,
+  },
+  stateText: {
+    color: "#666",
+    fontSize: 14,
+  },
+  errorText: {
+    color: "#b42318",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  retryButton: {
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  retryText: {
+    color: "#FF4F7A",
+    fontWeight: "600",
+  },
   sectionHeader: {
     marginBottom: 16,
   },
