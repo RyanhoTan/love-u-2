@@ -71,10 +71,10 @@ export async function getMediaUrl(req: Request, res: Response) {
       SELECT id, object_key, url
       FROM album_media
       WHERE id = ?
-        AND ${scope.sql}
+        AND ${scope.media.sql}
       LIMIT 1
     `,
-    [mediaId, ...scope.values],
+    [mediaId, ...scope.media.values],
   );
 
   const media = rows[0];

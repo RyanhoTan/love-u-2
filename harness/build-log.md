@@ -71,6 +71,7 @@
 | 62 — Invalidate App sessions on raw media-upload 401 | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | App 无已配置测试运行器；无设备/API 集成 |
 | 63 — Preserve App sessions on transient restore failures | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | App 无已配置测试运行器；无网络故障注入验证 |
 | 64 — Cover server bearer/JWT identity validation | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 28/28、lint/build 通过 | 无 HTTP/DB/WS 集成；JWT 使用合成密钥 |
+| 65 — Isolate explicitly assigned album relationships | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 35/35、lint/build 通过 | 无 MySQL/R2/HTTP 集成；历史数据策略仍未定 |
 
 ## Activity
 
@@ -1586,3 +1587,24 @@
 - **Limitations:** Tests establish pure authentication rejection behavior but do not prove route middleware ordering, HTTP responses, database authorization, or WebSocket integration.
 - **Next action:** Continue the active PRD R1/P0 audit; retain real integration requirements and product decisions on media/data lifecycle and date timezone as open items.
 - **Evidence references:** `harness/build/phase-64-server-auth-validation-tests.md`, `harness/context/phase-64-server-auth-validation-context.md`, `server/src/auth.ts`, `server/src/auth/token.ts`, `server/test/auth-token-validation.test.ts`.
+
+## 2026-09-30 — Phase 65: Album relationship isolation started
+
+- **Status:** `Not started` → `In progress`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-MEMORY-001 and PRD-COUPLE-001 relationship authorization.
+- **Evidence:** Album scope accepts current relationship OR either partner's creator ID without distinguishing an explicitly different relationship. The shared predicate also gates media-ID signing. Favorite UPDATE uses only the ID after a scoped pre-read.
+- **Decision:** Restrict creator fallback to NULL relationship IDs, guard the executing SQL against changed relation/member status, and use the same predicate for favorite writes. Preserve unbound creator behavior and leave history ownership/retention undecided.
+- **Verification surface:** Exact production predicates in synthetic Node/SQLite in-memory tables; full server tests, lint/build, and diff check. Workspace Node 22.23.2 has `node:sqlite`; no new dependency, config import, `.env`, live DB/R2, credentials, or user data is needed.
+- **Operational evidence:** HEAD is `29847a3`, branch clean at start, Phase 02–64 records match the current roadmap. The previous question-only turn did not change implementation; this continuation found the next concrete privacy defect.
+
+## 2026-09-30 — Phase 65: Album relationship isolation completed
+
+- **Status:** `In progress` → `Complete`
+- **Red:** Executing the original predicate against synthetic SQLite tables failed five of six tests, including returning another explicitly assigned relationship's media to a current partner.
+- **Green:** Pure fixed-identifier predicates use live relationship membership and status. Creator fallback is limited to NULL records; a selected unbound scope requires no active binding at execution. Media lists, story/favorite/detail/creation responses, legacy Wish media and media-ID URL lookup use the new predicates. Favorite UPDATE includes its authorization predicate and a failed post-write scoped read returns 404.
+- **Verification:** Passed `pnpm --dir server test` (35/35 across 14 suites), `pnpm --dir server lint`, `pnpm --dir server build`, and `git diff --check`. Seven focused cases execute the exact generated SQL for both partners, old/foreign/missing relations, NULL compatibility, outsiders, unbind/membership changes, initially-unbound binding, and favorite writes.
+- **Review:** Authentication remains before scope construction; identifiers are internal constants and values are bound. Story cover/count joins retain their matching relationship/NULL creator conditions. Private DTOs, signing TTL and no-store headers remain unchanged; existing App/Web/OpenAPI fields need no change.
+- **Operational evidence:** Only synthetic Node/SQLite in-memory records were used. No `.env`, credentials, MySQL/R2, HTTP server, device, user data, push or deployment was accessed.
+- **Limitations:** The fixture requires built-in `node:sqlite` (available on workspace Node 22.23.2 and experimental). It does not prove MySQL/HTTP/R2 integration, transaction concurrency, or revocation of already issued URLs. Unbound-owner access and NULL-record sharing remain compatible; historical ownership/retention is not decided here. Upload inserts still need their own write-time relation audit.
+- **Next action:** Continue the active PRD R1/P0 Goal. The user answered the timezone question: store one shared timezone per couple, initially defaulting to Asia/Shanghai. Prepare the corresponding date-consistency stage; preserve history/media lifecycle and external integration gaps.
+- **Evidence references:** `harness/build/phase-65-album-relationship-isolation.md`, `harness/context/phase-65-album-relationship-isolation-context.md`, `server/src/media/albumScope.ts`, `server/src/router_handler/album.ts`, `server/src/router_handler/media.ts`, `server/test/album-relationship-scope.test.ts`.

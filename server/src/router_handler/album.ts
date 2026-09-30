@@ -7,6 +7,7 @@ import type {
 import { getAuthenticatedUserId } from "../auth.js";
 import db from "../db/index.js";
 import { HttpError } from "../errors.js";
+import { createAlbumScope } from "../media/albumScope.js";
 import { isAlbumObjectKeyOwnedByUser } from "../media/objectKey.js";
 import {
   createAlbumMediaSchema,
@@ -273,20 +274,7 @@ async function ensureAlbumStoriesFavoriteColumn() {
 
 export async function buildAlbumScope(userId: number) {
   const relationship = await findActiveRelationshipByUserId(userId);
-
-  if (relationship) {
-    return {
-      sql: "(relationship_id = ? OR created_by_user_id IN (?, ?))",
-      values: [relationship.id, relationship.user_a_id, relationship.user_b_id],
-      relationshipId: relationship.id,
-    };
-  }
-
-  return {
-    sql: "(created_by_user_id = ?)",
-    values: [userId],
-    relationshipId: null,
-  };
+  return createAlbumScope(userId, relationship);
 }
 
 function storySelectSql() {
@@ -340,7 +328,7 @@ async function getStoryRows(
   const [rows] = await db.query<AlbumStoryRow[]>(
     `
       ${storySelectSql()}
-      WHERE ${scope.sql.replaceAll("relationship_id", "s.relationship_id").replaceAll("created_by_user_id", "s.created_by_user_id")}
+      WHERE ${scope.stories.sql}
       ${options?.storyId ? "AND s.id = ?" : ""}
       ${options?.favoritesOnly ? "AND s.is_favorite = 1" : ""}
       GROUP BY
@@ -359,7 +347,9 @@ async function getStoryRows(
         s.updated_at
       ORDER BY s.updated_at DESC, s.id DESC
     `,
-    options?.storyId ? [...scope.values, options.storyId] : scope.values,
+    options?.storyId
+      ? [...scope.stories.values, options.storyId]
+      : scope.stories.values,
   );
 
   return rows;
@@ -406,9 +396,9 @@ export async function getAlbumMedia(req: Request, res: Response) {
           longitude,
           created_at
         FROM album_media
-        WHERE ${scope.sql}
+        WHERE ${scope.media.sql}
       `,
-      scope.values,
+      scope.media.values,
     );
 
     media.push(...(await Promise.all(rows.map(serializeAlbumMedia))));
@@ -429,10 +419,10 @@ export async function getAlbumMedia(req: Request, res: Response) {
           wr.created_at
         FROM wish_records wr
         INNER JOIN wishes w ON w.id = wr.wish_id
-        WHERE ${scope.sql.replaceAll("relationship_id", "w.relationship_id").replaceAll("created_by_user_id", "wr.created_by_user_id")}
+        WHERE ${scope.legacyWishRecords.sql}
           AND wr.media_urls IS NOT NULL
       `,
-      scope.values,
+      scope.legacyWishRecords.values,
     );
 
     const existingLegacyMedia = new Set(
@@ -543,10 +533,15 @@ export async function createAlbumMedia(req: Request, res: Response) {
         created_at
       FROM album_media
       WHERE id = ?
+        AND ${scope.media.sql}
       LIMIT 1
     `,
-    [result.insertId],
+    [result.insertId, ...scope.media.values],
   );
+
+  if (!rows[0]) {
+    throw new HttpError(404, "media not found");
+  }
 
   res.setHeader("Cache-Control", "private, no-store");
   res.status(201).json({
@@ -625,10 +620,10 @@ export async function getAlbumStory(req: Request, res: Response) {
       FROM album_media
       WHERE source_type = 'story'
         AND source_id = ?
-        AND ${scope.sql}
+        AND ${scope.media.sql}
       ORDER BY COALESCE(taken_at, created_at) DESC, id DESC
     `,
-    [storyId, ...scope.values],
+    [storyId, ...scope.media.values],
   );
 
   res.setHeader("Cache-Control", "private, no-store");
@@ -767,16 +762,17 @@ export async function updateAlbumStoryFavorite(req: Request, res: Response) {
 
   await db.query(
     `
-      UPDATE album_stories
+      UPDATE album_stories AS s
       SET is_favorite = ?
-      WHERE id = ?
+      WHERE s.id = ?
+        AND ${scope.stories.sql}
     `,
-    [payload.isFavorite ? 1 : 0, storyId],
+    [payload.isFavorite ? 1 : 0, storyId, ...scope.stories.values],
   );
 
   const updatedStory = (await getStoryRows(scope, { storyId }))[0];
   if (!updatedStory) {
-    throw new HttpError(500, "failed to update album story favorite");
+    throw new HttpError(404, "album story not found");
   }
 
   res.setHeader("Cache-Control", "private, no-store");
