@@ -17,11 +17,12 @@
 
 - Both tabs now short-circuit to loading or accessible error/retry UI until the current `getAlbumMedia` request succeeds.
 - Photo/video empty copy is reachable only after successful retrieval and media-type filtering.
-- A focus ref and previous refresh-key ref keep upload refreshes targeted to the focused view; focus cleanup invalidates in-flight requests.
+- A focus ref and previous refresh-key ref limit upload-refresh reads while the Expo Router screen is blurred; focus cleanup invalidates in-flight requests.
 - Request IDs suppress stale responses from retries, refreshes, or earlier focus sessions.
 
 ## Unresolved / deferred
 
 - The App package has no configured UI test runner; behavior will be checked with lint, TypeScript, and static review, not on-device interaction.
+- Expo Router focus does not reflect selection within the nested React Native `TabView`; mounted sibling scenes may also refresh while the album screen is focused. This is a potential redundant-read optimization, not a false-empty or stale-render correctness gap.
 - All Media and Favorites views continue to have separate failure-state gaps outside this phase.
 - Real API/R2 behavior is not exercised.

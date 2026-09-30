@@ -8,7 +8,7 @@
 ## 当前路线图
 
 `PRD.md` 已建立 Draft v0.1 的业务基线和 R1/R2/R3 方向。PRD 中标为待确认的业务决策仍不能由
-代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–52 已完成。
+代理推测。用户已授权按 PRD 持续推进 R1/P0 功能并逐个小点提交；Phase 02–53 已完成。
 Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前置条件。
 
 | 阶段 | 名称 | 状态 | 依赖 | 结果 |
@@ -66,6 +66,7 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 50 | Make App album story reads failure-safe | Complete | PRD-MEMORY-001 | App 故事列表/详情区分加载失败和成功空数据 |
 | 51 | App wish doing-page failure-safe states | Complete | PRD-WISH-001、Phase 49 | App 过程页只在读取成功后呈现心愿、记录及结束/添加操作；失败可重试 |
 | 52 | App album photo/video failure-safe states | Complete | PRD-MEMORY-001、Phase 50 | App 照片/视频标签区分加载、失败和成功空数据，并允许重试 |
+| 53 | App All Media overview failure-safe states | Complete | PRD-MEMORY-001、Phase 50/52 | “全部”页区分聚合读取失败和成功空数据，并允许重试 |
 
 ## 阶段顺序
 
@@ -375,6 +376,12 @@ API，不改变心愿状态、记录或媒体契约。详细计划见
 为 App 相册照片和视频标签补齐加载、失败与成功状态。请求失败时显示可重试错误，只有成功读取后才能展示
 “还没有照片/视频”。复用既有相册媒体查询，保留上传成功后的刷新、媒体分组及查看器行为；“全部”与“收藏”
 读取视图留作独立阶段。详细计划见 `harness/build/phase-52-app-album-media-tabs-states.md`。
+
+### Phase 53 — Make App All Media overview failure-safe
+
+为 App 相册“全部”页的心愿、媒体和故事并行读取补齐加载、失败、重试及成功状态。三项请求全部成功前不渲染
+空相册视图；任一失败时显示统一错误与重试。复用现有 GET API、关系授权和内容布局，不更改单项视图或媒体行为。
+详细计划见 `harness/build/phase-53-app-all-media-overview-states.md`。
 
 ## 后续阶段的准入条件
 

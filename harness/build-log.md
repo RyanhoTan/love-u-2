@@ -59,6 +59,7 @@
 | 50 — Make App album story reads failure-safe | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 | 51 — App wish doing-page failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 | 52 — App album photo/video failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
+| 53 — App All Media overview failure-safe states | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | 无设备/API/DB/R2 集成 |
 
 ## Activity
 
@@ -1306,3 +1307,30 @@
 - **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised.
 - **Next action:** Continue the PRD R1/P0 loop; App All Media and Favorites read failures remain independent gaps.
 - **Evidence references:** `harness/build/phase-52-app-album-media-tabs-states.md`, `harness/context/phase-52-app-album-media-tabs-context.md`, `app/components/album/photos.tsx`, `app/components/album/videos.tsx`.
+
+## 2026-09-30 — Phase 52 evidence clarification
+
+- **Correction:** The focus ref in Phase 52 tracks Expo Router screen focus, not the selected nested `TabView` route. A mounted sibling scene can therefore receive the parent screen's focus signal and may also refresh when the upload key changes.
+- **Impact:** Failure/empty-state correctness and stale request protection are unchanged. The earlier wording “only for the focused scene” overstated tab-level isolation; the current behavior can perform redundant background reads while the album screen itself is focused.
+- **Follow-up:** Treat nested tab query isolation as a separate implementation refinement if needed; do not claim the inner `TabView` selection is tracked.
+
+## 2026-09-30 — Phase 53: App All Media overview failure states started
+
+- **Status:** `Not started` → `In progress`
+- **Branch:** `refactor/codex-workflow-harness`
+- **Authorized scope:** Active PRD R1/P0 Goal, PRD-MEMORY-001 App All Media overview reads.
+- **Red:** `getWishes`, `getAlbumMedia`, and `getAlbumStories` run in `Promise.all`; a rejection only shows a toast while the overview renders empty arrays and “还没有照片或视频”.
+- **Decision:** Treat the three reads as one atomic view load; display the overview only after all succeed and offer a retry after any failure.
+- **Operational evidence:** Phase 52 committed as `b2cc8c0`; worktree was clean before Phase 53. No device, API, database, credentials, R2, or external service was accessed.
+
+## 2026-09-30 — Phase 53: App All Media overview failure states completed
+
+- **Status:** `In progress` → `Complete`
+- **Green:** The page now displays loading, retryable error, and successful-data states for the parallel wishes/media/stories read. Any failed request hides all returned/empty arrays; only success reaches the existing empty-media text.
+- **Reliability:** A monotonic request ID suppresses late results after retry. Focus cleanup invalidates in-flight reads, and upload-key changes trigger a refresh only while the navigation screen is focused.
+- **Verification:** Passed `pnpm --dir app lint`, `pnpm --dir app exec tsc --noEmit`, and `git diff --check`.
+- **Review:** Static review confirmed all three requests must resolve before any data is committed to view state, the error branch offers a retry using existing APIs, the empty copy remains success-only, and navigation/grouping/viewer code is otherwise unchanged.
+- **Operational evidence:** No device, API, DB, credentials, R2, or external service was accessed; no push/deployment occurred.
+- **Limitations:** App has no configured UI test runner; no physical/simulated device or live-service behavior was exercised. Nested TabView active-scene isolation remains separate from Expo Router screen focus.
+- **Next action:** Continue the PRD R1/P0 audit; Favorites read failures remain independent.
+- **Evidence references:** `harness/build/phase-53-app-all-media-overview-states.md`, `harness/context/phase-53-app-all-media-overview-context.md`, `app/components/album/all-medias.tsx`.
