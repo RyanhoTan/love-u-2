@@ -72,6 +72,8 @@
 | 63 — Preserve App sessions on transient restore failures | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；App lint/typecheck 通过 | App 无已配置测试运行器；无网络故障注入验证 |
 | 64 — Cover server bearer/JWT identity validation | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 28/28、lint/build 通过 | 无 HTTP/DB/WS 集成；JWT 使用合成密钥 |
 | 65 — Isolate explicitly assigned album relationships | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server tests 35/35、lint/build 通过 | 无 MySQL/R2/HTTP 集成；历史数据策略仍未定 |
+| 66 — Store shared couple timezone and derive calendar counts | Complete | `refactor/codex-workflow-harness` | 2026-09-30 | 2026-09-30 | 下方阶段记录；server 45/45、lint/build 与两端静态检查通过 | 无真实 MySQL 迁移/API 集成；客户端界面为 Phase 67 |
+| 67 — Apply shared calendar rules in App and Web | Not started | — | — | — | Phase 66 后继续，已获 Goal 授权 | 依赖 Phase 66 |
 
 ## Activity
 
@@ -1617,3 +1619,22 @@
 - **Scope:** This policy authorizes module-branch push, PR creation/update, in-scope check/review/conflict repair and merge once required gates are satisfied. Deployment, production/credential access, and undecided data lifecycle actions remain outside this authorization.
 - **Verification:** `git diff --check` passed for these documentation changes; static review confirms ordinary small commits do not imply a completed large module and mandatory missing integration/review results prevent merge. No product/runtime change or external write was performed in this documentation update.
 - **Next action:** Implement the shared-timezone milestone, then continue auditing P0 modules against their complete requirements and trigger the delivery loop when a module qualifies. No module is declared fully accepted merely because Phase 65 server tests pass.
+
+## 2026-09-30 — Phase 66: Shared couple calendar started
+
+- **Status:** `Not started` → `In progress`
+- **Evidence:** Couple-space and userinfo use UTC elapsed hours for day counts; anniversary uses server-local today. User explicitly selected a stored per-couple timezone, default Asia/Shanghai. Phase 65 and the workflow policy update are committed (`6176dc2`, `1df7324`); worktree clean before this stage.
+- **Scope:** Add the relation timezone, partial validated/authorized profile PATCH, shared pure calendar calculations and server/API/client DTO metadata. Follow with the already-authorized frontend Stage 67 rather than declaring the module complete now.
+- **Verification:** Synthetic calendar/schema/SQL regression, server test/lint/build, Web API/lint/build, App lint/typecheck, diff review. No credentials, env files, actual DB/R2 or deployment access.
+
+## 2026-09-30 — Phase 66: Shared couple calendar completed
+
+- **Status:** `In progress` → `Complete`
+- **Red:** The initial server-local date implementation failed the selected-zone regression: the same instant returned Sep 30 for UTC instead of Sep 29. Replaced local getters with explicit timezone Intl parts.
+- **Green:** Added additive non-null relationship time_zone default Asia/Shanghai, validated partial profile PATCH, exact selected relation/current member UPDATE, shared calendar-day/annual calculations, response-level timezone/today metadata, and App/Web/OpenAPI DTO compatibility. Database DATE fields are selected as YYYY-MM-DD strings; changing timezone never changes saved dates. Future first annual events retain their original future year and non-leap February 29 uses the existing February 28 rule.
+- **Verification:** `pnpm --dir server test` passed 45/45 across 16 suites (10 focused calendar/schema/SQL cases). `TZ=UTC` and `TZ=America/New_York` runs of `test/couple-calendar.test.ts` each passed 6/6. Server lint/build, Web API generation/lint/build, App lint/typecheck, and `git diff --check` passed. Web retained pre-existing Zod annotation and bundle-size warnings.
+- **Review:** Authenticated handlers keep existing private boundaries. Anniversary reads join live active membership; the profile UPDATE cannot redirect to a newly bound relation after its lookup. Both CREATE/missing-column SQL definitions contain the same default, and startup awaits the existing locked schema initializer before listening. GOALS/PLANS test-entry facts are reconciled with the current server scripts.
+- **Operational evidence:** Only pure functions, synthetic Node/SQLite memory tables, static source and local builds were used. The previous Web build observation handle was not retained; a targeted process check confirmed no build process remained before a new verified build was run. No env/credentials, real MySQL/R2/HTTP server, device, user data, push or deployment access.
+- **Limitations:** SQLite is experimental on workspace Node 22.23.2 and does not verify actual MySQL DDL/defaults, DATE_FORMAT execution, transactions or HTTP auth. Before real deployment, back up relation schema/rows and test additive migration on a disposable copy; rollback can keep the column. Client UI/preview/date rollover and mandatory module integration evidence are still open.
+- **Next action:** Continue Phase 67, already covered by the active Goal and user decision; do not create a whole-module PR merely from this server milestone. The module delivery policy is committed as `1df7324` and applies when its full gate is met.
+- **Evidence references:** `harness/build/phase-66-shared-couple-calendar.md`, `harness/context/phase-66-shared-couple-calendar-context.md`, `server/src/couple/calendar.ts`, `server/src/couple/profile-update.ts`, `server/test/couple-calendar.test.ts`, `server/test/couple-profile-update.test.ts`.

@@ -65,7 +65,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** 更新恋爱纪念日 */
+        /**
+         * 更新情侣共同资料
+         * @description 局部更新恋爱纪念日或共同时区；未提供的字段保持原值。双方使用关系保存的共同日历规则。
+         */
         patch: operations["updateCoupleSpace"];
         trace?: never;
     };
@@ -526,9 +529,13 @@ export interface components {
          */
         CoupleSummary: {
             isBound: boolean;
-            /** @description Days since anniversaryDate; null if unbound or no date */
+            /** @description Inclusive calendar days in the shared timezone; same day is 1, future date is 0; null if unbound or no date */
             daysInLove: number | null;
             anniversaryDate: components["schemas"]["DateOnlyNullable"];
+            /** @description Stored shared timezone; null when unbound */
+            timeZone: string | null;
+            /** @description Calendar today in the shared timezone; null when unbound */
+            todayDate: components["schemas"]["DateOnlyNullable"];
             partner: components["schemas"]["PartnerSummary"] | null;
         };
         /**
@@ -579,10 +586,16 @@ export interface components {
             updatedAt: components["schemas"]["IsoDateTimeNullable"];
             usedAt: components["schemas"]["IsoDateTimeNullable"];
         };
+        /**
+         * @description Runtime-supported named timezone or UTC. New relationships initially use Asia/Shanghai; saved date-only values are unchanged.
+         * @example Asia/Shanghai
+         */
+        CoupleTimeZone: string;
         CoupleRelationship: {
             id: number;
             status: string;
             anniversaryDate: components["schemas"]["DateOnlyNullable"];
+            timeZone: components["schemas"]["CoupleTimeZone"];
             createdAt: components["schemas"]["IsoDateTimeNullable"];
             updatedAt: components["schemas"]["IsoDateTimeNullable"];
             unboundAt: components["schemas"]["IsoDateTimeNullable"];
@@ -595,7 +608,10 @@ export interface components {
             isBound: boolean;
             partner: components["schemas"]["PartnerSummary"] | null;
             relationship: components["schemas"]["CoupleRelationship"] | null;
+            /** @description Inclusive calendar days in relationship.timeZone; same day is 1, future date is 0 */
             daysInLove: number | null;
+            /** @description Calendar today in relationship.timeZone; null when unbound */
+            todayDate: components["schemas"]["DateOnlyNullable"];
             activeInvite: components["schemas"]["CoupleInvite"] | null;
         };
         CoupleSpaceResponse: {
@@ -618,8 +634,10 @@ export interface components {
         BindCoupleRequest: {
             inviteCode: string;
         };
+        /** @description Partial update: at least one of anniversaryDate or timeZone is required. Omitted fields retain their stored value. */
         UpdateCoupleSpaceRequest: {
-            anniversaryDate: components["schemas"]["DateOnlyNullable"];
+            anniversaryDate?: components["schemas"]["DateOnlyNullable"];
+            timeZone?: components["schemas"]["CoupleTimeZone"];
         };
         /** @enum {string} */
         AnniversaryType: "love" | "birthday" | "holiday" | "custom";
@@ -657,6 +675,10 @@ export interface components {
         AnniversaryListResponse: {
             message: string;
             anniversaries: components["schemas"]["Anniversary"][];
+            /** @description Shared timezone used for this list; null when unbound */
+            timeZone: string | null;
+            /** @description Shared calendar date used for every countdown in this response; null when unbound */
+            todayDate: components["schemas"]["DateOnlyNullable"];
         };
         AnniversaryItemResponse: {
             message: string;
@@ -1068,6 +1090,7 @@ export type SchemaUser = components['schemas']['User'];
 export type SchemaUserInfoResponse = components['schemas']['UserInfoResponse'];
 export type SchemaUpdateUserProfileRequest = components['schemas']['UpdateUserProfileRequest'];
 export type SchemaCoupleInvite = components['schemas']['CoupleInvite'];
+export type SchemaCoupleTimeZone = components['schemas']['CoupleTimeZone'];
 export type SchemaCoupleRelationship = components['schemas']['CoupleRelationship'];
 export type SchemaCoupleSpace = components['schemas']['CoupleSpace'];
 export type SchemaCoupleSpaceResponse = components['schemas']['CoupleSpaceResponse'];

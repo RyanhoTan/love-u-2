@@ -5,6 +5,8 @@ export function emptyCoupleSummary(): CoupleSummary {
     isBound: false,
     daysInLove: null,
     anniversaryDate: null,
+    timeZone: null,
+    todayDate: null,
     partner: null,
   };
 }

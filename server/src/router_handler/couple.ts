@@ -5,6 +5,8 @@ import db from "../db/index.js";
 import { HttpError } from "../errors.js";
 import { acquireCoupleBindingLocks } from "../couple/bind-locks.js";
 import { generateInviteCode } from "../couple/invite-code.js";
+import { getCalendarDateText, getDaysInLove } from "../couple/calendar.js";
+import { buildCoupleProfileUpdate } from "../couple/profile-update.js";
 import { bindCoupleSchema, updateCoupleProfileSchema } from "../schema/couple.js";
 import { parseRequestBody } from "../validation.js";
 import { closePartnerChatConnectionsForRelationship } from "../ws/partnerChat.js";
@@ -37,6 +39,7 @@ interface CoupleRelationshipRow extends RowDataPacket {
   user_a_id: number;
   user_b_id: number;
   anniversary_date: Date | string | null;
+  time_zone: string;
   status: string;
   created_at: Date | string;
   updated_at: Date | string;
@@ -141,7 +144,8 @@ async function findActiveRelationshipByUserId(
         id,
         user_a_id,
         user_b_id,
-        anniversary_date,
+        DATE_FORMAT(anniversary_date, '%Y-%m-%d') AS anniversary_date,
+        time_zone,
         status,
         created_at,
         updated_at,
@@ -317,27 +321,11 @@ function serializeRelationship(relationship: CoupleRelationshipRow | null) {
     id: relationship.id,
     status: relationship.status,
     anniversaryDate: formatDateOnly(relationship.anniversary_date),
+    timeZone: relationship.time_zone,
     createdAt: formatDateTime(relationship.created_at),
     updatedAt: formatDateTime(relationship.updated_at),
     unboundAt: formatDateTime(relationship.unbound_at),
   };
-}
-
-function getDaysInLove(anniversaryDate: Date | string | null) {
-  const dateText = formatDateOnly(anniversaryDate);
-  if (!dateText) {
-    return null;
-  }
-
-  const start = new Date(`${dateText}T00:00:00.000Z`);
-  const now = new Date();
-  const diffMs = now.getTime() - start.getTime();
-
-  if (Number.isNaN(diffMs) || diffMs < 0) {
-    return 0;
-  }
-
-  return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
 }
 
 async function createUniqueInviteCode(executor: PoolConnection) {
@@ -367,13 +355,20 @@ async function buildCoupleSpaceResponse(userId: number) {
     partner = await findUserSummaryById(db, partnerId, userColumns);
   }
 
+  const todayDate = relationship
+    ? getCalendarDateText(relationship.time_zone)
+    : null;
+
   return {
     message: "get couple space success",
     coupleSpace: {
       isBound: Boolean(relationship),
       partner: serializePartner(partner),
       relationship: serializeRelationship(relationship),
-      daysInLove: relationship ? getDaysInLove(relationship.anniversary_date) : null,
+      todayDate,
+      daysInLove: relationship && todayDate
+        ? getDaysInLove(formatDateOnly(relationship.anniversary_date), todayDate)
+        : null,
       activeInvite: serializeInvite(activeInvite),
     },
   };
@@ -558,16 +553,14 @@ export async function updateCoupleSpace(req: Request, res: Response) {
   const payload = parseRequestBody(updateCoupleProfileSchema, req.body);
   await assertCoupleSpaceTablesReady();
 
+  const relationship = await findActiveRelationshipByUserId(db, userId);
+  if (!relationship) {
+    throw new HttpError(404, "bound couple relationship not found");
+  }
+  const update = buildCoupleProfileUpdate(relationship.id, userId, payload);
   const [result] = await db.query<ResultSetHeader>(
-    `
-      UPDATE ${COUPLE_RELATIONSHIPS_TABLE}
-      SET
-        anniversary_date = ?,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE status = 'bound'
-        AND (user_a_id = ? OR user_b_id = ?)
-    `,
-    [payload.anniversaryDate, userId, userId]
+    update.sql,
+    update.values,
   );
 
   if (result.affectedRows === 0) {

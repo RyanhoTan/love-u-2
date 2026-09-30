@@ -79,6 +79,8 @@ Phase 01 只读基线评估仍未开始，但不是当前 P0 迭代目标的前�
 | 63 | Preserve App sessions on transient restore failures | Complete | PRD-AUTH-001、Phase 38/62 | 仅无效会话或明确 401 清除本地凭据；临时网络/API 错误保留有效恢复机会 |
 | 64 | Cover server bearer/JWT identity validation | Complete | PRD-AUTH-001 | 本地可重复验证缺失/错误 Bearer、签名与过期 token、无效 subject/user ID 均返回 401 |
 | 65 | Isolate explicitly assigned album relationships | Complete | PRD-MEMORY-001、PRD-COUPLE-001 | 当前伴侣不能通过创建者兜底读取其他关系的媒体/故事，查询和收藏写入重新检查有效关系 |
+| 66 | Store shared couple timezone and derive calendar counts | Complete | PRD-DAY-001、PRD-COUPLE-001、已确认时区规则 | 服务端共同日历已实现；45/45 测试与三端静态检查通过，真实迁移/API 仍待验证 |
+| 67 | Apply shared calendar rules in App and Web | Not started | Phase 66、PRD-DAY-001、PRD-TODAY-001 | 两端展示/设置共同时间规则，Web 预览与服务端计算一致；已获当前 Goal 授权 |
 
 ## 阶段顺序
 
@@ -461,6 +463,20 @@ bcrypt 仅使用 UTF-8 密码的前 72 字节；新凭证先做版本化 SHA-256
 修复 album scope 中创建者 OR 条件覆盖已指定关系 ID 的问题：将创建者兜底限于 `relationship_id IS NULL` 的旧记录；在 SQL 执行时重新检查关系绑定/成员状态，收藏 UPDATE 复用相同条件。用本地内存 SQL 夹具验证跨关系拒绝，不定义历史数据归属、清理或迁移策略。详细范围见
 `harness/build/phase-65-album-relationship-isolation.md`。阶段已完成；合成内存 SQL 回归及 server tests 35/35、lint、build 通过，实际 MySQL/R2/HTTP 集成仍未验证。
 
+### Phase 66 — Store shared couple timezone and derive calendar counts
+
+新增关系级 `time_zone`（默认 `Asia/Shanghai`），通过受授权的局部 PATCH 更新，并让 couple-space、
+userinfo 和纪念日使用同一日历算法与共同时间规则。同步客户端类型及 OpenAPI，记录增量 schema 的
+兼容/恢复路径。详细范围见 `harness/build/phase-66-shared-couple-calendar.md`。阶段已完成：
+server tests 45/45、lint/build、两进程时区聚焦测试、Web API/lint/build 和 App lint/typecheck 通过。
+实际 MySQL 迁移/HTTP/设备路径尚未验证；客户端界面与跨日刷新继续由 Phase 67 完成。
+
+### Phase 67 — Apply shared calendar rules in App and Web
+
+在 Phase 66 的存储/计算契约上接入两端共同时间的展示和设置，以及 Web 纪念日预览和“今天”日期。
+保留 date-only 输入；跨午夜更新/聚焦刷新需遵守共同时间规则。该项已获 Goal 和用户时区选择授权，
+不能在服务端小点完成时把整个纪念日模块宣称完成。
+
 ## 后续阶段的准入条件
 
 新增实现阶段前必须：
@@ -560,8 +576,8 @@ PR 创建、CI 等待、修复和合并都属于长任务的执行范围。只�
 - 当前源码包含认证、情侣空间、心愿、纪念日、相册/故事、媒体上传和伴侣聊天等领域。
 - 根 README 对后端仍存在 scaffold/501 的描述，但实时服务端已挂载多个业务路由；这属于需要在
   Phase 01 核实的文档偏差，不能在 Phase 00 顺手修改。
-- 当前三个 package manifest 没有自动化测试脚本。可用的基础验证主要是 lint、TypeScript 检查
-  和 build；端到端验证需要环境变量及外部依赖。
+- 服务端已有 `pnpm --dir server test` 和独立回归用例；App/Web 尚无已配置的自动化测试脚本。
+  三端均有 lint、TypeScript 检查或 build；真实端到端验证仍需要环境变量及外部依赖。
 - 服务端启动需要 MySQL、JWT 和对象存储配置；这类依赖不能在未确认目标时自动访问。
 - 本计划创建时，本地 `main` 比 `origin/main` 领先 5 个提交。本 workflow 分支从本地当前状态
   创建，保留这些提交，不把它们视为本阶段产生的变更。

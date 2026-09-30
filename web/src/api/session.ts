@@ -65,6 +65,14 @@ function normalizeAuthUser(raw: unknown): AuthUser | null {
         typeof user.couple?.anniversaryDate === "string"
           ? user.couple.anniversaryDate
           : null,
+      timeZone:
+        user.couple?.isBound && typeof user.couple?.timeZone === "string"
+          ? user.couple.timeZone
+          : null,
+      todayDate:
+        user.couple?.isBound && typeof user.couple?.todayDate === "string"
+          ? user.couple.todayDate
+          : null,
       partner: user.couple?.isBound ? normalizedPartner : null,
     },
     createdAt: typeof user.createdAt === "string" ? user.createdAt : null,

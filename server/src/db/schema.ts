@@ -69,6 +69,7 @@ const tableDefinitions: readonly TableDefinition[] = [
         user_a_id BIGINT UNSIGNED NOT NULL,
         user_b_id BIGINT UNSIGNED NOT NULL,
         anniversary_date DATE NULL,
+        time_zone VARCHAR(64) NOT NULL DEFAULT 'Asia/Shanghai',
         status VARCHAR(20) NOT NULL DEFAULT 'bound',
         created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
         updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
@@ -83,6 +84,7 @@ const tableDefinitions: readonly TableDefinition[] = [
       { name: "user_a_id", definition: "BIGINT UNSIGNED NOT NULL DEFAULT 0" },
       { name: "user_b_id", definition: "BIGINT UNSIGNED NOT NULL DEFAULT 0" },
       { name: "anniversary_date", definition: "DATE NULL" },
+      { name: "time_zone", definition: "VARCHAR(64) NOT NULL DEFAULT 'Asia/Shanghai'" },
       { name: "status", definition: "VARCHAR(20) NOT NULL DEFAULT 'bound'" },
       {
         name: "created_at",

@@ -337,9 +337,9 @@
         ]
       },
       "patch": {
-        "summary": "更新恋爱纪念日",
+        "summary": "更新情侣共同资料",
         "deprecated": false,
-        "description": "",
+        "description": "局部更新恋爱纪念日或共同时区；未提供的字段保持原值。双方使用关系保存的共同日历规则。",
         "operationId": "updateCoupleSpace",
         "tags": [
           "Couple"
@@ -2509,6 +2509,8 @@
           "isBound",
           "daysInLove",
           "anniversaryDate",
+          "timeZone",
+          "todayDate",
           "partner"
         ],
         "additionalProperties": false,
@@ -2521,10 +2523,18 @@
               "integer",
               "null"
             ],
-            "description": "Days since anniversaryDate; null if unbound or no date"
+            "description": "Inclusive calendar days in the shared timezone; same day is 1, future date is 0; null if unbound or no date"
           },
           "anniversaryDate": {
             "$ref": "#/components/schemas/DateOnlyNullable"
+          },
+          "timeZone": {
+            "type": ["string", "null"],
+            "description": "Stored shared timezone; null when unbound"
+          },
+          "todayDate": {
+            "$ref": "#/components/schemas/DateOnlyNullable",
+            "description": "Calendar today in the shared timezone; null when unbound"
           },
           "partner": {
             "allOf": [
@@ -2697,12 +2707,20 @@
           }
         }
       },
+      "CoupleTimeZone": {
+        "type": "string",
+        "maxLength": 64,
+        "pattern": "^(?:UTC|[A-Za-z_]+(?:/[A-Za-z0-9_+-]+)+)$",
+        "description": "Runtime-supported named timezone or UTC. New relationships initially use Asia/Shanghai; saved date-only values are unchanged.",
+        "example": "Asia/Shanghai"
+      },
       "CoupleRelationship": {
         "type": "object",
         "required": [
           "id",
           "status",
           "anniversaryDate",
+          "timeZone",
           "createdAt",
           "updatedAt",
           "unboundAt"
@@ -2717,6 +2735,9 @@
           },
           "anniversaryDate": {
             "$ref": "#/components/schemas/DateOnlyNullable"
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/CoupleTimeZone"
           },
           "createdAt": {
             "$ref": "#/components/schemas/IsoDateTimeNullable"
@@ -2736,6 +2757,7 @@
           "partner",
           "relationship",
           "daysInLove",
+          "todayDate",
           "activeInvite"
         ],
         "additionalProperties": false,
@@ -2763,7 +2785,12 @@
             "type": [
               "integer",
               "null"
-            ]
+            ],
+            "description": "Inclusive calendar days in relationship.timeZone; same day is 1, future date is 0"
+          },
+          "todayDate": {
+            "$ref": "#/components/schemas/DateOnlyNullable",
+            "description": "Calendar today in relationship.timeZone; null when unbound"
           },
           "activeInvite": {
             "allOf": [
@@ -2841,13 +2868,15 @@
       },
       "UpdateCoupleSpaceRequest": {
         "type": "object",
-        "required": [
-          "anniversaryDate"
-        ],
+        "minProperties": 1,
+        "description": "Partial update: at least one of anniversaryDate or timeZone is required. Omitted fields retain their stored value.",
         "additionalProperties": false,
         "properties": {
           "anniversaryDate": {
             "$ref": "#/components/schemas/DateOnlyNullable"
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/CoupleTimeZone"
           }
         }
       },
@@ -2984,7 +3013,9 @@
         "type": "object",
         "required": [
           "message",
-          "anniversaries"
+          "anniversaries",
+          "timeZone",
+          "todayDate"
         ],
         "additionalProperties": false,
         "properties": {
@@ -2996,6 +3027,14 @@
             "items": {
               "$ref": "#/components/schemas/Anniversary"
             }
+          },
+          "timeZone": {
+            "type": ["string", "null"],
+            "description": "Shared timezone used for this list; null when unbound"
+          },
+          "todayDate": {
+            "$ref": "#/components/schemas/DateOnlyNullable",
+            "description": "Shared calendar date used for every countdown in this response; null when unbound"
           }
         }
       },

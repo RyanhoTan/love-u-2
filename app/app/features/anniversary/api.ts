@@ -23,6 +23,8 @@ export interface AnniversaryItem {
 interface GetAnniversariesResponse {
   message: string;
   anniversaries: AnniversaryItem[];
+  timeZone: string | null;
+  todayDate: string | null;
 }
 
 interface CreateAnniversaryResponse {
